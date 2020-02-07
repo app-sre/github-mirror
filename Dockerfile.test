@@ -1,0 +1,10 @@
+FROM        centos/python-36-centos7
+
+USER        root
+
+WORKDIR     /ghmirror
+
+COPY        . ./
+
+ENTRYPOINT  ["make"]
+CMD         ["check"]
