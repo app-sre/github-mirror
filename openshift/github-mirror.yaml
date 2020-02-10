@@ -13,7 +13,8 @@ objects:
   spec:
     replicas: 1
     selector:
-      app: github-mirror
+      matchLabels:
+        app: github-mirror
     template:
       metadata:
         labels:
