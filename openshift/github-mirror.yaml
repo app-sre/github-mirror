@@ -62,8 +62,21 @@ objects:
         name: github-mirror
     selector:
       app: github-mirror
+- apiVersion: networking.k8s.io/v1
+  kind: NetworkPolicy
+  metadata:
+    name: allow-from-app-interface-namespace
+  spec:
+    ingress:
+    - from:
+      - namespaceSelector:
+          matchLabels:
+            name: ${APP_INTERFACE_NAMESPACE}
+    podSelector: {}
 
 parameters:
+- name: APP_INTERFACE_NAMESPACE
+  value: app-interface-stage
 - name: IMAGE
   value: quay.io/app-sre/github-mirror
   displayName: github mirror image
