@@ -1,0 +1,85 @@
+---
+apiVersion: v1
+kind: Template
+metadata:
+  name: github-mirror
+objects:
+- apiVersion: extensions/v1beta1
+  kind: Deployment
+  metadata:
+    labels:
+      app: github-mirror
+    name: github-mirror
+  spec:
+    replicas: 1
+    selector:
+      app: github-mirror
+    template:
+      metadata:
+        labels:
+          app: github-mirror
+      spec:
+        containers:
+        - image: ${IMAGE}:${IMAGE_TAG}
+          imagePullPolicy: Always
+          name: github-mirror
+          ports:
+          - name: github-mirror
+            containerPort: 8080
+          livenessProbe:
+            httpGet:
+              path: /healthz
+              port: 8080
+            initialDelaySeconds: 30
+            periodSeconds: 10
+            timeoutSeconds: 3
+          readinessProbe:
+            httpGet:
+              path: /healthz
+              port: 8080
+            initialDelaySeconds: 3
+            periodSeconds: 10
+            timeoutSeconds: 3
+          resources:
+            requests:
+              memory: ${MEMORY_REQUESTS}
+              cpu: ${CPU_REQUESTS}
+            limits:
+              memory: ${MEMORY_LIMIT}
+              cpu: ${CPU_LIMIT}
+- apiVersion: v1
+  kind: Service
+  metadata:
+    name: github-mirror
+    labels:
+      app: github-mirror
+  spec:
+    ports:
+      - protocol: TCP
+        port: 80
+        targetPort: 8080
+        name: github-mirror
+    selector:
+      deploymentconfig: github-mirror
+
+parameters:
+- name: IMAGE
+  value: quay.io/app-sre/github-mirror
+  displayName: github mirror image
+  description: github mirror docker image. Defaults to quay.io/app-sre/github-mirror
+- name: IMAGE_TAG
+  value: latest
+  displayName: github mirror version
+  description: github mirror version which defaults to latest
+# It's an in-memory cache service. It needs memory.
+- name: MEMORY_REQUESTS
+  value: 1Gi
+- name: MEMORY_LIMIT
+  value: 1Gi
+# It runs multiple threads, but only one process. If
+# we need more, we should probably increase the number
+# of replicas instead of touching it here.
+- name: CPU_REQUESTS
+  value: 1
+- name: CPU_LIMIT
+  value: 1
