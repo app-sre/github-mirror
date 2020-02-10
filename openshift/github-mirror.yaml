@@ -74,13 +74,13 @@ parameters:
   description: github mirror version which defaults to latest
 # It's an in-memory cache service. It needs memory.
 - name: MEMORY_REQUESTS
-  value: 1Gi
+  value: 800Mi
 - name: MEMORY_LIMIT
   value: 1Gi
 # It runs multiple threads, but only one process. If
 # we need more, we should probably increase the number
 # of replicas instead of touching it here.
 - name: CPU_REQUESTS
-  value: "1"
+  value: 500m
 - name: CPU_LIMIT
-  value: "1"
+  value: 1000m
