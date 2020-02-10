@@ -80,6 +80,6 @@ parameters:
 # we need more, we should probably increase the number
 # of replicas instead of touching it here.
 - name: CPU_REQUESTS
-  value: 1
+  value: "1"
 - name: CPU_LIMIT
-  value: 1
+  value: "1"
