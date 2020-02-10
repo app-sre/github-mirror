@@ -61,7 +61,7 @@ objects:
         targetPort: 8080
         name: github-mirror
     selector:
-      deploymentconfig: github-mirror
+      app: github-mirror
 
 parameters:
 - name: IMAGE
