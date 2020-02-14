@@ -11,28 +11,21 @@ class TestStatsCache:
         with pytest.raises(AttributeError) as e_info:
             stats_cache_01.foo
             assert 'object has no attribute' in e_info.message
-        assert stats_cache_01.hits == 0
-        assert stats_cache_01.misses == 0
+        assert stats_cache_01.counter._value._value == 0
 
-        stats_cache_01.hit()
-        stats_cache_01.hit()
-        stats_cache_01.miss()
-        stats_cache_01.miss()
-        stats_cache_01.miss()
-        stats_cache_01.miss()
-        assert stats_cache_01.hits == 2
-        assert stats_cache_01.misses == 4
+        stats_cache_01.count()
+        stats_cache_01.count()
+
+        assert stats_cache_01.counter._value._value == 2
 
         stats_cache_02 = StatsCache()
-        assert stats_cache_02.hits == 2
-        assert stats_cache_02.misses == 4
+        assert stats_cache_02.counter._value._value == 2
 
-        stats_cache_02.hit()
-        stats_cache_02.miss()
-        assert stats_cache_01.hits == 3
-        assert stats_cache_01.misses == 5
-        assert stats_cache_02.hits == 3
-        assert stats_cache_02.misses == 5
+        stats_cache_02.count()
+        stats_cache_02.count()
+
+        assert stats_cache_01.counter._value._value == 4
+        assert stats_cache_02.counter._value._value == 4
 
 
 class MockResponse:
