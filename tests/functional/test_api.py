@@ -55,66 +55,75 @@ def test_healthz(client):
             side_effect=mocked_requests_get_etag)
 def test_mirror_etag(mock_get, client):
     # Initially the stats are zeroed
-    response = client.get('/stats')
-    expected_data = {'cache_hit': 0,
-                     'cache_miss': 0}
+    response = client.get('/metrics')
     assert response.status_code == 200
-    assert response.json == expected_data
+    assert ('request_latency_seconds_count{cache="HIT",'
+            'method="GET",status="200"}') not in str(response.data)
+    assert ('request_latency_seconds_count{cache="MISS",'
+            'method="GET",status="200"}') not in str(response.data)
 
     response = client.get('/repos/app-sre/github-mirror',
                           follow_redirects=True)
     assert response.status_code == 200
 
     # First get is a cache_miss
-    response = client.get('/stats', follow_redirects=True)
-    expected_data = {'cache_hit': 0,
-                     'cache_miss': 1}
+    response = client.get('/metrics', follow_redirects=True)
+
     assert response.status_code == 200
-    assert response.json == expected_data
+    assert ('request_latency_seconds_count{cache="HIT",'
+            'method="GET",status="200"}') not in str(response.data)
+    assert ('request_latency_seconds_count{cache="MISS",'
+            'method="GET",status="200"} 1.0') in str(response.data)
 
     response = client.get('/repos/app-sre/github-mirror',
                           follow_redirects=True)
     assert response.status_code == 200
 
     # Second get is a cache_hit
-    response = client.get('/stats', follow_redirects=True)
-    expected_data = {'cache_hit': 1,
-                     'cache_miss': 1}
+    response = client.get('/metrics', follow_redirects=True)
+
     assert response.status_code == 200
-    assert response.json == expected_data
+    assert ('request_latency_seconds_count{cache="HIT",'
+            'method="GET",status="200"} 1.0') in str(response.data)
+    assert ('request_latency_seconds_count{cache="MISS",'
+            'method="GET",status="200"} 1.0') in str(response.data)
 
 
 @mock.patch('ghmirror.app.requests.request',
             side_effect=mocked_requests_get_last_modified)
 def test_mirror_last_modified(mock_get, client):
     # Initially the stats are zeroed
-    response = client.get('/stats')
-    expected_data = {'cache_hit': 0,
-                     'cache_miss': 0}
+    response = client.get('/metrics')
     assert response.status_code == 200
-    assert response.json == expected_data
+    assert ('request_latency_seconds_count{cache="HIT",'
+            'method="GET",status="200"}') not in str(response.data)
+    assert ('request_latency_seconds_count{cache="MISS",'
+            'method="GET",status="200"}') not in str(response.data)
 
     response = client.get('/repos/app-sre/github-mirror',
                           follow_redirects=True)
     assert response.status_code == 200
 
     # First get is a cache_miss
-    response = client.get('/stats', follow_redirects=True)
-    expected_data = {'cache_hit': 0,
-                     'cache_miss': 1}
+    response = client.get('/metrics', follow_redirects=True)
+
     assert response.status_code == 200
-    assert response.json == expected_data
+    assert ('request_latency_seconds_count{cache="HIT",'
+            'method="GET",status="200"}') not in str(response.data)
+    assert ('request_latency_seconds_count{cache="MISS",'
+            'method="GET",status="200"} 1.0') in str(response.data)
 
     response = client.get('/repos/app-sre/github-mirror',
                           follow_redirects=True)
     assert response.status_code == 200
 
     # Second get is a cache_hit
-    response = client.get('/stats', follow_redirects=True)
-    expected_data = {'cache_hit': 1,
-                     'cache_miss': 1}
+    response = client.get('/metrics', follow_redirects=True)
     assert response.status_code == 200
-    assert response.json == expected_data
+    assert ('request_latency_seconds_count{cache="HIT",'
+            'method="GET",status="200"} 1.0') in str(response.data)
+    assert ('request_latency_seconds_count{cache="MISS",'
+            'method="GET",status="200"} 1.0') in str(response.data)
 
 
 @mock.patch('ghmirror.app.requests.request',

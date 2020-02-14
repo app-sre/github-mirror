@@ -18,13 +18,16 @@ The GitHub Mirror endpoints
 
 import hashlib
 import logging
-import requests
 
 import flask
+import requests
+
+from prometheus_client import generate_latest
 
 from ghmirror.app.response import MirrorResponse
 from ghmirror.data_structures.monostate import RequestsCache
 from ghmirror.data_structures.monostate import StatsCache
+from ghmirror.decorators.metrics import requests_metrics
 
 
 logging.basicConfig(level=logging.INFO,
@@ -44,23 +47,19 @@ def healthz():
     return flask.Response('OK')
 
 
-@APP.route('/stats', methods=["GET"])
-def stats():
+@APP.route('/metrics', methods=["GET"])
+def metrics():
     """
-    Cache statistics endpoint.
+    Prometheus metrics endpoint.
     """
-    stats_cache = StatsCache()
-
-    return flask.jsonify(
-        {
-            'cache_hit': stats_cache.hits,
-            'cache_miss': stats_cache.misses,
-        }
-    )
+    headers = {'Content-type': 'text/plain'}
+    return flask.Response(generate_latest(registry=StatsCache().registry),
+                          200, headers)
 
 
 @APP.route('/', defaults={'path': ''})
 @APP.route('/<path:path>', methods=["GET", "POST", "PUT", "PATCH", "DELETE"])
+@requests_metrics
 def ghmirror(path):
     """
     Default endpoint, matching any url without a specific endpoint.
@@ -91,9 +90,9 @@ def ghmirror(path):
                                 data=flask.request.data)
 
         return flask.Response(resp.content,
-                              resp.status_code)
+                              resp.status_code,
+                              headers={'X-Cache': 'MISS'})
 
-    stats_cache = StatsCache()
     cache = RequestsCache()
 
     cache_key = (url, auth_sha)
@@ -118,12 +117,13 @@ def ghmirror(path):
                 'Last-Modified' in resp.headers]):
             cache[cache_key] = resp
         mirror_response = MirrorResponse(original_response=resp,
+                                         headers={'X-Cache': 'MISS'},
                                          gh_api_url=GH_API,
                                          gh_mirror_url=flask.request.host_url)
     else:
         LOG.info('[GET] CACHE_HIT %s', url)
-        stats_cache.hit()
         mirror_response = MirrorResponse(original_response=cache[cache_key],
+                                         headers={'X-Cache': 'HIT'},
                                          gh_api_url=GH_API,
                                          gh_mirror_url=flask.request.host_url)
 

@@ -25,6 +25,7 @@ class TestResponse:
                                      headers=headers,
                                      status_code=200)
         response = MirrorResponse(original_response=mock_response,
+                                  headers={},
                                   gh_api_url='foo',
                                   gh_mirror_url='bar')
 
@@ -42,6 +43,7 @@ class TestResponse:
                                      status_code=200)
 
         response = MirrorResponse(original_response=mock_response,
+                                  headers={},
                                   gh_api_url='foo',
                                   gh_mirror_url='bar')
 
@@ -66,6 +68,8 @@ class TestResponse:
                                      status_code=200)
 
         response = MirrorResponse(original_response=mock_response,
+                                  headers={},
+
                                   gh_api_url='foo',
                                   gh_mirror_url='bar')
 
@@ -79,6 +83,7 @@ class TestResponse:
                                      status_code=200)
 
         response = MirrorResponse(original_response=mock_response,
+                                  headers={},
                                   gh_api_url='foo',
                                   gh_mirror_url='bar')
 

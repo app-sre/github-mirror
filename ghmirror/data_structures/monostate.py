@@ -16,6 +16,12 @@
 Caching data structures.
 """
 
+from prometheus_client import CollectorRegistry
+from prometheus_client import Counter
+from prometheus_client import Histogram
+from prometheus_client import ProcessCollector
+
+
 __all__ = ['RequestsCache', 'StatsCache']
 
 
@@ -75,17 +81,46 @@ class StatsCache(StatsCacheBorg):
         (instead of in the __init__()) so we don't overwrite
         them on when a new instance is created.
         """
-        setattr(self, item, 0)
+        if item == 'registry':
+            # This will create the self.registry attribute, which
+            # contains an instance of the CollectorRegistry.
+            setattr(self, item, CollectorRegistry())
+            # Adding a ProcessCollector to the registry. The
+            # ProcessCollector does not have to be an attribute,
+            # since it's never manipulated  directly.
+            ProcessCollector(registry=self.registry)
+
+        elif item == 'histogram':
+            # Adding a Histogram to the registry and also making
+            # the Histogram available as an attribute so we can
+            # call its observe()
+            setattr(self, item,
+                    Histogram(name='request_latency_seconds',
+                              labelnames=('cache', 'status', 'method'),
+                              documentation='request latency histogram',
+                              registry=self.registry))
+        elif item == 'counter':
+            # Adding a Counter to the registry and also making
+            # the Counter available as an attribute so we can
+            # call its inc()
+            setattr(self, item,
+                    Counter(name='http_request',
+                            documentation='total requests',
+                            registry=self.registry))
+        else:
+            raise AttributeError(f"object has no attribute {item}'")
+
         return getattr(self, item)
 
-    def hit(self):
+    def count(self):
         """
-        Convenience method to increment the hits counter.
+        Convenience method to increment the counter.
         """
-        self.hits += 1
+        self.counter.inc(1)
 
-    def miss(self):
+    def observe(self, cache, status, value, method):
         """
-        Convenience method to increment the misses counter.
+        Convenience method to populate the histogram.
         """
-        self.misses += 1
+        self.histogram.labels(cache=cache, status=status,
+                              method=method).observe(value)
