@@ -6,5 +6,7 @@ WORKDIR     /ghmirror
 
 COPY        . ./
 
+RUN         make develop
+
 ENTRYPOINT  ["make"]
 CMD         ["check"]

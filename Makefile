@@ -1,19 +1,27 @@
 all:
 	@echo
 	@echo "Targets:"
+	@echo "prepare:      Installs pipenv."
+	@echo "install:      Installs the ghmirror package and its dependencies."
+	@echo "develop:      Installs the ghmirror package, its dependencies and its development dependencies."
 	@echo "check:        Runs the style check, the code check and the tests."
-	@echo "run-app:      Runs the app server (debug mode)."
+	@echo "run:          Runs the app server (debug mode)."
 	@echo
 
-install:
-	pip install pipenv
 
-check: install
+prepare:
+	pip install pipenv --upgrade
+
+install: prepare
+	pipenv install
+
+develop: prepare
 	pipenv install --dev
+
+check:
 	pipenv run flake8 ghmirror
 	pipenv run pylint ghmirror
 	pipenv run pipenv run pytest -v --forked --cov=ghmirror --cov-report=term-missing tests/
 
-run-app: install
-	pipenv install
+run:
 	pipenv run python ghmirror/app/__init__.py
