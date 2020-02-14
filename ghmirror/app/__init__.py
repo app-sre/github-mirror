@@ -82,12 +82,12 @@ def ghmirror(path):
         auth_sha = hashlib.sha1(authorization.encode()).hexdigest()
 
     if flask.request.method != 'GET':
-        LOG.info('[%s] BYPASS %s', flask.request.method, url)
-
         resp = requests.request(flask.request.method,
                                 url=url,
                                 headers=headers,
                                 data=flask.request.data)
+
+        log_info(cache='MISS', url=url)
 
         return flask.Response(resp.content,
                               resp.status_code,
@@ -109,8 +109,7 @@ def ghmirror(path):
                             headers=headers)
 
     if resp.status_code != 304:
-        LOG.info('[GET] CACHE_MISS %s', url)
-        stats_cache.miss()
+        log_info(cache='MISS', url=url)
         # Caching only makes sense when at least one
         # of those headers is present
         if any(['ETag' in resp.headers,
@@ -121,7 +120,8 @@ def ghmirror(path):
                                          gh_api_url=GH_API,
                                          gh_mirror_url=flask.request.host_url)
     else:
-        LOG.info('[GET] CACHE_HIT %s', url)
+        log_info(cache='HIT', url=url)
+
         mirror_response = MirrorResponse(original_response=cache[cache_key],
                                          headers={'X-Cache': 'HIT'},
                                          gh_api_url=GH_API,
@@ -130,6 +130,13 @@ def ghmirror(path):
     return flask.Response(mirror_response.content,
                           mirror_response.status_code,
                           mirror_response.headers)
+
+
+def log_info(cache, url):
+    """
+    Helper for standard log messages
+    """
+    LOG.info('[%s] CACHE_%s %s', flask.request.method, cache, url)
 
 
 if __name__ == '__main__':  # pragma: no cover
