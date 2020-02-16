@@ -6,28 +6,34 @@ serving the client with the cached responses when the GitHub API replies with a
 304 HTTP code, reducing the number of API calls, making a more efficient use of
 the GitHub API rate limit.
 
-The mirror acts only on GET requests, bypassing the other requests methods.
+The mirror acts only on GET requests, by-passing the other requests methods.
 
 The cache is currently in-memory only, shared among all the threads, but not
 shared between processes. Every time the server is started, the cache is
 initialized empty.
 
-Check the code:
+## Use
+
+Build the Docker image:
 
 ```
-$  make check
+$ docker build -t github-mirror .
 ```
 
-Run the development server:
+Run the Docker container:
 
 ```
-$  make run-app
+$ docker run --rm -p 8080:8080 github-mirror
+[2020-02-16 21:06:04 +0000] [1] [INFO] Starting gunicorn 20.0.4
+[2020-02-16 21:06:04 +0000] [1] [INFO] Listening at: http://0.0.0.0:8080 (1)
+[2020-02-16 21:06:04 +0000] [1] [INFO] Using worker: threads
+[2020-02-16 21:06:04 +0000] [8] [INFO] Booting worker with pid: 8
 ```
 
-Using:
+Use it as Github API url:
 
 ```
-$ pipenv run python
+$ python
 Python 3.6.10 (default, Dec 20 2019, 00:00:00)
 [GCC 9.2.1 20190827 (Red Hat 9.2.1-1)] on linux
 Type "help", "copyright", "credits" or "license" for more information.
@@ -39,27 +45,61 @@ Type "help", "copyright", "credits" or "license" for more information.
 >>> requests.get('http://localhost:8080/repos/app-sre/github-mirror')
 <Response [200]>
 >>>
->>> requests.get('http://localhost:8080/stats').json()
-{'cache_hit': 1, 'cache_miss': 1}
 ```
 
-Notice that requests to the `/stats` endpoint are not considered for cache
-hit/miss statistics.
-
-After those three requests, the server log will show:
+After those two requests, the server log will show:
 
 ```
-2020-02-07 13:47:21,067 [GET] CACHE_MISS https://api.github.com/repos/app-sre/github-mirror
-2020-02-07 13:47:21,069 127.0.0.1 - - [07/Feb/2020 13:47:21] "GET /repos/app-sre/github-mirror HTTP/1.1" 200 -
-2020-02-07 13:47:30,938 [GET] CACHE_HIT https://api.github.com/repos/app-sre/github-mirror
-2020-02-07 13:47:30,941 127.0.0.1 - - [07/Feb/2020 13:47:30] "GET /repos/app-sre/github-mirror HTTP/1.1" 200 -
-2020-02-07 13:47:52,677 127.0.0.1 - - [07/Feb/2020 13:47:52] "GET /stats HTTP/1.1" 200 -
+$ docker run --rm -p 8080:8080 github-mirror
+[2020-02-16 21:06:04 +0000] [1] [INFO] Starting gunicorn 20.0.4
+[2020-02-16 21:06:04 +0000] [1] [INFO] Listening at: http://0.0.0.0:8080 (1)
+[2020-02-16 21:06:04 +0000] [1] [INFO] Using worker: threads
+[2020-02-16 21:06:04 +0000] [8] [INFO] Booting worker with pid: 8
+2020-02-16 21:08:07,948 [GET] CACHE_MISS https://api.github.com/repos/app-sre/github-mirror
+2020-02-16 21:08:13,585 [GET] CACHE_HIT https://api.github.com/repos/app-sre/github-mirror
 ```
 
-If you're using PyGithub, you just have to pass the `base_url` when creating
+If you're using PyGithub, you have to pass the `base_url` when creating
 the client instance:
 
 ```
 >>> from github import Github
 >>> gh_cli = Github(base_url='http://localhost:8080')
+```
+
+## Metrics
+
+The service has a `/metrics` endpoint, exposing metrics in the Prometheus
+format:
+
+```
+>>> response = requests.get('http://localhost:8080/metrics')
+>>> print(response.content.decode())
+...
+http_request_total 2.0
+...
+request_latency_seconds_count{cache="MISS",method="GET",status="200"} 1.0
+...
+request_latency_seconds_count{cache="HIT",method="GET",status="200"} 1.0
+...
+```
+
+## Develop
+
+Install the development requirements:
+
+```
+$  make develop
+```
+
+Run the code checks and tests:
+
+```
+$  make check
+```
+
+Run the development server:
+
+```
+$  make run
 ```
