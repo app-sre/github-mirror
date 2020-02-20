@@ -16,19 +16,17 @@
 The GitHub Mirror endpoints
 """
 
-import hashlib
 import logging
 
 import flask
-import requests
 
 from prometheus_client import generate_latest
 
-from ghmirror.app.response import MirrorResponse
-from ghmirror.data_structures.monostate import RequestsCache
 from ghmirror.core.constants import GH_API
+from ghmirror.core.mirror_response import MirrorResponse
+from ghmirror.core.mirror_requests import conditional_request
 from ghmirror.data_structures.monostate import StatsCache
-from ghmirror.decorators.metrics import requests_metrics
+from ghmirror.decorators.checks import check_user
 
 
 logging.basicConfig(level=logging.INFO,
@@ -59,7 +57,7 @@ def metrics():
 
 @APP.route('/', defaults={'path': ''})
 @APP.route('/<path:path>', methods=["GET", "POST", "PUT", "PATCH", "DELETE"])
-@requests_metrics
+@check_user
 def ghmirror(path):
     """
     Default endpoint, matching any url without a specific endpoint.
@@ -72,71 +70,18 @@ def ghmirror(path):
             url += f'{key}={value}&'
         url = url.rstrip('&')
 
-    headers = {}
-    authorization = flask.request.headers.get('Authorization')
-    auth_sha = None
-    if authorization is not None:
-        headers['Authorization'] = authorization
-        # The authorization token will be used as cache key,
-        # so let's hash it for additional security.
-        auth_sha = hashlib.sha1(authorization.encode()).hexdigest()
+    resp = conditional_request(method=flask.request.method,
+                               url=url,
+                               auth=flask.request.headers.get('Authorization'),
+                               data=flask.request.data)
 
-    if flask.request.method != 'GET':
-        resp = requests.request(flask.request.method,
-                                url=url,
-                                headers=headers,
-                                data=flask.request.data)
-
-        log_info(cache='MISS', url=url)
-
-        return flask.Response(resp.content,
-                              resp.status_code,
-                              headers={'X-Cache': 'MISS'})
-
-    cache = RequestsCache()
-
-    cache_key = (url, auth_sha)
-    if cache_key in cache:
-        etag = cache[cache_key].headers.get('ETag')
-        if etag is not None:
-            headers['If-None-Match'] = etag
-        last_mod = cache[cache_key].headers.get('Last-Modified')
-        if last_mod is not None:
-            headers['If-Modified-Since'] = last_mod
-
-    resp = requests.request(flask.request.method,
-                            url=url,
-                            headers=headers)
-
-    if resp.status_code != 304:
-        log_info(cache='MISS', url=url)
-        # Caching only makes sense when at least one
-        # of those headers is present
-        if any(['ETag' in resp.headers,
-                'Last-Modified' in resp.headers]):
-            cache[cache_key] = resp
-        mirror_response = MirrorResponse(original_response=resp,
-                                         headers={'X-Cache': 'MISS'},
-                                         gh_api_url=GH_API,
-                                         gh_mirror_url=flask.request.host_url)
-    else:
-        log_info(cache='HIT', url=url)
-
-        mirror_response = MirrorResponse(original_response=cache[cache_key],
-                                         headers={'X-Cache': 'HIT'},
-                                         gh_api_url=GH_API,
-                                         gh_mirror_url=flask.request.host_url)
+    mirror_response = MirrorResponse(original_response=resp,
+                                     gh_api_url=GH_API,
+                                     gh_mirror_url=flask.request.host_url)
 
     return flask.Response(mirror_response.content,
                           mirror_response.status_code,
                           mirror_response.headers)
-
-
-def log_info(cache, url):
-    """
-    Helper for standard log messages
-    """
-    LOG.info('[%s] CACHE_%s %s', flask.request.method, cache, url)
 
 
 if __name__ == '__main__':  # pragma: no cover

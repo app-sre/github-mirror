@@ -22,7 +22,7 @@ from prometheus_client import Histogram
 from prometheus_client import ProcessCollector
 
 
-__all__ = ['RequestsCache', 'StatsCache']
+__all__ = ['RequestsCache', 'StatsCache', 'UsersCache']
 
 
 class RequestsCacheBorg:
@@ -59,6 +59,39 @@ class RequestsCache(RequestsCacheBorg):
 
     def __iter__(self):
         return iter(self._data)
+
+
+class UsersCacheBorg:
+    """
+    Monostate class for sharing the users cache.
+    """
+    _state = {}
+
+    def __init__(self):
+        self.__dict__ = self._state
+
+
+class UsersCache(UsersCacheBorg):
+    """
+    Set-like implementation for caching users information.
+    """
+    def __getattr__(self, item):
+        """
+        Safe class argument initialization. We do it here
+        (instead of in the __init__()) so we don't overwrite
+        them when a new instance is created.
+        """
+        setattr(self, item, set())
+        return getattr(self, item)
+
+    def __contains__(self, item):
+        return item in self._data
+
+    def add(self, value):
+        """
+        Adding the value to the backing set
+        """
+        self._data.add(value)
 
 
 class StatsCacheBorg:

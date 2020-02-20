@@ -1,8 +1,10 @@
+import hashlib
 from unittest import mock
 
 import pytest
 
 from ghmirror.app import APP
+from ghmirror.data_structures.monostate import UsersCache
 
 
 def mocked_requests_get_etag(*args, **kwargs):
@@ -37,6 +39,42 @@ def mocked_requests_get_last_modified(*args, **kwargs):
     return MockResponse('', {'Last-Modified': 'bar'}, 200)
 
 
+def mocked_requests_get_user_orgs_auth(*args, **kwargs):
+    class MockResponse:
+        def __init__(self, content, headers, status_code):
+            self.content = content.encode()
+            self.headers = headers
+            self.status_code = status_code
+
+        def json(self):
+            return {'login': 'app-sre-bot'}
+
+    return MockResponse('', {}, 200)
+
+
+def mocked_requests_get_user_orgs_unauth(*args, **kwargs):
+    class MockResponse:
+        def __init__(self, content, headers, status_code):
+            self.content = content.encode()
+            self.headers = headers
+            self.status_code = status_code
+
+        def json(self):
+            return {'login': 'other'}
+
+    return MockResponse('', {}, 200)
+
+
+def mocked_requests_get_user_orgs_error(*args, **kwargs):
+    class MockResponse:
+        def __init__(self, content, headers, status_code):
+            self.content = content.encode()
+            self.headers = headers
+            self.status_code = status_code
+
+    return MockResponse('', {}, 500)
+
+
 @pytest.fixture
 def client():
     APP.config['TESTING'] = True
@@ -51,7 +89,7 @@ def test_healthz(client):
     assert response.data == b'OK'
 
 
-@mock.patch('ghmirror.app.requests.request',
+@mock.patch('ghmirror.core.mirror_requests.requests.request',
             side_effect=mocked_requests_get_etag)
 def test_mirror_etag(mock_get, client):
     # Initially the stats are zeroed
@@ -89,7 +127,7 @@ def test_mirror_etag(mock_get, client):
             'method="GET",status="200"} 1.0') in str(response.data)
 
 
-@mock.patch('ghmirror.app.requests.request',
+@mock.patch('ghmirror.core.mirror_requests.requests.request',
             side_effect=mocked_requests_get_last_modified)
 def test_mirror_last_modified(mock_get, client):
     # Initially the stats are zeroed
@@ -126,19 +164,80 @@ def test_mirror_last_modified(mock_get, client):
             'method="GET",status="200"} 1.0') in str(response.data)
 
 
-@mock.patch('ghmirror.app.requests.request',
+@mock.patch('ghmirror.core.mirror_requests.requests.request',
             side_effect=mocked_requests_get_last_modified)
-def test_mirror_upstream_call(mock_get, client):
+def test_mirror_upstream_call(mocked_request, client):
     client.get('/user/repos?page=2',
                headers={'Authorization': 'foo'})
-    mock_get.assert_called_with('GET', headers={'Authorization': 'foo'},
-                                url='https://api.github.com/user/repos?page=2')
+    expected_url = 'https://api.github.com/user/repos?page=2'
+    mocked_request.assert_called_with(method='GET',
+                                      headers={'Authorization': 'foo'},
+                                      url=expected_url)
 
 
-@mock.patch('ghmirror.app.requests.request',
+@mock.patch('ghmirror.core.mirror_requests.requests.request',
             side_effect=mocked_requests_get_last_modified)
-def test_mirror_non_get(mock_get, client):
-    client.patch('/repos/foo/bar',
-                 data=b'foo')
-    mock_get.assert_called_with('PATCH', data=b'foo', headers={},
-                                url='https://api.github.com/repos/foo/bar')
+def test_mirror_non_get(mocked_request, client):
+    client.patch('/repos/foo/bar', data=b'foo')
+    expected_url = 'https://api.github.com/repos/foo/bar'
+    mocked_request.assert_called_with(method='PATCH', data=b'foo', headers={},
+                                      url=expected_url)
+
+
+@mock.patch('ghmirror.decorators.checks.AUTHORIZED_USERS', 'app-sre-bot')
+@mock.patch('ghmirror.decorators.checks.conditional_request',
+            side_effect=mocked_requests_get_user_orgs_auth)
+@mock.patch('ghmirror.core.mirror_requests.requests.request')
+def test_mirror_authorized_user(mocked_request, mocked_cond_request, client):
+    client.get('/repos/app-sre/github-mirror',
+               headers={'Authorization': 'foo'})
+    mocked_cond_request.assert_called_with(auth='foo', method='GET',
+                                           url='https://api.github.com/user')
+    mocked_request.assert_called_with(method='GET',
+                                      headers={'Authorization': 'foo'},
+                                      url='https://api.github.com/repos/'
+                                          'app-sre/github-mirror')
+
+
+@mock.patch('ghmirror.decorators.checks.AUTHORIZED_USERS', 'app-sre-bot')
+@mock.patch('ghmirror.decorators.checks.conditional_request',
+            side_effect=mocked_requests_get_user_orgs_auth)
+@mock.patch('ghmirror.core.mirror_requests.requests.request')
+def test_mirror_authorized_user_cached(mocked_request, mocked_cond_request,
+                                       client):
+    users_cache = UsersCache()
+    auth_sha = hashlib.sha1('foo'.encode()).hexdigest()
+    users_cache.add(auth_sha)
+
+    client.get('/repos/app-sre/github-mirror',
+               headers={'Authorization': 'foo'})
+    assert not mocked_cond_request.called
+    mocked_request.assert_called_with(method='GET',
+                                      headers={'Authorization': 'foo'},
+                                      url='https://api.github.com/repos/'
+                                          'app-sre/github-mirror')
+
+
+@mock.patch('ghmirror.decorators.checks.AUTHORIZED_USERS', 'app-sre-bot')
+@mock.patch('ghmirror.decorators.checks.conditional_request',
+            side_effect=mocked_requests_get_user_orgs_unauth)
+def test_mirror_user_forbidden(mocked_cond_request, client):
+    response = client.get('/repos/app-sre/github-mirror',
+                          headers={'Authorization': 'foo'})
+    assert response.status_code == 403
+
+
+@mock.patch('ghmirror.decorators.checks.AUTHORIZED_USERS', 'app-sre-bot')
+def test_mirror_no_auth(client):
+    response = client.get('/repos/app-sre/github-mirror',
+                          headers={})
+    assert response.status_code == 401
+
+
+@mock.patch('ghmirror.decorators.checks.AUTHORIZED_USERS', 'app-sre-bot')
+@mock.patch('ghmirror.decorators.checks.conditional_request',
+            side_effect=mocked_requests_get_user_orgs_error)
+def test_mirror_auth_error(mocked_cond_request, client):
+    response = client.get('/repos/app-sre/github-mirror',
+                          headers={'Authorization': 'foo'})
+    assert response.status_code == 500

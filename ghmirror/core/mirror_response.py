@@ -32,9 +32,8 @@ class MirrorResponse:
     :type gh_api_url: str
     :type gh_mirror_url: str
     """
-    def __init__(self, original_response, headers, gh_api_url, gh_mirror_url):
+    def __init__(self, original_response, gh_api_url, gh_mirror_url):
         self._original_response = original_response
-        self._headers = headers
         self._gh_api_url = gh_api_url.rstrip('/')
         self._gh_mirror_url = gh_mirror_url.rstrip('/')
 
@@ -48,7 +47,11 @@ class MirrorResponse:
         :return: the sanitized headers
         :rtype: dict
         """
-        sanitized_headers = self._headers
+        sanitized_headers = dict()
+
+        x_cache = self._original_response.headers.get('X-Cache')
+        if x_cache is not None:
+            sanitized_headers['X-Cache'] = x_cache
 
         link = self._original_response.headers.get('Link')
         if link is not None:
