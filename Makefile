@@ -10,7 +10,7 @@ all:
 
 
 prepare:
-	pip install pipenv --upgrade
+	pip install pipenv --user --upgrade
 
 install: prepare
 	pipenv install
