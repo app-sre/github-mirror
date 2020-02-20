@@ -103,3 +103,17 @@ Run the development server:
 ```
 $  make run
 ```
+
+## User Validation
+
+To enable the user validation, the `GITHUB_USERS` environment variable
+should be available to the server. The `GITHUB_USERS` is a colon-separated
+list of authorized users to have their requests to the Github Mirror served.
+
+The user validation, when enabled, will not allow unauthenticated requests
+to the Github Mirror.
+
+Please notice that, in order to validate the user, one additional get request
+is made to the Github API, to the `/user` endpoint, using the provided
+authorization token. That call will also go through the caching mechanism, so
+the rate limit will be preserved when possible.
