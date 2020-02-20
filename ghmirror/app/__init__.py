@@ -26,6 +26,7 @@ from prometheus_client import generate_latest
 
 from ghmirror.app.response import MirrorResponse
 from ghmirror.data_structures.monostate import RequestsCache
+from ghmirror.core.constants import GH_API
 from ghmirror.data_structures.monostate import StatsCache
 from ghmirror.decorators.metrics import requests_metrics
 
@@ -34,7 +35,6 @@ logging.basicConfig(level=logging.INFO,
                     format='%(asctime)-15s %(message)s')
 
 LOG = logging.getLogger(__name__)
-GH_API = 'https://api.github.com'
 
 APP = flask.Flask(__name__)
 
