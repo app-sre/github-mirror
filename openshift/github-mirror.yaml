@@ -29,6 +29,10 @@ objects:
         - image: ${IMAGE}:${IMAGE_TAG}
           imagePullPolicy: Always
           name: github-mirror
+          env:
+            - name: GITHUB_USERS
+              # Colon-separated list of authorized users
+              value: app-sre-bot
           ports:
           - name: github-mirror
             containerPort: 8080
