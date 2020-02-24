@@ -75,7 +75,9 @@ def check_user(function):
             return function(*args, **kwargs)
 
         # No match means user is forbidden
-        return flask.Response('You have no permission to use '
-                              'the github-mirror', 403)
+        doc_url = 'https://github.com/app-sre/github-mirror#user-validation'
+        return flask.jsonify(message='You have no permission to use the '
+                                     'github-mirror',
+                             documentation_url=doc_url), 403
 
     return wrapper
