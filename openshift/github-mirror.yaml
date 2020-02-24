@@ -32,7 +32,7 @@ objects:
           env:
             - name: GITHUB_USERS
               # Colon-separated list of authorized users
-              value: app-sre-bot
+              value: app-sre-bot:cs-sre-bot
           ports:
           - name: github-mirror
             containerPort: 8080
