@@ -29,6 +29,7 @@ from ghmirror.data_structures.monostate import UsersCache
 
 
 AUTHORIZED_USERS = os.environ.get('GITHUB_USERS')
+DOC_URL = 'https://github.com/app-sre/github-mirror#user-validation'
 
 
 def check_user(function):
@@ -47,7 +48,8 @@ def check_user(function):
         authorization = flask.request.headers.get('Authorization')
         # At this stage, Authorization header is mandatory
         if authorization is None:
-            return flask.Response('Requires authentication', 401)
+            return flask.jsonify(message='Authorization header is required',
+                                 documentation_url=DOC_URL), 401
 
         users_cache = UsersCache()
         auth_sha = hashlib.sha1(authorization.encode()).hexdigest()
@@ -75,9 +77,8 @@ def check_user(function):
             return function(*args, **kwargs)
 
         # No match means user is forbidden
-        doc_url = 'https://github.com/app-sre/github-mirror#user-validation'
         return flask.jsonify(message='User %s has no permission to use the '
                                      'github-mirror' % user_login,
-                             documentation_url=doc_url), 403
+                             documentation_url=DOC_URL), 403
 
     return wrapper
