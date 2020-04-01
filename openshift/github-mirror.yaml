@@ -31,8 +31,7 @@ objects:
           name: github-mirror
           env:
             - name: GITHUB_USERS
-              # Colon-separated list of authorized users
-              value: app-sre-bot:cs-sre-bot
+              value: ${GITHUB_USERS}
           ports:
           - name: github-mirror
             containerPort: 8080
@@ -93,3 +92,5 @@ parameters:
   value: 500m
 - name: CPU_LIMIT
   value: 1000m
+- name: GITHUB_USERS
+  value: app-sre-bot:cs-sre-bot
