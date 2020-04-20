@@ -32,6 +32,8 @@ objects:
           env:
             - name: GITHUB_USERS
               value: ${GITHUB_USERS}
+            - name: GITHUB_MIRROR_URL
+              value: ${GITHUB_MIRROR_URL}
           ports:
           - name: github-mirror
             containerPort: 8080
