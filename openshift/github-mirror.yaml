@@ -92,5 +92,9 @@ parameters:
   value: 500m
 - name: CPU_LIMIT
   value: 1000m
+# These values are meant to be overridden by the
+# saas-herder parametrization
 - name: GITHUB_USERS
   value: app-sre-bot:cs-sre-bot
+- name: GITHUB_MIRROR_URL
+  value: https://github-mirror.stage.devshift.net

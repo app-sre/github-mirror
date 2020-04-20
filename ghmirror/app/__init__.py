@@ -17,6 +17,7 @@ The GitHub Mirror endpoints
 """
 
 import logging
+import os
 
 import flask
 
@@ -75,9 +76,10 @@ def ghmirror(path):
                                auth=flask.request.headers.get('Authorization'),
                                data=flask.request.data)
 
+    gh_mirror_url = os.environ.get('GITHUB_MIRROR_URL', flask.request.host_url)
     mirror_response = MirrorResponse(original_response=resp,
                                      gh_api_url=GH_API,
-                                     gh_mirror_url=flask.request.host_url)
+                                     gh_mirror_url=gh_mirror_url)
 
     return flask.Response(mirror_response.content,
                           mirror_response.status_code,
