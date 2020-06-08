@@ -84,26 +84,6 @@ request_latency_seconds_count{cache="HIT",method="GET",status="200"} 1.0
 ...
 ```
 
-## Develop
-
-Install the development requirements:
-
-```
-$  make develop
-```
-
-Run the code checks and tests:
-
-```
-$  make check
-```
-
-Run the development server:
-
-```
-$  make run
-```
-
 ## User Validation
 
 To enable the user validation, the `GITHUB_USERS` environment variable

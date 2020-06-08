@@ -6,8 +6,7 @@ WORKDIR     /ghmirror
 
 COPY        . ./
 
-RUN         pip install pipenv --upgrade
-RUN         pipenv install --dev
+RUN         make develop
 
 ENTRYPOINT  ["make"]
 CMD         ["check"]
