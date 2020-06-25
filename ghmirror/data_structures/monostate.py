@@ -16,8 +16,11 @@
 Caching data structures.
 """
 
+import sys
+
 from prometheus_client import CollectorRegistry
 from prometheus_client import Counter
+from prometheus_client import Gauge
 from prometheus_client import Histogram
 from prometheus_client import ProcessCollector
 
@@ -59,6 +62,9 @@ class RequestsCache(RequestsCacheBorg):
 
     def __iter__(self):
         return iter(self._data)
+
+    def __sizeof__(self):
+        return sys.getsizeof(self._data)
 
 
 class UsersCacheBorg:
@@ -140,6 +146,12 @@ class StatsCache(StatsCacheBorg):
                     Counter(name='http_request',
                             documentation='total requests',
                             registry=self.registry))
+
+        elif item == 'gauge_cache_size':
+            setattr(self, item,
+                    Gauge(name='github_mirror_cache_size',
+                          documentation='cache size in bytes',
+                          registry=self.registry))
         else:
             raise AttributeError(f"object has no attribute {item}'")
 
@@ -157,3 +169,9 @@ class StatsCache(StatsCacheBorg):
         """
         self.histogram.labels(cache=cache, status=status,
                               method=method).observe(value)
+
+    def set_cache_size(self, value):
+        """
+        Convenience method to set the Gauge.
+        """
+        self.gauge_cache_size.set(value)
