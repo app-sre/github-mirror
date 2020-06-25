@@ -59,6 +59,7 @@ def metrics():
     requests_cache = RequestsCache()
 
     stats_cache.set_cache_size(sys.getsizeof(requests_cache))
+    stats_cache.set_cached_objects(len(requests_cache))
 
     return flask.Response(generate_latest(registry=stats_cache.registry),
                           200, headers)

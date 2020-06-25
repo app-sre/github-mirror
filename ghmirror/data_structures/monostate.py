@@ -63,6 +63,9 @@ class RequestsCache(RequestsCacheBorg):
     def __iter__(self):
         return iter(self._data)
 
+    def __len__(self):
+        return len(self._data)
+
     def __sizeof__(self):
         return sys.getsizeof(self._data)
 
@@ -152,6 +155,13 @@ class StatsCache(StatsCacheBorg):
                     Gauge(name='github_mirror_cache_size',
                           documentation='cache size in bytes',
                           registry=self.registry))
+
+        elif item == 'gauge_cached_objects':
+            setattr(self, item,
+                    Gauge(name='github_mirror_cached_objects',
+                          documentation='number of cached objects',
+                          registry=self.registry))
+
         else:
             raise AttributeError(f"object has no attribute {item}'")
 
@@ -175,3 +185,9 @@ class StatsCache(StatsCacheBorg):
         Convenience method to set the Gauge.
         """
         self.gauge_cache_size.set(value)
+
+    def set_cached_objects(self, value):
+        """
+        Convenience method to set the Gauge.
+        """
+        self.gauge_cached_objects.set(value)
