@@ -16,6 +16,7 @@
 Caching data structures.
 """
 
+import pickle
 import sys
 
 from prometheus_client import CollectorRegistry
@@ -55,10 +56,14 @@ class RequestsCache(RequestsCacheBorg):
         return item in self._data
 
     def __getitem__(self, item):
-        return self._data[item]
+        return self._data[item]['data']
 
     def __setitem__(self, key, value):
-        self._data[key] = value
+        """ Set the key-value pair as well as their total size
+        """
+        key_size = sys.getsizeof(pickle.dumps(key))
+        value_size = sys.getsizeof(pickle.dumps(value))
+        self._data[key] = {'data': value, 'size': key_size + value_size}
 
     def __iter__(self):
         return iter(self._data)
@@ -67,7 +72,12 @@ class RequestsCache(RequestsCacheBorg):
         return len(self._data)
 
     def __sizeof__(self):
-        return sys.getsizeof(self._data)
+        """ Calculate the size of the dictionary and all its contents
+        """
+        total_cache_size = sys.getsizeof(self._data)
+        for value in self._data.values():
+            total_cache_size += value['size']
+        return total_cache_size
 
 
 class UsersCacheBorg:
