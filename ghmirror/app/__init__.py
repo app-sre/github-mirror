@@ -18,6 +18,7 @@ The GitHub Mirror endpoints
 
 import logging
 import os
+import sys
 
 import flask
 
@@ -27,6 +28,7 @@ from ghmirror.core.constants import GH_API
 from ghmirror.core.mirror_response import MirrorResponse
 from ghmirror.core.mirror_requests import conditional_request
 from ghmirror.data_structures.monostate import StatsCache
+from ghmirror.data_structures.monostate import RequestsCache
 from ghmirror.decorators.checks import check_user
 
 
@@ -52,7 +54,14 @@ def metrics():
     Prometheus metrics endpoint.
     """
     headers = {'Content-type': 'text/plain'}
-    return flask.Response(generate_latest(registry=StatsCache().registry),
+
+    stats_cache = StatsCache()
+    requests_cache = RequestsCache()
+
+    stats_cache.set_cache_size(sys.getsizeof(requests_cache))
+    stats_cache.set_cached_objects(len(requests_cache))
+
+    return flask.Response(generate_latest(registry=stats_cache.registry),
                           200, headers)
 
 

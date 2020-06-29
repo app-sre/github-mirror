@@ -7,13 +7,18 @@ from ghmirror.app import APP
 from ghmirror.data_structures.monostate import UsersCache
 
 
-def mocked_requests_get_etag(*args, **kwargs):
-    class MockResponse:
-        def __init__(self, content, headers, status_code):
-            self.content = content.encode()
-            self.headers = headers
-            self.status_code = status_code
+class MockResponse:
+    def __init__(self, content, headers, status_code, user=None):
+        self.content = content.encode()
+        self.headers = headers
+        self.status_code = status_code
+        self.user = user
 
+    def json(self):
+        return {'login': self.user}
+
+
+def mocked_requests_get_etag(*args, **kwargs):
     if 'If-Modified-Since' in kwargs['headers']:
         return MockResponse('', {}, 304)
 
@@ -24,12 +29,6 @@ def mocked_requests_get_etag(*args, **kwargs):
 
 
 def mocked_requests_get_last_modified(*args, **kwargs):
-    class MockResponse:
-        def __init__(self, content, headers, status_code):
-            self.content = content.encode()
-            self.headers = headers
-            self.status_code = status_code
-
     if 'If-Modified-Since' in kwargs['headers']:
         return MockResponse('', {}, 304)
 
@@ -40,38 +39,14 @@ def mocked_requests_get_last_modified(*args, **kwargs):
 
 
 def mocked_requests_get_user_orgs_auth(*args, **kwargs):
-    class MockResponse:
-        def __init__(self, content, headers, status_code):
-            self.content = content.encode()
-            self.headers = headers
-            self.status_code = status_code
-
-        def json(self):
-            return {'login': 'app-sre-bot'}
-
-    return MockResponse('', {}, 200)
+    return MockResponse('', {}, 200, 'app-sre-bot')
 
 
 def mocked_requests_get_user_orgs_unauth(*args, **kwargs):
-    class MockResponse:
-        def __init__(self, content, headers, status_code):
-            self.content = content.encode()
-            self.headers = headers
-            self.status_code = status_code
-
-        def json(self):
-            return {'login': 'other'}
-
-    return MockResponse('', {}, 200)
+    return MockResponse('', {}, 200, 'other')
 
 
 def mocked_requests_get_user_orgs_error(*args, **kwargs):
-    class MockResponse:
-        def __init__(self, content, headers, status_code):
-            self.content = content.encode()
-            self.headers = headers
-            self.status_code = status_code
-
     return MockResponse('', {}, 500)
 
 

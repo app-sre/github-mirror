@@ -16,8 +16,12 @@
 Caching data structures.
 """
 
+import pickle
+import sys
+
 from prometheus_client import CollectorRegistry
 from prometheus_client import Counter
+from prometheus_client import Gauge
 from prometheus_client import Histogram
 from prometheus_client import ProcessCollector
 
@@ -52,13 +56,28 @@ class RequestsCache(RequestsCacheBorg):
         return item in self._data
 
     def __getitem__(self, item):
-        return self._data[item]
+        return self._data[item]['data']
 
     def __setitem__(self, key, value):
-        self._data[key] = value
+        """ Set the key-value pair as well as their total size
+        """
+        key_size = sys.getsizeof(pickle.dumps(key))
+        value_size = sys.getsizeof(pickle.dumps(value))
+        self._data[key] = {'data': value, 'size': key_size + value_size}
 
     def __iter__(self):
         return iter(self._data)
+
+    def __len__(self):
+        return len(self._data)
+
+    def __sizeof__(self):
+        """ Calculate the size of the dictionary and all its contents
+        """
+        total_cache_size = sys.getsizeof(self._data)
+        for value in self._data.values():
+            total_cache_size += value['size']
+        return total_cache_size
 
 
 class UsersCacheBorg:
@@ -140,6 +159,19 @@ class StatsCache(StatsCacheBorg):
                     Counter(name='http_request',
                             documentation='total requests',
                             registry=self.registry))
+
+        elif item == 'gauge_cache_size':
+            setattr(self, item,
+                    Gauge(name='github_mirror_cache_size',
+                          documentation='cache size in bytes',
+                          registry=self.registry))
+
+        elif item == 'gauge_cached_objects':
+            setattr(self, item,
+                    Gauge(name='github_mirror_cached_objects',
+                          documentation='number of cached objects',
+                          registry=self.registry))
+
         else:
             raise AttributeError(f"object has no attribute {item}'")
 
@@ -157,3 +189,15 @@ class StatsCache(StatsCacheBorg):
         """
         self.histogram.labels(cache=cache, status=status,
                               method=method).observe(value)
+
+    def set_cache_size(self, value):
+        """
+        Convenience method to set the Gauge.
+        """
+        self.gauge_cache_size.set(value)
+
+    def set_cached_objects(self, value):
+        """
+        Convenience method to set the Gauge.
+        """
+        self.gauge_cached_objects.set(value)
