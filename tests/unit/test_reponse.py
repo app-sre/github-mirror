@@ -3,7 +3,10 @@ from ghmirror.core.mirror_response import MirrorResponse
 
 class MockResponse:
     def __init__(self, content, headers, status_code):
-        self.content = content.encode()
+        if content is None:
+            self.content = content
+        else:
+            self.content = content.encode()
         self.headers = headers
         self.status_code = status_code
 
@@ -61,14 +64,23 @@ class TestResponse:
         assert not response_headers
 
     def test_content(self):
-        mock_response = MockResponse(content='foobar',
+        mock_response = MockResponse(content=None,
                                      headers={},
                                      status_code=200)
 
         response = MirrorResponse(original_response=mock_response,
                                   gh_api_url='foo',
                                   gh_mirror_url='bar')
+        # No content from the upstream response should stay the
+        # same in the mirror response
+        assert response.content == None
 
+        mock_response = MockResponse(content='foobar',
+                                     headers={},
+                                     status_code=200)
+        response = MirrorResponse(original_response=mock_response,
+                                  gh_api_url='foo',
+                                  gh_mirror_url='bar')
         # content should have been modified, replacing the
         # gh_api_url string by the gh_mirror_url string.
         assert response.content == 'barbar'.encode()
