@@ -38,6 +38,18 @@ logging.basicConfig(level=logging.INFO,
 APP = flask.Flask(__name__)
 
 
+def error_handler(exception):
+    """
+    Used when an exception happens in the flask app.
+    """
+    return flask.jsonify(message=f'Error reaching {GH_API}: '
+                                 f'{str(exception.__class__.__name__)}'), 502
+
+
+APP.config['TRAP_HTTP_EXCEPTIONS'] = True
+APP.register_error_handler(Exception, error_handler)
+
+
 @APP.route('/healthz', methods=["GET"])
 def healthz():
     """
