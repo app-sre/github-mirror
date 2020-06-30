@@ -83,6 +83,9 @@ class MirrorResponse:
         :return: the sanitized content
         :rtype: bytes
         """
+        if self._original_response.content is None:
+            return None
+
         sanitized_content = self._original_response.content.replace(
             self._gh_api_url.encode(),
             self._gh_mirror_url.encode()
