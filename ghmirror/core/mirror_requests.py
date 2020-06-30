@@ -21,6 +21,7 @@ import logging
 
 import requests
 
+from ghmirror.core.constants import REQUESTS_TIMEOUT
 from ghmirror.data_structures.monostate import RequestsCache
 from ghmirror.decorators.metrics import requests_metrics
 
@@ -49,7 +50,8 @@ def conditional_request(method, url, auth, data=None):
         resp = requests.request(method=method,
                                 url=url,
                                 headers=headers,
-                                data=data)
+                                data=data,
+                                timeout=REQUESTS_TIMEOUT)
 
         LOG.info('[%s] CACHE_MISS %s', method, url)
         # And just forward the response (with the
@@ -69,7 +71,8 @@ def conditional_request(method, url, auth, data=None):
         if last_mod is not None:
             headers['If-Modified-Since'] = last_mod
 
-    resp = requests.request(method=method, url=url, headers=headers)
+    resp = requests.request(method=method, url=url, headers=headers,
+                            timeout=REQUESTS_TIMEOUT)
 
     if resp.status_code == 304:
         LOG.info('[GET] CACHE_HIT %s', url)

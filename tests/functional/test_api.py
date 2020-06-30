@@ -5,6 +5,7 @@ import pytest
 
 from ghmirror.app import APP
 from ghmirror.data_structures.monostate import UsersCache
+from ghmirror.core.constants import REQUESTS_TIMEOUT
 
 
 class MockResponse:
@@ -147,7 +148,8 @@ def test_mirror_upstream_call(mocked_request, client):
     expected_url = 'https://api.github.com/user/repos?page=2'
     mocked_request.assert_called_with(method='GET',
                                       headers={'Authorization': 'foo'},
-                                      url=expected_url)
+                                      url=expected_url,
+                                      timeout=REQUESTS_TIMEOUT)
 
 
 @mock.patch('ghmirror.core.mirror_requests.requests.request',
@@ -156,7 +158,8 @@ def test_mirror_non_get(mocked_request, client):
     client.patch('/repos/foo/bar', data=b'foo')
     expected_url = 'https://api.github.com/repos/foo/bar'
     mocked_request.assert_called_with(method='PATCH', data=b'foo', headers={},
-                                      url=expected_url)
+                                      url=expected_url,
+                                      timeout=REQUESTS_TIMEOUT)
 
 
 @mock.patch('ghmirror.decorators.checks.AUTHORIZED_USERS', 'app-sre-bot')
@@ -171,7 +174,8 @@ def test_mirror_authorized_user(mocked_request, mocked_cond_request, client):
     mocked_request.assert_called_with(method='GET',
                                       headers={'Authorization': 'foo'},
                                       url='https://api.github.com/repos/'
-                                          'app-sre/github-mirror')
+                                          'app-sre/github-mirror',
+                                      timeout=REQUESTS_TIMEOUT)
 
 
 @mock.patch('ghmirror.decorators.checks.AUTHORIZED_USERS', 'app-sre-bot')
@@ -190,7 +194,8 @@ def test_mirror_authorized_user_cached(mocked_request, mocked_cond_request,
     mocked_request.assert_called_with(method='GET',
                                       headers={'Authorization': 'foo'},
                                       url='https://api.github.com/repos/'
-                                          'app-sre/github-mirror')
+                                          'app-sre/github-mirror',
+                                      timeout=REQUESTS_TIMEOUT)
 
 
 @mock.patch('ghmirror.decorators.checks.AUTHORIZED_USERS', 'app-sre-bot')
