@@ -31,7 +31,7 @@ from prometheus_client import Histogram
 from prometheus_client import ProcessCollector
 
 from ghmirror.core.constants import GH_API
-from ghmirror.core.constants import REQUESTS_TIMEOUT
+from ghmirror.core.constants import STATUS_TIMEOUT
 
 
 __all__ = ['GithubStatus', 'RequestsCache', 'StatsCache', 'UsersCache']
@@ -61,7 +61,7 @@ class _GithubStatus:
         while True:
             try:
                 response = requests.get(f'{GH_API}/status',
-                                        timeout=REQUESTS_TIMEOUT)
+                                        timeout=STATUS_TIMEOUT)
                 response.raise_for_status()
                 self.online = True
             except (requests.exceptions.ConnectionError,
