@@ -17,3 +17,4 @@ System constants.
 """
 
 GH_API = 'https://api.github.com'
+REQUESTS_TIMEOUT = 1
