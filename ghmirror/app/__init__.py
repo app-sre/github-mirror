@@ -35,8 +35,6 @@ from ghmirror.decorators.checks import check_user
 logging.basicConfig(level=logging.INFO,
                     format='%(asctime)-15s %(message)s')
 
-LOG = logging.getLogger(__name__)
-
 APP = flask.Flask(__name__)
 
 
