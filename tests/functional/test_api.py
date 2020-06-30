@@ -2,6 +2,7 @@ import hashlib
 from unittest import mock
 
 import pytest
+import requests
 
 from ghmirror.app import APP
 from ghmirror.data_structures.monostate import UsersCache
@@ -17,6 +18,10 @@ class MockResponse:
 
     def json(self):
         return {'login': self.user}
+
+    def raise_for_status(self):
+        if self.status_code >= 400:
+            raise requests.exceptions.HTTPError
 
 
 def mocked_requests_get_etag(*args, **kwargs):
@@ -47,7 +52,7 @@ def mocked_requests_get_user_orgs_unauth(*args, **kwargs):
     return MockResponse('', {}, 200, 'other')
 
 
-def mocked_requests_get_user_orgs_error(*args, **kwargs):
+def mocked_requests_get_error(*args, **kwargs):
     return MockResponse('', {}, 500)
 
 
@@ -71,9 +76,9 @@ def test_mirror_etag(mock_get, client):
     # Initially the stats are zeroed
     response = client.get('/metrics')
     assert response.status_code == 200
-    assert ('request_latency_seconds_count{cache="HIT",'
+    assert ('request_latency_seconds_count{cache="ONLINE_HIT",'
             'method="GET",status="200"}') not in str(response.data)
-    assert ('request_latency_seconds_count{cache="MISS",'
+    assert ('request_latency_seconds_count{cache="ONLINE_MISS",'
             'method="GET",status="200"}') not in str(response.data)
 
     response = client.get('/repos/app-sre/github-mirror',
@@ -84,9 +89,9 @@ def test_mirror_etag(mock_get, client):
     response = client.get('/metrics', follow_redirects=True)
 
     assert response.status_code == 200
-    assert ('request_latency_seconds_count{cache="HIT",'
+    assert ('request_latency_seconds_count{cache="ONLINE_HIT",'
             'method="GET",status="200"}') not in str(response.data)
-    assert ('request_latency_seconds_count{cache="MISS",'
+    assert ('request_latency_seconds_count{cache="ONLINE_MISS",'
             'method="GET",status="200"} 1.0') in str(response.data)
 
     response = client.get('/repos/app-sre/github-mirror',
@@ -97,9 +102,9 @@ def test_mirror_etag(mock_get, client):
     response = client.get('/metrics', follow_redirects=True)
 
     assert response.status_code == 200
-    assert ('request_latency_seconds_count{cache="HIT",'
+    assert ('request_latency_seconds_count{cache="ONLINE_HIT",'
             'method="GET",status="200"} 1.0') in str(response.data)
-    assert ('request_latency_seconds_count{cache="MISS",'
+    assert ('request_latency_seconds_count{cache="ONLINE_MISS",'
             'method="GET",status="200"} 1.0') in str(response.data)
 
 
@@ -109,9 +114,9 @@ def test_mirror_last_modified(mock_get, client):
     # Initially the stats are zeroed
     response = client.get('/metrics')
     assert response.status_code == 200
-    assert ('request_latency_seconds_count{cache="HIT",'
+    assert ('request_latency_seconds_count{cache="ONLINE_HIT",'
             'method="GET",status="200"}') not in str(response.data)
-    assert ('request_latency_seconds_count{cache="MISS",'
+    assert ('request_latency_seconds_count{cache="ONLINE_MISS",'
             'method="GET",status="200"}') not in str(response.data)
 
     response = client.get('/repos/app-sre/github-mirror',
@@ -122,9 +127,9 @@ def test_mirror_last_modified(mock_get, client):
     response = client.get('/metrics', follow_redirects=True)
 
     assert response.status_code == 200
-    assert ('request_latency_seconds_count{cache="HIT",'
+    assert ('request_latency_seconds_count{cache="ONLINE_HIT",'
             'method="GET",status="200"}') not in str(response.data)
-    assert ('request_latency_seconds_count{cache="MISS",'
+    assert ('request_latency_seconds_count{cache="ONLINE_MISS",'
             'method="GET",status="200"} 1.0') in str(response.data)
 
     response = client.get('/repos/app-sre/github-mirror',
@@ -134,9 +139,9 @@ def test_mirror_last_modified(mock_get, client):
     # Second get is a cache_hit
     response = client.get('/metrics', follow_redirects=True)
     assert response.status_code == 200
-    assert ('request_latency_seconds_count{cache="HIT",'
+    assert ('request_latency_seconds_count{cache="ONLINE_HIT",'
             'method="GET",status="200"} 1.0') in str(response.data)
-    assert ('request_latency_seconds_count{cache="MISS",'
+    assert ('request_latency_seconds_count{cache="ONLINE_MISS",'
             'method="GET",status="200"} 1.0') in str(response.data)
 
 
@@ -216,8 +221,73 @@ def test_mirror_no_auth(client):
 
 @mock.patch('ghmirror.decorators.checks.AUTHORIZED_USERS', 'app-sre-bot')
 @mock.patch('ghmirror.decorators.checks.conditional_request',
-            side_effect=mocked_requests_get_user_orgs_error)
+            side_effect=mocked_requests_get_error)
 def test_mirror_auth_error(mocked_cond_request, client):
     response = client.get('/repos/app-sre/github-mirror',
                           headers={'Authorization': 'foo'})
     assert response.status_code == 500
+
+
+@mock.patch('ghmirror.core.mirror_requests.requests.request',
+            side_effect=mocked_requests_get_etag)
+@mock.patch('ghmirror.data_structures.monostate.requests.get',
+            side_effect=requests.exceptions.Timeout)
+def test_offline_mode(mock_get, mock_request, client):
+    # First request, should be served online from the mocked_requests_get_etag
+    response = client.get('/repos/app-sre/github-mirror')
+    assert response.status_code == 200
+    response = client.get('/metrics')
+    assert response.status_code == 200
+    assert ('request_latency_seconds_count{cache="ONLINE_MISS",'
+            'method="GET",status="200"} 1.0') in str(response.data)
+
+    # Second request, mirror went offline already but response is in the
+    # cache due to the first request
+    response = client.get('/repos/app-sre/github-mirror')
+    assert response.status_code == 200
+    response = client.get('/metrics')
+    assert response.status_code == 200
+    assert ('request_latency_seconds_count{cache="OFFLINE_HIT",'
+            'method="GET",status="200"} 1.0') in str(response.data)
+
+    # Additional request including auth header. Should MISS since the
+    # cache key id built from resource + user
+    response = client.get('/repos/app-sre/github-mirror',
+                          headers={'Authorization': 'foo'})
+    assert response.status_code == 504
+    response = client.get('/metrics')
+    assert response.status_code == 200
+    assert ('request_latency_seconds_count{cache="OFFLINE_MISS",'
+            'method="GET",status="504"} 1.0') in str(response.data)
+
+    # POST, just to check if we are behaving.
+    response = client.post('/repos/app-sre/github-mirror',
+                           data=b'foo')
+    assert response.status_code == 504
+    response = client.get('/metrics')
+    assert response.status_code == 200
+    assert ('request_latency_seconds_count{cache="OFFLINE_MISS",'
+            'method="POST",status="504"} 1.0') in str(response.data)
+
+
+@mock.patch('ghmirror.core.mirror_requests.requests.request',
+            side_effect=mocked_requests_get_etag)
+@mock.patch('ghmirror.data_structures.monostate.requests.get',
+            side_effect=mocked_requests_get_error)
+def test_offline_mode_upstream_error(mock_get, mock_request, client):
+    # First request, should be served online from the mocked_requests_get_etag
+    response = client.get('/repos/app-sre/github-mirror')
+    assert response.status_code == 200
+    response = client.get('/metrics')
+    assert response.status_code == 200
+    assert ('request_latency_seconds_count{cache="ONLINE_MISS",'
+            'method="GET",status="200"} 1.0') in str(response.data)
+
+    # Second request, mirror went offline already but response is in the
+    # cache due to the first request
+    response = client.get('/repos/app-sre/github-mirror')
+    assert response.status_code == 200
+    response = client.get('/metrics')
+    assert response.status_code == 200
+    assert ('request_latency_seconds_count{cache="OFFLINE_HIT",'
+            'method="GET",status="200"} 1.0') in str(response.data)

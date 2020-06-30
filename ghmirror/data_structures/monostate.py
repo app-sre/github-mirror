@@ -16,8 +16,13 @@
 Caching data structures.
 """
 
+import threading
+import time
+import logging
 import pickle
 import sys
+
+import requests
 
 from prometheus_client import CollectorRegistry
 from prometheus_client import Counter
@@ -25,8 +30,59 @@ from prometheus_client import Gauge
 from prometheus_client import Histogram
 from prometheus_client import ProcessCollector
 
+from ghmirror.core.constants import GH_API
+from ghmirror.core.constants import REQUESTS_TIMEOUT
 
-__all__ = ['RequestsCache', 'StatsCache', 'UsersCache']
+
+__all__ = ['GithubStatus', 'RequestsCache', 'StatsCache', 'UsersCache']
+
+
+logging.basicConfig(level=logging.INFO,
+                    format='%(asctime)-15s %(message)s')
+
+LOG = logging.getLogger(__name__)
+
+
+class _GithubStatus:
+
+    SLEEP_TIME = 1
+
+    def __init__(self):
+        self.online = True
+        theard = threading.Thread(target=self.check)
+        theard.start()
+
+    def check(self):
+        """
+        Method to be called in a thread. It will check the
+        Github API status every SLEEP_TIME seconds and set
+        the self.online accordingly.
+        """
+        while True:
+            try:
+                response = requests.get(f'{GH_API}/status',
+                                        timeout=REQUESTS_TIMEOUT)
+                response.raise_for_status()
+                self.online = True
+            except (requests.exceptions.ConnectionError,
+                    requests.exceptions.Timeout,
+                    requests.exceptions.HTTPError):
+                self.online = False
+            time.sleep(self.SLEEP_TIME)
+
+
+class GithubStatus:
+    """
+    Monostate class for sharing the Github API Status.
+    """
+
+    _instance = None
+
+    @classmethod
+    def __new__(cls, *args, **kwargs):  # pylint: disable=unused-argument
+        if cls._instance is None:
+            cls._instance = _GithubStatus()
+        return cls._instance
 
 
 class RequestsCacheBorg:
