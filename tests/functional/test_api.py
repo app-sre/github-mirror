@@ -6,7 +6,9 @@ import requests
 
 from ghmirror.app import APP
 from ghmirror.data_structures.monostate import UsersCache
+from ghmirror.data_structures.monostate import GithubStatus
 from ghmirror.core.constants import REQUESTS_TIMEOUT
+from ghmirror.utils.wait import wait_for
 
 
 class MockResponse:
@@ -54,6 +56,14 @@ def mocked_requests_get_user_orgs_unauth(*args, **kwargs):
 
 def mocked_requests_get_error(*args, **kwargs):
     return MockResponse('', {}, 500)
+
+
+def mocked_requests_monitor_good(*args, **kwargs):
+    return MockResponse('', {}, 200)
+
+
+def mocked_requests_monitor_bad(*args, **kwargs):
+    return MockResponse('', {}, 403)
 
 
 @pytest.fixture
@@ -231,15 +241,25 @@ def test_mirror_auth_error(mocked_cond_request, client):
 @mock.patch('ghmirror.core.mirror_requests.requests.request',
             side_effect=mocked_requests_get_etag)
 @mock.patch('ghmirror.data_structures.monostate.requests.get',
-            side_effect=requests.exceptions.Timeout)
-def test_offline_mode(mock_get, mock_request, client):
-    # First request, should be served online from the mocked_requests_get_etag
+            side_effect=mocked_requests_monitor_good)
+def test_offline_mode(mock_monitor_get, mock_request, client):
+    # Let's wait the mirror consider itself online
+    assert wait_for(lambda: GithubStatus().online, timeout=5)
+
+    # First request will be a 200, intended to build up the cache and
+    # is it is also an ONLINE_MISS
     response = client.get('/repos/app-sre/github-mirror')
     assert response.status_code == 200
     response = client.get('/metrics')
     assert response.status_code == 200
     assert ('request_latency_seconds_count{cache="ONLINE_MISS",'
             'method="GET",status="200"} 1.0') in str(response.data)
+
+    # Now make the mirror go offline for upstream timeout
+    mock_monitor_get.side_effect = requests.exceptions.Timeout
+
+    # Let's wait the mirror to consider itself offline
+    assert wait_for(lambda: not GithubStatus().online, timeout=5)
 
     # Second request, mirror went offline already but response is in the
     # cache due to the first request
@@ -273,9 +293,14 @@ def test_offline_mode(mock_get, mock_request, client):
 @mock.patch('ghmirror.core.mirror_requests.requests.request',
             side_effect=mocked_requests_get_etag)
 @mock.patch('ghmirror.data_structures.monostate.requests.get',
-            side_effect=mocked_requests_get_error)
-def test_offline_mode_upstream_error(mock_get, mock_request, client):
-    # First request, should be served online from the mocked_requests_get_etag
+            side_effect=mocked_requests_monitor_good)
+def test_offline_mode_upstream_error(mock_monitor_get, mock_request, client):
+    # Let's wait the mirror consider itself online
+    assert wait_for(lambda: GithubStatus().online, timeout=5)
+
+    # First request will be a 200, intended to build up the cache and
+    # is it is also an ONLINE_MISS
+    assert wait_for(lambda: GithubStatus().online, timeout=5)
     response = client.get('/repos/app-sre/github-mirror')
     assert response.status_code == 200
     response = client.get('/metrics')
@@ -283,8 +308,15 @@ def test_offline_mode_upstream_error(mock_get, mock_request, client):
     assert ('request_latency_seconds_count{cache="ONLINE_MISS",'
             'method="GET",status="200"} 1.0') in str(response.data)
 
-    # Second request, mirror went offline already but response is in the
-    # cache due to the first request
+    # Now make the mirror go offline for upstream error
+    mock_monitor_get.side_effect = mocked_requests_monitor_bad
+
+    # Let's wait the mirror to consider itself offline
+    assert wait_for(lambda: not GithubStatus().online, timeout=5)
+
+    # For the second request, mirror went offline already but
+    # response is in the cache due to the first request, so
+    # we get a 200 and an OFFLINE_HIT
     response = client.get('/repos/app-sre/github-mirror')
     assert response.status_code == 200
     response = client.get('/metrics')
