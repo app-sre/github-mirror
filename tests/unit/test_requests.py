@@ -1,9 +1,11 @@
 from unittest import mock, TestCase
 import pytest
+from random import randint
 
 from ghmirror.data_structures.requests_cache import RequestsCache
 from ghmirror.data_structures.monostate import StatsCache
 
+RAND_CACHE_SIZE = randint(100,1000)
 
 class TestStatsCache:
 
@@ -46,8 +48,9 @@ class MockResponse:
 
 
 class MockRedis:
-    def __init__(self):
+    def __init__(self, size=0):
         self.cache = {}
+        self.size = size
 
     def exists(self, item):
         return item in self.cache
@@ -68,10 +71,10 @@ class MockRedis:
         return len(self.cache)
 
     def info(self):
-        return {'used_memory': 0}
+        return {'used_memory': self.size}
 
 def mocked_redis_cache(*args, **kwargs):
-    return MockRedis()
+    return MockRedis(size=RAND_CACHE_SIZE)
 
 
 class TestRequestsCache(TestCase):
@@ -88,8 +91,12 @@ class TestRequestsCache(TestCase):
                                                 status_code=200)
         assert list(requests_cache_01)
         assert 'foo' in requests_cache_01
+
         assert requests_cache_01['foo'].content == 'bar'.encode()
         assert requests_cache_01['foo'].status_code == 200
+
+        assert requests_cache_01.__sizeof__() == RAND_CACHE_SIZE
+        
         self.assertRaises(KeyError, lambda: requests_cache_01['bar'])
 
     @mock.patch('ghmirror.data_structures.requests_cache.CACHE_TYPE', 'in-memory')
