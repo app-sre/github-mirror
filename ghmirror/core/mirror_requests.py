@@ -22,8 +22,8 @@ import logging
 import requests
 
 from ghmirror.core.constants import REQUESTS_TIMEOUT
-from ghmirror.data_structures.monostate import RequestsCache
 from ghmirror.data_structures.monostate import GithubStatus
+from ghmirror.data_structures.requests_cache import RequestsCache
 from ghmirror.decorators.metrics import requests_metrics
 
 
