@@ -34,7 +34,7 @@ from ghmirror.core.constants import GH_API
 from ghmirror.core.constants import STATUS_TIMEOUT
 
 
-__all__ = ['GithubStatus', 'RequestsCache', 'StatsCache', 'UsersCache']
+__all__ = ['GithubStatus', 'InMemoryCache', 'StatsCache', 'UsersCache']
 
 
 logging.basicConfig(level=logging.INFO,
@@ -85,9 +85,9 @@ class GithubStatus:
         return cls._instance
 
 
-class RequestsCacheBorg:
+class InMemoryCacheBorg:
     """
-    Monostate class for sharing the requests cache.
+    Monostate class for sharing the in-memory requests cache.
     """
     _state = {}
 
@@ -95,7 +95,7 @@ class RequestsCacheBorg:
         self.__dict__ = self._state
 
 
-class RequestsCache(RequestsCacheBorg):
+class InMemoryCache(InMemoryCacheBorg):
     """
     Dictionary-like implementation for caching requests.
     """

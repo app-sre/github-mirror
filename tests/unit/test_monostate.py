@@ -1,6 +1,7 @@
+from unittest import mock, TestCase
 import pytest
 
-from ghmirror.data_structures.monostate import RequestsCache
+from ghmirror.data_structures.requests_cache import RequestsCache
 from ghmirror.data_structures.monostate import StatsCache
 
 
@@ -44,20 +45,68 @@ class MockResponse:
         return self.status_code
 
 
-class TestRequestsCache:
+class MockRedis:
+    def __init__(self):
+        self.cache = {}
 
-    @classmethod
-    def setup_class(cls):
-        cls.requests_cache_01 = RequestsCache()
-        cls.requests_cache_01['foo'] = MockResponse(content='bar',
-                                                    headers={},
-                                                    status_code=200)
+    def exists(self, item):
+        return item in self.cache
 
-    def test_interface(self):
-        assert list(self.requests_cache_01)
-        assert 'foo' in self.requests_cache_01
+    def get(self, item):
+        return self.cache[item]
 
+    def set(self, key, value):
+        self.cache[key] = value
+
+    def _scan_iter(self):
+        return iter(self.cache)
+
+    def scan(self, *args):
+        return 0, iter(self.cache)
+
+    def dbsize(self):
+        return len(self.cache)
+
+    def info(self):
+        return {'used_memory': 0}
+
+def mocked_redis_cache(*args, **kwargs):
+    return MockRedis()
+
+
+class TestRequestsCache(TestCase):
+
+
+    @mock.patch('ghmirror.data_structures.requests_cache.CACHE_TYPE', 'redis')
+    @mock.patch(
+        'ghmirror.data_structures.redis_data_structures.redis.Redis',
+        side_effect=mocked_redis_cache)
+    def test_interface_redis(self, mock_get):
+        requests_cache_01 = RequestsCache()
+        requests_cache_01['foo'] = MockResponse(content='bar',
+                                                headers={},
+                                                status_code=200)
+        assert list(requests_cache_01)
+        assert 'foo' in requests_cache_01
+        assert requests_cache_01['foo'].content == 'bar'.encode()
+        assert requests_cache_01['foo'].status_code == 200
+        self.assertRaises(KeyError, lambda: requests_cache_01['bar'])
+
+    @mock.patch('ghmirror.data_structures.requests_cache.CACHE_TYPE', 'in-memory')
+    def test_interface_in_memory(self):
+        requests_cache_01 = RequestsCache()
+        requests_cache_01['foo'] = MockResponse(content='bar',
+                                                headers={},
+                                                status_code=200)
+        assert list(requests_cache_01)
+        assert 'foo' in requests_cache_01
+
+    @mock.patch('ghmirror.data_structures.requests_cache.CACHE_TYPE', 'in-memory')
     def test_shared_state(self):
+        requests_cache_01 = RequestsCache()
+        requests_cache_01['foo'] = MockResponse(content='bar',
+                                                headers={},
+                                                status_code=200)        
         requests_cache_02 = RequestsCache()
 
         assert requests_cache_02['foo'].content == 'bar'.encode()
