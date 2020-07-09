@@ -22,9 +22,7 @@ from ghmirror.data_structures.monostate import InMemoryCache
 from ghmirror.data_structures.redis_data_structures import RedisCache
 
 
-CACHE_TYPE = os.environ.get(
-    'GITHUB_MIRROR_CACHE_TYPE',
-    'in-memory')
+CACHE_TYPE = os.environ.get('CACHE_TYPE', 'in-memory')
 
 
 class RequestsCache:
