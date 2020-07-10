@@ -91,6 +91,12 @@ def online_request(method, url, auth, data=None):
         cached_response.headers['X-Cache'] = 'ONLINE_HIT'
         return cached_response
 
+    # When wen hit the API limit, let's try to serve from cache
+    if resp.status_code == 403 and 'API rate limit exceeded' in resp.text:
+        return offline_request(method=method, url=url, auth=auth,
+                               error_code=resp.status_code,
+                               error_message=resp.content)
+
     LOG.info('ONLINE GET CACHE_MISS %s', url)
     resp.headers['X-Cache'] = 'ONLINE_MISS'
     # Caching only makes sense when at least one
@@ -101,7 +107,8 @@ def online_request(method, url, auth, data=None):
     return resp
 
 
-def offline_request(method, url, auth):
+def offline_request(method, url, auth, error_code=504,
+                    error_message=b'{"message": "gateway timeout"}\n'):
     """
     Implements offline requests (serves content from cache, when possible).
     """
@@ -119,10 +126,10 @@ def offline_request(method, url, auth):
         # with a reasonable status code so users know that our
         # upstream is offline
         response = requests.models.Response()
-        response.status_code = 504
+        response.status_code = error_code
         response.headers['X-Cache'] = 'OFFLINE_MISS'
         # pylint: disable=protected-access
-        response._content = b'{\n  "message": "gateway timeout"\n}\n'
+        response._content = error_message
         return response
 
     cache = RequestsCache()
@@ -140,8 +147,8 @@ def offline_request(method, url, auth):
     # GETs without cached content will receive an error
     # code so they know our upstream is offline.
     response = requests.models.Response()
-    response.status_code = 504
+    response.status_code = error_code
     response.headers['X-Cache'] = 'OFFLINE_MISS'
     # pylint: disable=protected-access
-    response._content = b'{\n  "message": "gateway timeout"\n}\n'
+    response._content = error_message
     return response
