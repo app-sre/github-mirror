@@ -21,6 +21,12 @@ import pickle
 import redis
 
 
+class RedisError(Exception):
+    """
+    RedisError raised if Redis throws a ConnectionError or TimeoutError
+    """
+
+
 class RedisCache:
     """
     Dictionary-like implementation for caching requests in Redis.
@@ -33,7 +39,15 @@ class RedisCache:
             host=endpoint,
             port=port,
             password=password,
-            ssl=True)
+            ssl=True,
+            socket_timeout=5)
+        try:
+            self.cache.ping()
+        except(
+                redis.exceptions.ConnectionError,
+                redis.exceptions.TimeoutError
+                ):
+            raise RedisError
 
     def __contains__(self, item):
         sr_key = self._serialize(item)

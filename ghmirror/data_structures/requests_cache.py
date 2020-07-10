@@ -16,10 +16,18 @@
 Implements caching backend
 """
 
+import logging
 import os
 
 from ghmirror.data_structures.monostate import InMemoryCache
 from ghmirror.data_structures.redis_data_structures import RedisCache
+from ghmirror.data_structures.redis_data_structures import RedisError
+
+
+logging.basicConfig(level=logging.INFO,
+                    format='%(asctime)-15s %(message)s')
+
+LOG = logging.getLogger(__name__)
 
 
 CACHE_TYPE = os.environ.get('CACHE_TYPE', 'in-memory')
@@ -31,7 +39,12 @@ class RequestsCache:
     """
     def __new__(cls, *args, **kwargs):
         if CACHE_TYPE == 'redis':
-            return RedisCache(*args, **kwargs)
+            try:
+                return RedisCache(*args, **kwargs)
+            except RedisError:
+                LOG.info(
+                    'Redis connection failure: defaulting to in-memory cache')
+                return InMemoryCache(*args, **kwargs)
         return InMemoryCache(*args, **kwargs)
 
     def __init__(self):   # pragma: no cover

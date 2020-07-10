@@ -1,6 +1,8 @@
 from unittest import mock, TestCase
-import pytest
 from random import randint
+
+import pytest
+import redis
 
 from ghmirror.data_structures.requests_cache import RequestsCache
 from ghmirror.data_structures.monostate import StatsCache
@@ -50,15 +52,19 @@ class MockResponse:
 
 
 class MockRedis:
-    def __init__(self, size=0):
+    def __init__(self, size=0, alive=True, timeout=False):
         self.cache = {}
         self.size = size
+        self.alive = alive
+        self.timeout = timeout
 
     def exists(self, item):
         return item in self.cache
 
     def get(self, item):
-        return self.cache[item]
+        if item in self.cache:
+            return self.cache[item]
+        return None
 
     def set(self, key, value):
         self.cache[key] = value
@@ -75,10 +81,20 @@ class MockRedis:
     def info(self):
         return {'used_memory': self.size}
 
+    def ping(self):
+        if not self.alive:
+            raise redis.exceptions.ConnectionError
+        if self.timeout:
+            raise redis.exceptions.TimeoutError
 
 def mocked_redis_cache(*args, **kwargs):
     return MockRedis(size=RAND_CACHE_SIZE)
 
+def mocked_connection_error(*args, **kwargs):
+    return MockRedis(alive=False)
+
+def mocked_timeout_error(*args, **kwargs):
+    return MockRedis(timeout=True)
 
 class TestRequestsCache(TestCase):
 
@@ -86,7 +102,7 @@ class TestRequestsCache(TestCase):
     @mock.patch(
         'ghmirror.data_structures.redis_data_structures.redis.Redis',
         side_effect=mocked_redis_cache)
-    def test_interface_redis(self, mock_get):
+    def test_interface_redis(self, mock_cache):
         requests_cache_01 = RequestsCache()
         requests_cache_01['foo'] = MockResponse(content='bar',
                                                 headers={},
@@ -100,6 +116,30 @@ class TestRequestsCache(TestCase):
         assert requests_cache_01.__sizeof__() == RAND_CACHE_SIZE
         
         self.assertRaises(KeyError, lambda: requests_cache_01['bar'])
+
+    @mock.patch('ghmirror.data_structures.requests_cache.CACHE_TYPE', 'redis')
+    @mock.patch(
+        'ghmirror.data_structures.redis_data_structures.redis.Redis',
+        side_effect=mocked_connection_error)
+    def test_redis_connection(self, mock_cache):
+        requests_cache_01 = RequestsCache()
+        requests_cache_01['foo'] = MockResponse(content='bar',
+                                                headers={},
+                                                status_code=200)
+        assert list(requests_cache_01)
+        assert 'foo' in requests_cache_01
+
+    @mock.patch('ghmirror.data_structures.requests_cache.CACHE_TYPE', 'redis')
+    @mock.patch(
+        'ghmirror.data_structures.redis_data_structures.redis.Redis',
+        side_effect=mocked_timeout_error)
+    def test_redis_timeout(self, mock_cache):
+        requests_cache_01 = RequestsCache()
+        requests_cache_01['foo'] = MockResponse(content='bar',
+                                                headers={},
+                                                status_code=200)
+        assert list(requests_cache_01)
+        assert 'foo' in requests_cache_01
 
     @mock.patch('ghmirror.data_structures.requests_cache.CACHE_TYPE', 'in-memory')
     def test_interface_in_memory(self):
