@@ -14,6 +14,7 @@ from ghmirror.utils.wait import wait_for
 class MockResponse:
     def __init__(self, content, headers, status_code, user=None):
         self.content = content.encode()
+        self.text = content
         self.headers = headers
         self.status_code = status_code
         self.user = user
@@ -64,6 +65,9 @@ def mocked_requests_monitor_good(*args, **kwargs):
 
 def mocked_requests_monitor_bad(*args, **kwargs):
     return MockResponse('', {}, 403)
+
+def mocked_requests_rate_limited(*args, **kwargs):
+    return MockResponse('API rate limit exceeded', {}, 403)
 
 
 @pytest.fixture
@@ -317,6 +321,43 @@ def test_offline_mode_upstream_error(mock_monitor_get, mock_request, client):
     # For the second request, mirror went offline already but
     # response is in the cache due to the first request, so
     # we get a 200 and an OFFLINE_HIT
+    response = client.get('/repos/app-sre/github-mirror')
+    assert response.status_code == 200
+    response = client.get('/metrics')
+    assert response.status_code == 200
+    assert ('request_latency_seconds_count{cache="OFFLINE_HIT",'
+            'method="GET",status="200"} 1.0') in str(response.data)
+
+
+@mock.patch('ghmirror.core.mirror_requests.requests.request',
+            side_effect=mocked_requests_rate_limited)
+@mock.patch('ghmirror.data_structures.monostate.requests.get',
+            side_effect=mocked_requests_monitor_good)
+def test_rate_limited(mock_monitor_get, mock_request, client):
+    # First request will get a 403/rate-limited. Because it's not cached
+    # yet, we receive the same 403
+    response = client.get('/repos/app-sre/github-mirror')
+    assert response.status_code == 403
+    response = client.get('/metrics')
+    # In the metrics, we see an OFFLINE_HIT
+    assert response.status_code == 200
+    assert ('request_latency_seconds_count{cache="OFFLINE_MISS",'
+            'method="GET",status="403"} 1.0') in str(response.data)
+
+    # Second request will be a 200, intended to build up the cache, so
+    # it is an ONLINE_MISS
+    mock_request.side_effect = mocked_requests_get_etag
+    response = client.get('/repos/app-sre/github-mirror')
+    assert response.status_code == 200
+    response = client.get('/metrics')
+    assert response.status_code == 200
+    assert ('request_latency_seconds_count{cache="ONLINE_MISS",'
+            'method="GET",status="200"} 1.0') in str(response.data)
+
+    # For the Third request, the response is a 403/rate-limited,
+    # but because the resource was cached we want to see a 200
+    # with OFFLINE_HIT
+    mock_request.side_effect = mocked_requests_rate_limited
     response = client.get('/repos/app-sre/github-mirror')
     assert response.status_code == 200
     response = client.get('/metrics')

@@ -5,7 +5,9 @@ from random import randint
 from ghmirror.data_structures.requests_cache import RequestsCache
 from ghmirror.data_structures.monostate import StatsCache
 
-RAND_CACHE_SIZE = randint(100,1000)
+
+RAND_CACHE_SIZE = randint(100, 1000)
+
 
 class TestStatsCache:
 
@@ -73,12 +75,12 @@ class MockRedis:
     def info(self):
         return {'used_memory': self.size}
 
+
 def mocked_redis_cache(*args, **kwargs):
     return MockRedis(size=RAND_CACHE_SIZE)
 
 
 class TestRequestsCache(TestCase):
-
 
     @mock.patch('ghmirror.data_structures.requests_cache.CACHE_TYPE', 'redis')
     @mock.patch(
