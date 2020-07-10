@@ -34,23 +34,23 @@ objects:
               value: ${GITHUB_USERS}
             - name: GITHUB_MIRROR_URL
               value: ${GITHUB_MIRROR_URL}
-            - name: GITHUB_MIRROR_CACHE_TYPE
-              value: ${GITHUB_MIRROR_CACHE_TYPE}
+            - name: CACHE_TYPE
+              value: ${CACHE_TYPE}
             - name: REDIS_ENDPOINT
               valueFrom:
                 secretKeyRef:
                     key: db.endpoint
-                    name: ${CLUSTER}
+                    name: ${EC_SECRET_NAME}
             - name: REDIS_PORT
               valueFrom:
                 secretKeyRef:
                     key: db.port
-                    name: ${CLUSTER}
+                    name: ${EC_SECRET_NAME}
             - name: REDIS_TOKEN
               valueFrom:
                 secretKeyRef:
                     key: db.auth_token
-                    name: ${CLUSTER}
+                    name: ${EC_SECRET_NAME}
           ports:
           - name: github-mirror
             containerPort: 8080
@@ -117,7 +117,7 @@ parameters:
   value: app-sre-bot:cs-sre-bot
 - name: GITHUB_MIRROR_URL
   value: https://github-mirror.stage.devshift.net
-- name: GITHUB_MIRROR_CACHE_TYPE
+- name: CACHE_TYPE
   value: redis
-- name: CLUSTER
+- name: EC_SECRET_NAME
   value: ghmirror-elasticache-stage
