@@ -339,9 +339,9 @@ def test_rate_limited(mock_monitor_get, mock_request, client):
     response = client.get('/repos/app-sre/github-mirror')
     assert response.status_code == 403
     response = client.get('/metrics')
-    # In the metrics, we see an OFFLINE_HIT
+    # In the metrics, we see a RATE_LIMITED_MISS
     assert response.status_code == 200
-    assert ('request_latency_seconds_count{cache="OFFLINE_MISS",'
+    assert ('request_latency_seconds_count{cache="RATE_LIMITED_MISS",'
             'method="GET",status="403"} 1.0') in str(response.data)
 
     # Second request will be a 200, intended to build up the cache, so
@@ -354,13 +354,13 @@ def test_rate_limited(mock_monitor_get, mock_request, client):
     assert ('request_latency_seconds_count{cache="ONLINE_MISS",'
             'method="GET",status="200"} 1.0') in str(response.data)
 
-    # For the Third request, the response is a 403/rate-limited,
+    # For the third request, the response is a 403/rate-limited,
     # but because the resource was cached we want to see a 200
-    # with OFFLINE_HIT
+    # with RATE_LIMITED_HIT
     mock_request.side_effect = mocked_requests_rate_limited
     response = client.get('/repos/app-sre/github-mirror')
     assert response.status_code == 200
     response = client.get('/metrics')
     assert response.status_code == 200
-    assert ('request_latency_seconds_count{cache="OFFLINE_HIT",'
+    assert ('request_latency_seconds_count{cache="RATE_LIMITED_HIT",'
             'method="GET",status="200"} 1.0') in str(response.data)

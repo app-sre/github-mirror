@@ -93,9 +93,13 @@ def online_request(method, url, auth, data=None):
 
     # When wen hit the API limit, let's try to serve from cache
     if resp.status_code == 403 and 'API rate limit exceeded' in resp.text:
-        return offline_request(method=method, url=url, auth=auth,
-                               error_code=resp.status_code,
-                               error_message=resp.content)
+        if cached_response is None:
+            LOG.info('RATE_LIMITED GET CACHE_MISS %s', url)
+            resp.headers['X-Cache'] = 'RATE_LIMITED_MISS'
+            return resp
+        LOG.info('RATE_LIMITED GET CACHE_HIT %s', url)
+        cached_response.headers['X-Cache'] = 'RATE_LIMITED_HIT'
+        return cached_response
 
     LOG.info('ONLINE GET CACHE_MISS %s', url)
     resp.headers['X-Cache'] = 'ONLINE_MISS'
