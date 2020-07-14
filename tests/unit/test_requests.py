@@ -52,14 +52,17 @@ class MockResponse:
 
 
 class MockRedis:
-    def __init__(self, size=0, alive=True, timeout=False):
+    def __init__(self, size=0, alive=True, timeout=False, connected=True):
         self.cache = {}
         self.size = size
         self.alive = alive
         self.timeout = timeout
+        self.connected = connected
 
     def exists(self, item):
-        return item in self.cache
+        if self.connected:
+            return item in self.cache
+        raise redis.exceptions.ConnectionError
 
     def get(self, item):
         if item in self.cache:
@@ -95,6 +98,9 @@ def mocked_connection_error(*args, **kwargs):
 
 def mocked_timeout_error(*args, **kwargs):
     return MockRedis(timeout=True)
+
+def mocked_dropped_connection(*args, **kwargs):
+    return MockRedis(connected=False)
 
 class TestRequestsCache(TestCase):
 
@@ -140,6 +146,18 @@ class TestRequestsCache(TestCase):
                                                 status_code=200)
         assert list(requests_cache_01)
         assert 'foo' in requests_cache_01
+
+    @mock.patch('ghmirror.data_structures.requests_cache.CACHE_TYPE', 'redis')
+    @mock.patch(
+        'ghmirror.data_structures.redis_data_structures.redis.Redis',
+        side_effect=mocked_dropped_connection)
+    def test_redis_dropped_connection(self, mock_cache):
+        requests_cache_01 = RequestsCache()
+        requests_cache_01['foo'] = MockResponse(content='bar',
+                                                headers={},
+                                                status_code=200)
+        with self.assertRaises(redis.exceptions.ConnectionError):
+            assert 'foo' in requests_cache_01
 
     @mock.patch('ghmirror.data_structures.requests_cache.CACHE_TYPE', 'in-memory')
     def test_interface_in_memory(self):
