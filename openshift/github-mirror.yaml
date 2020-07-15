@@ -36,7 +36,12 @@ objects:
               value: ${GITHUB_MIRROR_URL}
             - name: CACHE_TYPE
               value: ${CACHE_TYPE}
-            - name: REDIS_ENDPOINT
+            - name: PRIMARY_ENDPOINT
+              valueFrom:
+                secretKeyRef:
+                    key: db.endpoint
+                    name: ${EC_SECRET_NAME}
+            - name: READER_ENDPOINT
               valueFrom:
                 secretKeyRef:
                     key: db.endpoint
@@ -51,6 +56,8 @@ objects:
                 secretKeyRef:
                     key: db.auth_token
                     name: ${EC_SECRET_NAME}
+            - name: REDIS_SSL
+              value: ${REDIS_SSL}
           ports:
           - name: github-mirror
             containerPort: 8080
@@ -121,3 +128,5 @@ parameters:
   value: redis
 - name: EC_SECRET_NAME
   value: ghmirror-elasticache-stage
+- name: REDIS_SSL
+  value: True

@@ -21,27 +21,28 @@ import pickle
 import redis
 
 
+PRIMARY_ENDPOINT = os.environ.get('PRIMARY_ENDPOINT', 'localhost')
+READER_ENDPOINT = os.environ.get('READER_ENDPOINT', PRIMARY_ENDPOINT)
+REDIS_PORT = os.environ.get('REDIS_PORT', 6379)
+REDIS_TOKEN = os.environ.get('REDIS_TOKEN')
+REDIS_SSL = os.environ.get('REDIS_SSL')
+
+
 class RedisCache:
     """
     Dictionary-like implementation for caching requests in Redis.
     """
     def __init__(self):
-        endpoint = os.environ.get('REDIS_ENDPOINT')
-        port = os.environ.get('REDIS_PORT', 6379)
-        password = os.environ.get('REDIS_TOKEN')
-        self.cache = redis.Redis(
-            host=endpoint,
-            port=port,
-            password=password,
-            ssl=True)
+        self.wr_cache = self._get_connection(PRIMARY_ENDPOINT)
+        self.ro_cache = self._get_connection(READER_ENDPOINT)
 
     def __contains__(self, item):
         sr_key = self._serialize(item)
-        return self.cache.exists(sr_key)
+        return self.ro_cache.exists(sr_key)
 
     def __getitem__(self, item):
         sr_key = self._serialize(item)
-        sr_value = self.cache.get(sr_key)
+        sr_value = self.ro_cache.get(sr_key)
         if sr_value is None:
             raise KeyError(item)
         return self._deserialize(sr_value)
@@ -49,16 +50,16 @@ class RedisCache:
     def __setitem__(self, key, value):
         sr_key = self._serialize(key)
         sr_value = self._serialize(value)
-        self.cache.set(sr_key, sr_value)
+        self.wr_cache.set(sr_key, sr_value)
 
     def __iter__(self):
         return self._scan_iter()
 
     def __len__(self):
-        return self.cache.dbsize()
+        return self.ro_cache.dbsize()
 
     def __sizeof__(self):
-        return self.cache.info()['used_memory']
+        return self.ro_cache.info()['used_memory']
 
     def _scan_iter(self):
         """
@@ -67,9 +68,18 @@ class RedisCache:
         """
         cursor = '0'
         while cursor != 0:
-            cursor, data = self.cache.scan(cursor)
+            cursor, data = self.wr_cache.scan(cursor)
             for item in data:
                 yield self._deserialize(item)
+
+    @staticmethod
+    def _get_connection(host):
+        parameters = {'host': host, 'port': REDIS_PORT}
+        if REDIS_TOKEN is not None:
+            parameters['password'] = REDIS_TOKEN
+        if REDIS_SSL == 'True':
+            parameters['ssl'] = True
+        return redis.Redis(**parameters)
 
     @staticmethod
     def _serialize(item):
