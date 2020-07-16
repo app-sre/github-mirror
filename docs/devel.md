@@ -146,6 +146,45 @@ The service log will show:
 2020-06-08 15:12:39,478 127.0.0.1 - - [08/Jun/2020 15:12:39] "GET /repos/app-sre/sretoolbox HTTP/1.1" 200 -
 ```
 
+## Run github-mirror in Redis backed mode (optional)
+
+When running in Redis mode, github-mirror will cache all requests in a Redis server instead of locally in-memory. This enables multiple instances of github-mirror to access and maintain a single shared cache.
+
+First, you will need to tell github-mirror to run in Redis mode by setting the `CACHE_TYPE` environment variable. If the variable is not set, github mirror will run in the default in-memory cache mode.
+
+```
+user@localhost:~$ export CACHE_TYPE=redis
+```
+
+### Running Redis
+If you already have Redis installed, use a different terminal to run the Redis server. By default Redis will run at address `locahost` and port `6379`:
+```
+user@localhost:~$ redis-server
+```
+Alternatively, you can run Redis in a Docker container (make sure you run docker as root):
+
+```
+user@localhost:~$ docker run --rm -it -p 6379:6379 redis
+```
+
+You can now test the Redis backed github mirror as [before](#run-your-requests-against-the-github-mirror).
+
+### Additional configurations
+
+You can optionally set the following environment variables, to configure the connection to the Redis server:
+```
+user@localhost:~$ export PRIMARY_ENDPOINT=<redis.primary.endpoint>
+user@localhost:~$ export PRIMARY_ENDPOINT=<replica.primary.endpoint>
+user@localhost:~$ export REDIS_PORT=<port>
+user@localhost:~$ export REDIS_PASSWORD=<mysecret>
+user@localhost:~$ export REDIS_SSL=True
+```
+- `PRIMARY_ENDPOINT` is the primary endpoint or host address of the Redis service. If not set, it defaults to `localhost`.
+- `READER_ENDPOINT` is the read-only replica endpoint and can be used to increase the read availability of the Redis service. If not set, it defaults to the same address as the primary endpoint.
+- `REDIS_PORT` is the port which the Redis service binds to. The default port is `6379`.
+- `REDIS_PASSWORD` is the authentication token to access a password protected Redis server. If not set, the default is no authentication.
+- `REDIS_SSL` should be set to `True` if you are encrypting the traffic to the Redis server. If not set, the default assumes no encryption.
+
 # Coding
 
 ## Create a new local branch
