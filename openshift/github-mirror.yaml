@@ -4,6 +4,15 @@ kind: Template
 metadata:
   name: github-mirror
 objects:
+- apiVersion: policy/v1beta1
+  kind: PodDisruptionBudget
+  metadata:
+    name: github-mirror
+  spec:
+    minAvailable: 1
+    selector:
+      matchLabels:
+        app: github-mirror
 - apiVersion: extensions/v1beta1
   kind: Deployment
   metadata:
