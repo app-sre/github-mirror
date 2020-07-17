@@ -25,6 +25,27 @@ objects:
         labels:
           app: github-mirror
       spec:
+        affinity:
+          podAntiAffinity:
+            preferredDuringSchedulingIgnoredDuringExecution:
+              - podAffinityTerm:
+                  labelSelector:
+                    matchExpressions:
+                    - key: app
+                      operator: In
+                      values:
+                      - github-mirror
+                  topologyKey: kubernetes.io/hostname
+                weight: 100
+              - podAffinityTerm:
+                  labelSelector:
+                    matchExpressions:
+                    - key: app
+                      operator: In
+                      values:
+                      - github-mirror
+                  topologyKey: failure-domain.beta.kubernetes.io/zone
+                weight: 100
         containers:
         - image: ${IMAGE}:${IMAGE_TAG}
           imagePullPolicy: Always
