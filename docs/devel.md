@@ -174,7 +174,7 @@ You can now test the Redis backed github mirror as [before](#run-your-requests-a
 You can optionally set the following environment variables, to configure the connection to the Redis server:
 ```
 user@localhost:~$ export PRIMARY_ENDPOINT=<redis.primary.endpoint>
-user@localhost:~$ export PRIMARY_ENDPOINT=<replica.primary.endpoint>
+user@localhost:~$ export READER_ENDPOINT=<redis.reader.endpoint>
 user@localhost:~$ export REDIS_PORT=<port>
 user@localhost:~$ export REDIS_PASSWORD=<mysecret>
 user@localhost:~$ export REDIS_SSL=True
