@@ -1,6 +1,7 @@
 from unittest import mock, TestCase
-import pytest
 from random import randint
+
+import pytest
 
 from ghmirror.data_structures.requests_cache import RequestsCache
 from ghmirror.data_structures.monostate import StatsCache
@@ -50,15 +51,19 @@ class MockResponse:
 
 
 class MockRedis:
+
+    cache = {}
+
     def __init__(self, size=0):
-        self.cache = {}
         self.size = size
 
     def exists(self, item):
         return item in self.cache
 
     def get(self, item):
-        return self.cache[item]
+        if item in self.cache:
+            return self.cache[item]
+        return None
 
     def set(self, key, value):
         self.cache[key] = value
@@ -83,10 +88,12 @@ def mocked_redis_cache(*args, **kwargs):
 class TestRequestsCache(TestCase):
 
     @mock.patch('ghmirror.data_structures.requests_cache.CACHE_TYPE', 'redis')
+    @mock.patch('ghmirror.data_structures.redis_data_structures.REDIS_TOKEN', 'mysecret') 
+    @mock.patch('ghmirror.data_structures.redis_data_structures.REDIS_SSL', 'True')        
     @mock.patch(
         'ghmirror.data_structures.redis_data_structures.redis.Redis',
         side_effect=mocked_redis_cache)
-    def test_interface_redis(self, mock_get):
+    def test_interface_redis(self, mock_cache):
         requests_cache_01 = RequestsCache()
         requests_cache_01['foo'] = MockResponse(content='bar',
                                                 headers={},
