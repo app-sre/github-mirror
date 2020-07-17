@@ -129,4 +129,4 @@ parameters:
 - name: EC_SECRET_NAME
   value: ghmirror-elasticache-stage
 - name: REDIS_SSL
-  value: True
+  value: 'True'

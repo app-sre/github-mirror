@@ -77,7 +77,7 @@ class RedisCache:
         parameters = {'host': host, 'port': REDIS_PORT}
         if REDIS_TOKEN is not None:
             parameters['password'] = REDIS_TOKEN
-        if REDIS_SSL == 'True':
+        if REDIS_SSL.lower() == 'true':
             parameters['ssl'] = True
         return redis.Redis(**parameters)
 
