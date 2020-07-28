@@ -161,7 +161,7 @@ If you already have Redis installed, use a different terminal to run the Redis s
 ```
 user@localhost:~$ redis-server
 ```
-Alternatively, you can run Redis in a Docker container (make sure you run docker as root):
+Alternatively, you can run Redis in a Docker container (you may need to run docker as root):
 
 ```
 user@localhost:~$ docker run --rm -it -p 6379:6379 redis
@@ -179,11 +179,6 @@ user@localhost:~$ export REDIS_PORT=<port>
 user@localhost:~$ export REDIS_PASSWORD=<mysecret>
 user@localhost:~$ export REDIS_SSL=True
 ```
-- `PRIMARY_ENDPOINT` is the primary endpoint or host address of the Redis service. If not set, it defaults to `localhost`.
-- `READER_ENDPOINT` is the read-only replica endpoint and can be used to increase the read availability of the Redis service. If not set, it defaults to the same address as the primary endpoint.
-- `REDIS_PORT` is the port which the Redis service binds to. The default port is `6379`.
-- `REDIS_PASSWORD` is the authentication token to access a password protected Redis server. If not set, the default is no authentication.
-- `REDIS_SSL` should be set to `True` if you are encrypting the traffic to the Redis server. If not set, the default assumes no encryption.
 
 # Coding
 

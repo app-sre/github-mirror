@@ -8,9 +8,11 @@ the GitHub API rate limit.
 
 The mirror acts only on GET requests, by-passing the other requests methods.
 
-The cache is currently in-memory only, shared among all the threads, but not
+Github Mirror can cache responses either locally in-memory or in Redis.
+The in-memory cache is shared among all the threads, but not
 shared between processes. Every time the server is started, the cache is
 initialized empty.
+Using Redis prevents the cache from being lost when the github mirror server is restarted.
 
 ## Use
 
@@ -66,6 +68,32 @@ the client instance:
 >>> from github import Github
 >>> gh_cli = Github(base_url='http://localhost:8080')
 ```
+
+## Redis mode
+
+To use the mirror with a Redis cache,
+
+Set the cache type as Redis:
+```
+$ export CACHE_TYPE=redis
+```
+
+Run Redis is in a Docker container:
+```
+$ docker run --rm -it -p 6379:6379 redis
+```
+
+A Redis server will be running at `locahost` and port `6379`. Follow the previous [steps](#Use)  to run the mirror server.
+
+## Redis configurations
+
+To connect to a Redis server at an address and port other than the default values, set the following environment variables:
+
+- `PRIMARY_ENDPOINT` is the primary endpoint or host address of the Redis service. If not set, it defaults to `localhost`.
+- `READER_ENDPOINT` is the read-only replica endpoint and can be used to increase the read availability of the Redis service. If not set, it defaults to the same address as the primary endpoint.
+- `REDIS_PORT` is the port which the Redis service binds to. The default port is `6379`.
+- `REDIS_PASSWORD` is the authentication token to access a password protected Redis server. If not set, the default is no authentication.
+- `REDIS_SSL` should be set to `True` if you are encrypting the traffic to the Redis server. If not set, the default assumes no encryption.
 
 ## Metrics
 
