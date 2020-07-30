@@ -6,11 +6,11 @@ metadata:
 objects:
 - apiVersion: batch/v1
   kind: Job
+  metadata:
+    name: github-mirror-acceptance-${IMAGE_TAG}
   spec:
     backoffLimit: 5
     template:
-      metadata:
-        name: github-mirror-acceptance-${IMAGE_TAG}
       spec:
         restartPolicy: Never
         containers:
