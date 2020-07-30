@@ -31,8 +31,7 @@ objects:
               - accept
 parameters:
 - name: IMAGE
-  value: ''
-  required: true
+  value: quay.io/app-sre/github-mirror
 - name: IMAGE_TAG
   value: ''
   required: true
