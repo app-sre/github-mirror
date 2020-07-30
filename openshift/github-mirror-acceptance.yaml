@@ -1,0 +1,44 @@
+---
+apiVersion: v1
+kind: Template
+metadata:
+  name: github-mirror-acceptance
+objects:
+- apiVersion: batch/v1
+  kind: Job
+  spec:
+    backoffLimit: 5
+    template:
+      metadata:
+        name: github-mirror-acceptance-${IMAGE_TAG}
+      spec:
+        restartPolicy: Never
+        containers:
+          - image: ${IMAGE}:${IMAGE_TAG}
+            imagePullPolicy: Always
+            name: github-mirror-acceptance
+            env:
+              - name: GITHUB_MIRROR_URL
+                value: ${GITHUB_MIRROR_URL}
+              - name: CLIENT_TOKEN
+                valueFrom:
+                  secretKeyRef:
+                    name: ${CLIENT_TOKEN_SECRET}
+                    key: CLIENT_TOKEN
+            command:
+              - make
+            args:
+              - accept
+parameters:
+- name: IMAGE
+  value: ''
+  required: true
+- name: IMAGE_TAG
+  value: ''
+  required: true
+- name: GITHUB_MIRROR_URL
+  value: ''
+  required: true
+- name: CLIENT_TOKEN_SECRET
+  value: ''
+  required: true
