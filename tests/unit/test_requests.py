@@ -65,7 +65,7 @@ class MockRedis:
             return self.cache[item]
         return None
 
-    def set(self, key, value):
+    def set(self, key, value, ex=None):
         self.cache[key] = value
 
     def _scan_iter(self):
