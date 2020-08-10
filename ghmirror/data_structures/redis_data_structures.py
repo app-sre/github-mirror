@@ -18,6 +18,7 @@ Caching data in Redis.
 
 import os
 import pickle
+from random import randint
 import redis
 
 
@@ -50,7 +51,9 @@ class RedisCache:
     def __setitem__(self, key, value):
         sr_key = self._serialize(key)
         sr_value = self._serialize(value)
-        self.wr_cache.set(sr_key, sr_value)
+        # randomize cache expiration time (1 hr increments) from 1 hr to 6 mon
+        rand_val = randint(1, 4320)
+        self.wr_cache.set(sr_key, sr_value, ex=3600 * rand_val)
 
     def __iter__(self):
         return self._scan_iter()
