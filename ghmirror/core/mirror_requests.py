@@ -105,8 +105,8 @@ def online_request(method, url, auth, data=None):
     resp.headers['X-Cache'] = 'ONLINE_MISS'
     # Caching only makes sense when at least one
     # of those headers is present
-    if any(['ETag' in resp.headers,
-            'Last-Modified' in resp.headers]):
+    if resp.status_code == 200 and any(['ETag' in resp.headers,
+                                        'Last-Modified' in resp.headers]):
         cache[cache_key] = resp
     return resp
 
