@@ -72,10 +72,7 @@ objects:
                     key: db.endpoint
                     name: ${EC_SECRET_NAME}
             - name: READER_ENDPOINT
-              valueFrom:
-                secretKeyRef:
-                    key: db.endpoint
-                    name: ${EC_SECRET_NAME}
+              value: ${READER_ENDPOINT}
             - name: REDIS_PORT
               valueFrom:
                 secretKeyRef:
@@ -160,3 +157,6 @@ parameters:
   value: ghmirror-elasticache-stage
 - name: REDIS_SSL
   value: 'True'
+- name: READER_ENDPOINT
+  value: ''
+  required: true
