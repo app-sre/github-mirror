@@ -20,7 +20,7 @@ objects:
       app: github-mirror
     name: github-mirror
   spec:
-    replicas: 3
+    replicas: ${REPLICAS}
     strategy:
       type: RollingUpdate
       rollingUpdate:
@@ -160,3 +160,5 @@ parameters:
 - name: READER_ENDPOINT
   value: ''
   required: true
+- name: REPLICAS
+  value: '3'
