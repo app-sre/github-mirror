@@ -20,7 +20,7 @@ objects:
       app: github-mirror
     name: github-mirror
   spec:
-    replicas: ${REPLICAS}
+    replicas: ${{REPLICAS}}
     strategy:
       type: RollingUpdate
       rollingUpdate:
