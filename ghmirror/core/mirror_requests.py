@@ -83,8 +83,16 @@ def online_request(method, url, auth, data=None):
         if last_mod is not None:
             headers['If-Modified-Since'] = last_mod
 
-    resp = requests.request(method=method, url=url, headers=headers,
-                            timeout=REQUESTS_TIMEOUT)
+    # This is a threaded world. Let's define a big
+    # connections pool to live in that world
+    # (this avoids the warning "Connection pool is
+    # full, discarding connection: vault.devshift.net")
+    session = requests.Session()
+    adapter = HTTPAdapter(pool_connections=100,
+                          pool_maxsize=100)
+    session.mount('https://', adapter)
+    resp = session.request(method=method, url=url, headers=headers,
+                           timeout=REQUESTS_TIMEOUT)
 
     if resp.status_code == 304:
         LOG.info('ONLINE GET CACHE_HIT %s', url)
