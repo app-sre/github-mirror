@@ -3,8 +3,8 @@
 GitHub API mirror that caches the responses and implements
 [conditional requests](https://developer.github.com/v3/#conditional-requests),
 serving the client with the cached responses when the GitHub API replies with a
-304 HTTP code, reducing the number of API calls, making a more efficient use of
-the GitHub API rate limit.
+304 HTTP code, reducing the number of API calls that count for the quota, making
+a more efficient use of the GitHub API rate limit.
 
 The mirror acts only on GET requests, by-passing the other requests methods.
 
