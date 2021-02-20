@@ -103,6 +103,25 @@ request_latency_seconds_count{cache="HIT",method="GET",status="200"} 1.0
 ...
 ```
 
+With that, as the Github API rate limit is per hour, you can have the total
+HIT/MISS per hour with:
+
+```
+sum(increase(request_latency_seconds_count{endpoint="github-mirror",cache="ONLINE_HIT"}[1h]))
+```
+
+and
+
+```
+sum(increase(request_latency_seconds_count{endpoint="github-mirror",cache="ONLINE_MISS"}[1h]))
+```
+
+Plotting on Grafana, we have:
+
+![](docs/images/grafana_hits_misses.png)
+
+Many more metrics are available. Check the `/metrics` endpoint for details.
+
 ## User Validation
 
 To enable the user validation, the `GITHUB_USERS` environment variable
@@ -121,6 +140,30 @@ Please notice that, in order to validate the user, one additional get request
 is made to the Github API, to the `/user` endpoint, using the provided
 authorization token. That call will also go through the caching mechanism, so
 the rate limit will be preserved when possible.
+
+## Offline Mode
+
+There's a built-in mechanism to detect when the Github API is offline.
+
+To do so, we have a separate thread that keeps checking the url
+`https://api.github.com/status` every second. When we don't get a success
+response, we consider the Github API offline.
+
+When that happens, all the requests are served from the cache until we detect
+that the Github API is back online.
+
+Requests served from the cache when we are in offline mode will be accounted
+for in separate metrics:
+
+```
+request_latency_seconds_count{endpoint="github-mirror",cache="OFFLINE_HIT"}
+```
+
+and
+
+```
+request_latency_seconds_count{endpoint="github-mirror",cache="OFFLINE_MISS"}
+```
 
 ## Contributing
 
