@@ -1,4 +1,4 @@
-# Preparing
+# Development Guide
 
 ## Fork the repository
 
