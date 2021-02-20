@@ -1,7 +1,7 @@
 # GitHub Mirror
 
 GitHub API mirror that caches the responses and implements
-[conditional requests](https://developer.github.com/v3/#conditional-requests).
+[conditional requests](https://docs.github.com/en/rest/overview/resources-in-the-rest-api#conditional-requests).
 
 With conditional requests, all the calls are forwarded to the Github API, but
 when the GitHub API replies with a 304 HTTP code, meaning that the resource
