@@ -21,7 +21,7 @@ import logging
 
 import requests
 
-from ghmirror.core.constants import REQUESTS_TIMEOUT
+from ghmirror.core.constants import REQUESTS_TIMEOUT, PER_PAGE_ELEMENTS
 from ghmirror.data_structures.monostate import GithubStatus
 from ghmirror.data_structures.requests_cache import RequestsCache
 from ghmirror.decorators.metrics import requests_metrics
@@ -32,24 +32,57 @@ logging.basicConfig(level=logging.INFO,
 LOG = logging.getLogger(__name__)
 
 
+def _get_elements_per_page(url_params):
+    """
+    Get 'per_page' parameter if present in URL or
+    return None if not present
+    """
+    per_page = url_params.get('per_page')
+    if per_page:
+        return int(per_page)
+
+    return None
+
+
+def _cache_response(resp, cache, cache_key):
+    """
+    Implements the logic to decide whether or not
+    whe should cache a request acording to the headers
+    and content
+    """
+    # Caching only makes sense when at least one
+    # of those headers is present
+    if resp.status_code == 200 and \
+       any(['ETag' in resp.headers, 'Last-Modified' in resp.headers]):
+        cache[cache_key] = resp
+
+
 @requests_metrics
-def conditional_request(method, url, auth, data=None):
+def conditional_request(method, url, auth, data=None, url_params=None):
     """
     Implements conditional requests, checking first whether
     the upstream API is online of offline to decide which
     request routine to call.
     """
     if GithubStatus().online:
-        return online_request(method, url, auth, data)
+        return online_request(method, url, auth, data, url_params)
     return offline_request(method, url, auth)
 
 
-def online_request(method, url, auth, data=None):
+def online_request(method, url, auth, data=None, url_params=None):
     """
     Implements conditional requests.
     """
     cache = RequestsCache()
     headers = {}
+    parameters = {}
+
+    per_page_elements = _get_elements_per_page(url_params)
+
+    if per_page_elements is None:
+        per_page_elements = PER_PAGE_ELEMENTS
+        parameters = {'per_page': PER_PAGE_ELEMENTS}
+
     if auth is None:
         auth_sha = None
     else:
@@ -63,7 +96,8 @@ def online_request(method, url, auth, data=None):
                                 url=url,
                                 headers=headers,
                                 data=data,
-                                timeout=REQUESTS_TIMEOUT)
+                                timeout=REQUESTS_TIMEOUT,
+                                params=parameters)
 
         LOG.info('ONLINE %s CACHE_MISS %s', method, url)
         # And just forward the response (with the
@@ -83,10 +117,28 @@ def online_request(method, url, auth, data=None):
         if last_mod is not None:
             headers['If-Modified-Since'] = last_mod
 
-    resp = requests.request(method=method, url=url, headers=headers,
-                            timeout=REQUESTS_TIMEOUT)
+    resp = requests.request(method=method,
+                            url=url,
+                            headers=headers,
+                            timeout=REQUESTS_TIMEOUT,
+                            params=parameters)
 
     if resp.status_code == 304:
+        if len(cached_response.json()) == per_page_elements and \
+           not cached_response.links:
+
+            headers.pop('If-None-Match')
+            resp = requests.request(method=method,
+                                    url=url,
+                                    headers=headers,
+                                    timeout=REQUESTS_TIMEOUT,
+                                    params=parameters)
+
+            LOG.info('ONLINE GET CACHE_MISS %s', url)
+            resp.headers['X-Cache'] = 'ONLINE_MISS'
+            _cache_response(resp, cache, cache_key)
+            return resp
+
         LOG.info('ONLINE GET CACHE_HIT %s', url)
         cached_response.headers['X-Cache'] = 'ONLINE_HIT'
         return cached_response
@@ -103,11 +155,7 @@ def online_request(method, url, auth, data=None):
 
     LOG.info('ONLINE GET CACHE_MISS %s', url)
     resp.headers['X-Cache'] = 'ONLINE_MISS'
-    # Caching only makes sense when at least one
-    # of those headers is present
-    if resp.status_code == 200 and any(['ETag' in resp.headers,
-                                        'Last-Modified' in resp.headers]):
-        cache[cache_key] = resp
+    _cache_response(resp, cache, cache_key)
     return resp
 
 

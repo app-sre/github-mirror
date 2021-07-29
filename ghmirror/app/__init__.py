@@ -93,7 +93,8 @@ def ghmirror(path):
     resp = conditional_request(method=flask.request.method,
                                url=url,
                                auth=flask.request.headers.get('Authorization'),
-                               data=flask.request.data)
+                               data=flask.request.data,
+                               url_params=flask.request.args)
 
     gh_mirror_url = os.environ.get('GITHUB_MIRROR_URL', flask.request.host_url)
     mirror_response = MirrorResponse(original_response=resp,
