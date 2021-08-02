@@ -84,16 +84,11 @@ def ghmirror(path):
     """
     url = f'{GH_API}/{path}'
 
-    if flask.request.args:
-        url += '?'
-        for key, value in flask.request.args.items():
-            url += f'{key}={value}&'
-        url = url.rstrip('&')
-
     resp = conditional_request(method=flask.request.method,
                                url=url,
                                auth=flask.request.headers.get('Authorization'),
-                               data=flask.request.data)
+                               data=flask.request.data,
+                               url_params=flask.request.args)
 
     gh_mirror_url = os.environ.get('GITHUB_MIRROR_URL', flask.request.host_url)
     mirror_response = MirrorResponse(original_response=resp,

@@ -7,19 +7,23 @@ import requests
 from ghmirror.app import APP
 from ghmirror.data_structures.monostate import UsersCache
 from ghmirror.data_structures.monostate import GithubStatus
-from ghmirror.core.constants import REQUESTS_TIMEOUT
+from ghmirror.core.constants import REQUESTS_TIMEOUT, PER_PAGE_ELEMENTS
 from ghmirror.utils.wait import wait_for
 
 
 class MockResponse:
-    def __init__(self, content, headers, status_code, user=None):
+    def __init__(self, content, headers, status_code, user=None, links=None, json_content=None):
         self.content = content.encode()
         self.text = content
         self.headers = headers
         self.status_code = status_code
         self.user = user
+        self.links = links
+        self.json_content = json_content
 
     def json(self):
+        if self.json_content is not None:
+            return self.json_content
         return {'login': self.user}
 
     def raise_for_status(self):
@@ -69,6 +73,11 @@ def mocked_requests_monitor_bad(*args, **kwargs):
 def mocked_requests_rate_limited(*args, **kwargs):
     return MockResponse('API rate limit exceeded', {}, 403)
 
+def mocked_requests_api_corner_case(*args, **kwargs):
+    if 'If-None-Match' in kwargs['headers']:
+        return MockResponse('', {}, 304, json_content=[{'a': 'b'}, {'c', 'd'}])
+
+    return MockResponse('', {'ETag': 'foo'} , 200, json_content=[{'a': 'b'}, {'c', 'd'}])
 
 @pytest.fixture
 def client():
@@ -164,11 +173,12 @@ def test_mirror_last_modified(mock_get, client):
 def test_mirror_upstream_call(mocked_request, client):
     client.get('/user/repos?page=2',
                headers={'Authorization': 'foo'})
-    expected_url = 'https://api.github.com/user/repos?page=2'
+    expected_url = 'https://api.github.com/user/repos'
     mocked_request.assert_called_with(method='GET',
                                       headers={'Authorization': 'foo'},
                                       url=expected_url,
-                                      timeout=REQUESTS_TIMEOUT)
+                                      timeout=REQUESTS_TIMEOUT,
+                                      params={'page': '2', 'per_page': PER_PAGE_ELEMENTS})
 
 
 @mock.patch('ghmirror.core.mirror_requests.requests.request',
@@ -178,7 +188,8 @@ def test_mirror_non_get(mocked_request, client):
     expected_url = 'https://api.github.com/repos/foo/bar'
     mocked_request.assert_called_with(method='PATCH', data=b'foo', headers={},
                                       url=expected_url,
-                                      timeout=REQUESTS_TIMEOUT)
+                                      timeout=REQUESTS_TIMEOUT,
+                                      params={'per_page': PER_PAGE_ELEMENTS})
 
 
 @mock.patch('ghmirror.decorators.checks.AUTHORIZED_USERS', 'app-sre-bot')
@@ -194,7 +205,8 @@ def test_mirror_authorized_user(mocked_request, mocked_cond_request, client):
                                       headers={'Authorization': 'foo'},
                                       url='https://api.github.com/repos/'
                                           'app-sre/github-mirror',
-                                      timeout=REQUESTS_TIMEOUT)
+                                      timeout=REQUESTS_TIMEOUT,
+                                      params={'per_page': PER_PAGE_ELEMENTS})
 
 
 @mock.patch('ghmirror.decorators.checks.AUTHORIZED_USERS', 'app-sre-bot')
@@ -214,7 +226,8 @@ def test_mirror_authorized_user_cached(mocked_request, mocked_cond_request,
                                       headers={'Authorization': 'foo'},
                                       url='https://api.github.com/repos/'
                                           'app-sre/github-mirror',
-                                      timeout=REQUESTS_TIMEOUT)
+                                      timeout=REQUESTS_TIMEOUT,
+                                      params={'per_page': PER_PAGE_ELEMENTS})
 
 
 @mock.patch('ghmirror.decorators.checks.AUTHORIZED_USERS', 'app-sre-bot')
@@ -364,3 +377,85 @@ def test_rate_limited(mock_monitor_get, mock_request, client):
     assert response.status_code == 200
     assert ('request_latency_seconds_count{cache="RATE_LIMITED_HIT",'
             'method="GET",status="200"} 1.0') in str(response.data)
+
+
+@mock.patch('ghmirror.core.mirror_requests.requests.request',
+            side_effect=mocked_requests_api_corner_case)
+def test_pagination_corner_case_custom_page_elements(mock_get, client):
+    # Initially the stats are zeroed
+    response = client.get('/metrics')
+    assert response.status_code == 200
+    assert ('request_latency_seconds_count{cache="ONLINE_HIT",'
+            'method="GET",status="200"}') not in str(response.data)
+    assert ('request_latency_seconds_count{cache="ONLINE_MISS",'
+            'method="GET",status="200"}') not in str(response.data)
+
+    response = client.get('/repos/app-sre/github-mirror?per_page=2',
+                          follow_redirects=True)
+    assert response.status_code == 200
+
+    # First get is a cache_miss
+    response = client.get('/metrics', follow_redirects=True)
+
+    assert response.status_code == 200
+    assert ('request_latency_seconds_count{cache="ONLINE_HIT",'
+            'method="GET",status="200"}') not in str(response.data)
+    assert ('request_latency_seconds_count{cache="ONLINE_MISS",'
+            'method="GET",status="200"} 1.0') in str(response.data)
+
+    response = client.get('/repos/app-sre/github-mirror?per_page=2',
+                          follow_redirects=True)
+    assert response.status_code == 200
+
+    # Second get is a cache_miss as the request content has the same
+    # number of elements as the PER_PAGE_ELEMENTS and links content
+    # is empty
+    response = client.get('/metrics', follow_redirects=True)
+
+    assert response.status_code == 200
+    assert ('request_latency_seconds_count{cache="ONLINE_HIT",'
+            'method="GET",status="200"}') not in str(response.data)
+    assert ('request_latency_seconds_count{cache="ONLINE_MISS",'
+            'method="GET",status="200"} 2.0') in str(response.data)
+
+
+@mock.patch('ghmirror.core.mirror_requests.PER_PAGE_ELEMENTS', 2)
+@mock.patch('ghmirror.core.mirror_requests.requests.request',
+            side_effect=mocked_requests_api_corner_case)
+def test_pagination_corner_case(mock_get, client):
+    # Initially the stats are zeroed
+    response = client.get('/metrics')
+    assert response.status_code == 200
+    assert ('request_latency_seconds_count{cache="ONLINE_HIT",'
+            'method="GET",status="200"}') not in str(response.data)
+    assert ('request_latency_seconds_count{cache="ONLINE_MISS",'
+            'method="GET",status="200"}') not in str(response.data)
+
+
+    response = client.get('/repos/app-sre/github-mirror',
+                        follow_redirects=True)
+    assert response.status_code == 200
+
+    # First get is a cache_miss
+    response = client.get('/metrics', follow_redirects=True)
+
+    assert response.status_code == 200
+    assert ('request_latency_seconds_count{cache="ONLINE_HIT",'
+            'method="GET",status="200"}') not in str(response.data)
+    assert ('request_latency_seconds_count{cache="ONLINE_MISS",'
+            'method="GET",status="200"} 1.0') in str(response.data)
+
+    response = client.get('/repos/app-sre/github-mirror',
+                          follow_redirects=True)
+    assert response.status_code == 200
+
+    # Second get is a cache_miss as the request content has the same
+    # number of elements as the PER_PAGE_ELEMENTS and links content
+    # is empty
+    response = client.get('/metrics', follow_redirects=True)
+
+    assert response.status_code == 200
+    assert ('request_latency_seconds_count{cache="ONLINE_HIT",'
+            'method="GET",status="200"}') not in str(response.data)
+    assert ('request_latency_seconds_count{cache="ONLINE_MISS",'
+            'method="GET",status="200"} 2.0') in str(response.data)

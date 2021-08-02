@@ -19,3 +19,4 @@ System constants.
 GH_API = 'https://api.github.com'
 REQUESTS_TIMEOUT = 10
 STATUS_TIMEOUT = 2
+PER_PAGE_ELEMENTS = 100
