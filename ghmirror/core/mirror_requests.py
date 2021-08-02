@@ -75,13 +75,13 @@ def online_request(method, url, auth, data=None, url_params=None):
     """
     cache = RequestsCache()
     headers = {}
-    parameters = {}
+    parameters = url_params.to_dict() if url_params is not None else {}
 
     per_page_elements = _get_elements_per_page(url_params)
 
     if per_page_elements is None:
         per_page_elements = PER_PAGE_ELEMENTS
-        parameters = {'per_page': PER_PAGE_ELEMENTS}
+        parameters['per_page'] = PER_PAGE_ELEMENTS
 
     if auth is None:
         auth_sha = None

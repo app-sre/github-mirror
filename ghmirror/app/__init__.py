@@ -84,12 +84,6 @@ def ghmirror(path):
     """
     url = f'{GH_API}/{path}'
 
-    if flask.request.args:
-        url += '?'
-        for key, value in flask.request.args.items():
-            url += f'{key}={value}&'
-        url = url.rstrip('&')
-
     resp = conditional_request(method=flask.request.method,
                                url=url,
                                auth=flask.request.headers.get('Authorization'),
