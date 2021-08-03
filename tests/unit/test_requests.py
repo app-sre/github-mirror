@@ -5,6 +5,7 @@ import pytest
 
 from ghmirror.data_structures.requests_cache import RequestsCache
 from ghmirror.data_structures.monostate import StatsCache
+from ghmirror.core.mirror_requests import _get_elements_per_page
 
 
 RAND_CACHE_SIZE = randint(100, 1000)
@@ -127,3 +128,18 @@ class TestRequestsCache(TestCase):
 
         assert requests_cache_02['foo'].content == 'bar'.encode()
         assert requests_cache_02['foo'].status_code == 200
+
+
+class TestParseUrlParameters(TestCase):
+
+    def test_url_params_empty(self):
+        url_params = None
+        assert _get_elements_per_page(url_params) == None
+
+    def test_url_params_no_per_page(self):
+        url_params = {}
+        assert _get_elements_per_page(url_params) == None
+
+    def test_url_params_per_page(self):
+        url_params = {"per_page": 2}
+        assert _get_elements_per_page(url_params) == 2
