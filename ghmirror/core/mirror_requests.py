@@ -168,6 +168,7 @@ def _should_serve_from_cache(response):
     """
     rate_limit_messages = {
         'API rate limit exceeded',
+        'secondary rate limit',
         'abuse detection mechanism'
     }
     return response.status_code == 403 and \
