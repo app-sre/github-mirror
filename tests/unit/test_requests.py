@@ -5,7 +5,8 @@ import pytest
 
 from ghmirror.data_structures.requests_cache import RequestsCache
 from ghmirror.data_structures.monostate import StatsCache
-from ghmirror.core.mirror_requests import _get_elements_per_page
+from ghmirror.core.mirror_requests import (_get_elements_per_page,
+                                           _should_serve_from_cache)
 
 
 RAND_CACHE_SIZE = randint(100, 1000)
@@ -36,10 +37,11 @@ class TestStatsCache:
 
 
 class MockResponse:
-    def __init__(self, content, headers, status_code):
+    def __init__(self, content, headers, status_code, text):
         self.content = content.encode()
         self.headers = headers
         self.status_code = status_code
+        self.text = text
 
     def content(self):
         return self.content
@@ -49,6 +51,9 @@ class MockResponse:
 
     def status_code(self):
         return self.status_code
+
+    def text(self):
+        return self.text
 
 
 class MockRedis:
@@ -98,7 +103,8 @@ class TestRequestsCache(TestCase):
         requests_cache_01 = RequestsCache()
         requests_cache_01['foo'] = MockResponse(content='bar',
                                                 headers={},
-                                                status_code=200)
+                                                status_code=200,
+                                                text='')
         assert list(requests_cache_01)
         assert 'foo' in requests_cache_01
 
@@ -114,7 +120,8 @@ class TestRequestsCache(TestCase):
         requests_cache_01 = RequestsCache()
         requests_cache_01['foo'] = MockResponse(content='bar',
                                                 headers={},
-                                                status_code=200)
+                                                status_code=200,
+                                                text='')
         assert list(requests_cache_01)
         assert 'foo' in requests_cache_01
 
@@ -123,7 +130,8 @@ class TestRequestsCache(TestCase):
         requests_cache_01 = RequestsCache()
         requests_cache_01['foo'] = MockResponse(content='bar',
                                                 headers={},
-                                                status_code=200)        
+                                                status_code=200,
+                                                text='')        
         requests_cache_02 = RequestsCache()
 
         assert requests_cache_02['foo'].content == 'bar'.encode()
@@ -143,3 +151,22 @@ class TestParseUrlParameters(TestCase):
     def test_url_params_per_page(self):
         url_params = {"per_page": 2}
         assert _get_elements_per_page(url_params) == 2
+
+
+class TestServeFromCacheCondition(TestCase):
+
+    def test_should_serve_from_cache_true(self):
+        text = "You have triggered an abuse detection mechanism."
+        resp = MockResponse(content='bar',
+                            headers={},
+                            status_code=403,
+                            text=text)
+        assert _should_serve_from_cache(resp) is True
+
+    def test_should_serve_from_cache_false(self):
+        text = "it's fine."
+        resp = MockResponse(content='bar',
+                            headers={},
+                            status_code=403,
+                            text=text)
+        assert _should_serve_from_cache(resp) is False
