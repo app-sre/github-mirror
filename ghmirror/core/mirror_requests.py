@@ -37,9 +37,10 @@ def _get_elements_per_page(url_params):
     Get 'per_page' parameter if present in URL or
     return None if not present
     """
-    per_page = url_params.get('per_page')
-    if per_page:
-        return int(per_page)
+    if url_params is not None:
+        per_page = url_params.get('per_page')
+        if per_page is not None:
+            return int(per_page)
 
     return None
 
