@@ -144,13 +144,8 @@ def online_request(method, url, auth, data=None, url_params=None):
         cached_response.headers['X-Cache'] = 'ONLINE_HIT'
         return cached_response
 
-    # When wen hit the API limit, let's try to serve from cache
-    rate_limit_messages = {
-        'API rate limit exceeded',
-        'abuse detection mechanism'
-    }
-    if resp.status_code == 403 and \
-            any(m in resp.text for m in rate_limit_messages):
+    # When we hit the API limit, let's try to serve from cache
+    if _should_serve_from_cache(resp):
         if cached_response is None:
             LOG.info('RATE_LIMITED GET CACHE_MISS %s', url)
             resp.headers['X-Cache'] = 'RATE_LIMITED_MISS'
@@ -163,6 +158,20 @@ def online_request(method, url, auth, data=None, url_params=None):
     resp.headers['X-Cache'] = 'ONLINE_MISS'
     _cache_response(resp, cache, cache_key)
     return resp
+
+
+def _should_serve_from_cache(response):
+    """Try to serve response from the cache when we hit API limit
+
+    Args:
+        response (Response): requests module response
+    """
+    rate_limit_messages = {
+        'API rate limit exceeded',
+        'abuse detection mechanism'
+    }
+    return response.status_code == 403 and \
+        any(m in response.text for m in rate_limit_messages)
 
 
 def offline_request(method, url, auth, error_code=504,
