@@ -173,7 +173,7 @@ def test_mirror_last_modified(mock_get, client):
 def test_mirror_upstream_call(mocked_request, client):
     client.get('/user/repos?page=2',
                headers={'Authorization': 'foo'})
-    expected_url = 'https://api.github.com/user/repos'
+    expected_url = 'https://api.github.com/user/repos?page=2'
     mocked_request.assert_called_with(method='GET',
                                       headers={'Authorization': 'foo'},
                                       url=expected_url,
