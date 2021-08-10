@@ -58,6 +58,20 @@ def _cache_response(resp, cache, cache_key):
         cache[cache_key] = resp
 
 
+def _online_request(method, url, data=None,
+                    headers=None, parameters=None):
+    """
+    Handle API errors on conditional requests and try
+    to serve contents from cache
+    """
+    return requests.request(method=method,
+                            url=url,
+                            headers=headers,
+                            data=data,
+                            timeout=REQUESTS_TIMEOUT,
+                            params=parameters)
+
+
 @requests_metrics
 def conditional_request(method, url, auth, data=None, url_params=None):
     """
@@ -93,12 +107,11 @@ def online_request(method, url, auth, data=None, url_params=None):
     # Special case for non-GET requests
     if method != 'GET':
         # Just forward the request with the auth header
-        resp = requests.request(method=method,
-                                url=url,
-                                headers=headers,
-                                data=data,
-                                timeout=REQUESTS_TIMEOUT,
-                                params=parameters)
+        resp = _online_request(method=method,
+                               url=url,
+                               headers=headers,
+                               data=data,
+                               parameters=parameters)
 
         LOG.info('ONLINE %s CACHE_MISS %s', method, url)
         # And just forward the response (with the
@@ -118,22 +131,22 @@ def online_request(method, url, auth, data=None, url_params=None):
         if last_mod is not None:
             headers['If-Modified-Since'] = last_mod
 
-    resp = requests.request(method=method,
-                            url=url,
-                            headers=headers,
-                            timeout=REQUESTS_TIMEOUT,
-                            params=parameters)
+    resp = _online_request(method=method,
+                           url=url,
+                           headers=headers,
+                           data=data,
+                           parameters=parameters)
 
     if resp.status_code == 304:
         if len(cached_response.json()) == per_page_elements and \
            not cached_response.links:
 
             headers.pop('If-None-Match')
-            resp = requests.request(method=method,
-                                    url=url,
-                                    headers=headers,
-                                    timeout=REQUESTS_TIMEOUT,
-                                    params=parameters)
+            resp = _online_request(method=method,
+                                   url=url,
+                                   headers=headers,
+                                   data=data,
+                                   parameters=parameters)
 
             LOG.info('ONLINE GET CACHE_MISS %s', url)
             resp.headers['X-Cache'] = 'ONLINE_MISS'

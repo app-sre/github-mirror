@@ -178,7 +178,8 @@ def test_mirror_upstream_call(mocked_request, client):
                                       headers={'Authorization': 'foo'},
                                       url=expected_url,
                                       timeout=REQUESTS_TIMEOUT,
-                                      params={'page': '2', 'per_page': PER_PAGE_ELEMENTS})
+                                      params={'page': '2', 'per_page': PER_PAGE_ELEMENTS},
+                                      data=b'')
 
 
 @mock.patch('ghmirror.core.mirror_requests.requests.request',
@@ -206,7 +207,8 @@ def test_mirror_authorized_user(mocked_request, mocked_cond_request, client):
                                       url='https://api.github.com/repos/'
                                           'app-sre/github-mirror',
                                       timeout=REQUESTS_TIMEOUT,
-                                      params={'per_page': PER_PAGE_ELEMENTS})
+                                      params={'per_page': PER_PAGE_ELEMENTS},
+                                      data=b'')
 
 
 @mock.patch('ghmirror.decorators.checks.AUTHORIZED_USERS', 'app-sre-bot')
@@ -227,7 +229,8 @@ def test_mirror_authorized_user_cached(mocked_request, mocked_cond_request,
                                       url='https://api.github.com/repos/'
                                           'app-sre/github-mirror',
                                       timeout=REQUESTS_TIMEOUT,
-                                      params={'per_page': PER_PAGE_ELEMENTS})
+                                      params={'per_page': PER_PAGE_ELEMENTS},
+                                      data=b'')
 
 
 @mock.patch('ghmirror.decorators.checks.AUTHORIZED_USERS', 'app-sre-bot')
