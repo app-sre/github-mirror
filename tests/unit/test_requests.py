@@ -6,7 +6,8 @@ import pytest
 from ghmirror.data_structures.requests_cache import RequestsCache
 from ghmirror.data_structures.monostate import StatsCache
 from ghmirror.core.mirror_requests import (_get_elements_per_page,
-                                           _should_serve_from_cache)
+                                           _is_rate_limit_error,
+                                           _should_error_response_be_served_from_cache)
 
 
 RAND_CACHE_SIZE = randint(100, 1000)
@@ -153,20 +154,53 @@ class TestParseUrlParameters(TestCase):
         assert _get_elements_per_page(url_params) == 2
 
 
-class TestServeFromCacheCondition(TestCase):
+class TestIsRateLimitCondition(TestCase):
 
-    def test_should_serve_from_cache_true(self):
+    def test_is_rate_limit_error_true(self):
         text = "You have triggered an abuse detection mechanism."
         resp = MockResponse(content='bar',
                             headers={},
                             status_code=403,
                             text=text)
-        assert _should_serve_from_cache(resp) is True
+        assert _is_rate_limit_error(resp) is True
 
-    def test_should_serve_from_cache_false(self):
+    def test_is_rate_limit_error_false(self):
         text = "it's fine."
         resp = MockResponse(content='bar',
                             headers={},
                             status_code=403,
                             text=text)
-        assert _should_serve_from_cache(resp) is False
+        assert _is_rate_limit_error(resp) is False
+
+
+class TestServeFromCacheCondition(TestCase):
+
+    def test_should_serve_from_cache_rate_limit(self):
+        text = "You have triggered an abuse detection mechanism."
+        resp = MockResponse(content='bar',
+                            headers={},
+                            status_code=403,
+                            text=text)
+        serve_from_cache, header = _should_error_response_be_served_from_cache(resp)
+        assert serve_from_cache is True
+        assert header == "RATE_LIMITED"
+
+    def test_should_serve_from_cache_api_error(self):
+        text = "it's fine."
+        resp = MockResponse(content='bar',
+                            headers={},
+                            status_code=500,
+                            text=text)
+        serve_from_cache, header = _should_error_response_be_served_from_cache(resp)
+        assert serve_from_cache is True
+        assert header == "API_ERROR"
+
+    def test_should_serve_from_cache_ok(self):
+        text = "it's fine."
+        resp = MockResponse(content='bar',
+                            headers={},
+                            status_code=200,
+                            text=text)
+        serve_from_cache, header = _should_error_response_be_served_from_cache(resp)
+        assert serve_from_cache is False
+        assert header == ""
