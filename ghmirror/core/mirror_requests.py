@@ -163,8 +163,8 @@ def online_request(method, url, auth, data=None, url_params=None):
 def _should_serve_from_cache(response):
     """Try to serve response from the cache when we hit API limit
 
-    Args:
-        response (Response): requests module response
+    :param response: requests module response
+    :type response: requests.Response
     """
     rate_limit_messages = {
         'API rate limit exceeded',
