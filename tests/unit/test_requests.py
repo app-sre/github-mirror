@@ -94,8 +94,8 @@ def mocked_redis_cache(*args, **kwargs):
 class TestRequestsCache(TestCase):
 
     @mock.patch('ghmirror.data_structures.requests_cache.CACHE_TYPE', 'redis')
-    @mock.patch('ghmirror.data_structures.redis_data_structures.REDIS_TOKEN', 'mysecret') 
-    @mock.patch('ghmirror.data_structures.redis_data_structures.REDIS_SSL', 'True')        
+    @mock.patch('ghmirror.data_structures.redis_data_structures.REDIS_TOKEN', 'mysecret')
+    @mock.patch('ghmirror.data_structures.redis_data_structures.REDIS_SSL', 'True')
     @mock.patch(
         'ghmirror.data_structures.redis_data_structures.redis.Redis',
         side_effect=mocked_redis_cache)
@@ -112,7 +112,7 @@ class TestRequestsCache(TestCase):
         assert requests_cache_01['foo'].status_code == 200
 
         assert requests_cache_01.__sizeof__() == RAND_CACHE_SIZE
-        
+
         self.assertRaises(KeyError, lambda: requests_cache_01['bar'])
 
     @mock.patch('ghmirror.data_structures.requests_cache.CACHE_TYPE', 'in-memory')
@@ -131,7 +131,7 @@ class TestRequestsCache(TestCase):
         requests_cache_01['foo'] = MockResponse(content='bar',
                                                 headers={},
                                                 status_code=200,
-                                                text='')        
+                                                text='')
         requests_cache_02 = RequestsCache()
 
         assert requests_cache_02['foo'].content == 'bar'.encode()
