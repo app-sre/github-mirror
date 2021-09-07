@@ -73,19 +73,21 @@ def _online_request(method, url, cached_response,
 
         # When we hit the API limit, or there is a problem with the API
         # let's try to serve from cache
-        (serve_from_cache,
-         response_header) = _should_error_response_be_served_from_cache(resp)
-        if serve_from_cache:
-            if cached_response is None:
-                LOG.info('%s GET CACHE_MISS %s', response_header, url)
-                resp.headers['X-Cache'] = response_header + '_MISS'
-                return resp
+        error_resp_header = _should_error_response_be_served_from_cache(resp)
 
-            LOG.info('%s GET CACHE_HIT %s', response_header, url)
-            cached_response.headers['X-Cache'] = response_header + '_HIT'
-            return cached_response
+        # If we didn't find any error in the API request, we return the
+        # response directly to the next layer
+        if error_resp_header is None:
+            return resp
 
-        return resp
+        if cached_response is None:
+            LOG.info('%s GET CACHE_MISS %s', error_resp_header, url)
+            resp.headers['X-Cache'] = error_resp_header + '_MISS'
+            return resp
+
+        LOG.info('%s GET CACHE_HIT %s', error_resp_header, url)
+        cached_response.headers['X-Cache'] = error_resp_header + '_HIT'
+        return cached_response
 
     except requests.exceptions.Timeout:
 
@@ -191,6 +193,9 @@ def online_request(method, url, auth, data=None, url_params=None):
                                    headers, method, url, parameters,
                                    cache, cache_key)
 
+    # This section covers the log and the headers logic when we don't have
+    # any error on the _online_request method, and the response from the
+    # Github API is returned.
     if 'X-Cache' not in resp.headers:
         LOG.info('ONLINE GET CACHE_MISS %s', url)
         resp.headers['X-Cache'] = 'ONLINE_MISS'
@@ -206,18 +211,18 @@ def _should_error_response_be_served_from_cache(response):
     :param response: requests module response
     :type response: requests.Response
 
-    :return: a bool indicating if we should serve from cache or not
-    and the headers that we should return
-    :rtype: bool, string
+    :return: The headers that we should return on the request if served
+        from cache
+    :rtype: str, optional
     """
 
     if _is_rate_limit_error(response):
-        return True, "RATE_LIMITED"
+        return "RATE_LIMITED"
 
     if response.status_code >= 500 and response.status_code < 600:
-        return True, "API_ERROR"
+        return "API_ERROR"
 
-    return False, ""
+    return None
 
 
 def _is_rate_limit_error(response):

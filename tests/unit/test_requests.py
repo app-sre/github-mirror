@@ -181,8 +181,7 @@ class TestServeFromCacheCondition(TestCase):
                             headers={},
                             status_code=403,
                             text=text)
-        serve_from_cache, header = _should_error_response_be_served_from_cache(resp)
-        assert serve_from_cache is True
+        header = _should_error_response_be_served_from_cache(resp)
         assert header == "RATE_LIMITED"
 
     def test_should_serve_from_cache_api_error(self):
@@ -191,8 +190,7 @@ class TestServeFromCacheCondition(TestCase):
                             headers={},
                             status_code=500,
                             text=text)
-        serve_from_cache, header = _should_error_response_be_served_from_cache(resp)
-        assert serve_from_cache is True
+        header = _should_error_response_be_served_from_cache(resp)
         assert header == "API_ERROR"
 
     def test_should_serve_from_cache_ok(self):
@@ -201,6 +199,5 @@ class TestServeFromCacheCondition(TestCase):
                             headers={},
                             status_code=200,
                             text=text)
-        serve_from_cache, header = _should_error_response_be_served_from_cache(resp)
-        assert serve_from_cache is False
-        assert header == ""
+        header = _should_error_response_be_served_from_cache(resp)
+        assert header == None
