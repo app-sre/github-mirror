@@ -58,6 +58,70 @@ def _cache_response(resp, cache, cache_key):
         cache[cache_key] = resp
 
 
+def _online_request(method, url, cached_response,
+                    headers=None, parameters=None):
+    """
+    Handle API errors on conditional requests and try
+    to serve contents from cache
+    """
+    try:
+        resp = requests.request(method=method,
+                                url=url,
+                                headers=headers,
+                                timeout=REQUESTS_TIMEOUT,
+                                params=parameters)
+
+        # When we hit the API limit, or there is a problem with the API
+        # let's try to serve from cache
+        error_resp_header = _should_error_response_be_served_from_cache(resp)
+
+        # If we didn't find any error in the API request, we return the
+        # response directly to the next layer
+        if error_resp_header is None:
+            return resp
+
+        if cached_response is None:
+            LOG.info('%s GET CACHE_MISS %s', error_resp_header, url)
+            resp.headers['X-Cache'] = error_resp_header + '_MISS'
+            return resp
+
+        LOG.info('%s GET CACHE_HIT %s', error_resp_header, url)
+        cached_response.headers['X-Cache'] = error_resp_header + '_HIT'
+        return cached_response
+
+    except requests.exceptions.Timeout:
+
+        if cached_response is None:
+            raise
+
+        LOG.info('API_TIMEOUT GET CACHE_HIT %s', url)
+        cached_response.headers['X-Cache'] = 'API_TIMEOUT_HIT'
+        return cached_response
+
+
+def _handle_not_changed(cached_response, per_page_elements,
+                        headers, method, url, parameters,
+                        cache, cache_key):
+    if len(cached_response.json()) == per_page_elements and \
+           not cached_response.links:
+
+        headers.pop('If-None-Match')
+        resp = requests.request(method=method,
+                                url=url,
+                                headers=headers,
+                                timeout=REQUESTS_TIMEOUT,
+                                params=parameters)
+
+        LOG.info('ONLINE GET CACHE_MISS %s', url)
+        resp.headers['X-Cache'] = 'ONLINE_MISS'
+        _cache_response(resp, cache, cache_key)
+        return resp
+
+    LOG.info('ONLINE GET CACHE_HIT %s', url)
+    cached_response.headers['X-Cache'] = 'ONLINE_HIT'
+    return cached_response
+
+
 @requests_metrics
 def conditional_request(method, url, auth, data=None, url_params=None):
     """
@@ -118,49 +182,50 @@ def online_request(method, url, auth, data=None, url_params=None):
         if last_mod is not None:
             headers['If-Modified-Since'] = last_mod
 
-    resp = requests.request(method=method,
-                            url=url,
-                            headers=headers,
-                            timeout=REQUESTS_TIMEOUT,
-                            params=parameters)
+    resp = _online_request(method=method,
+                           url=url,
+                           headers=headers,
+                           parameters=parameters,
+                           cached_response=cached_response)
 
     if resp.status_code == 304:
-        if len(cached_response.json()) == per_page_elements and \
-           not cached_response.links:
+        return _handle_not_changed(cached_response, per_page_elements,
+                                   headers, method, url, parameters,
+                                   cache, cache_key)
 
-            headers.pop('If-None-Match')
-            resp = requests.request(method=method,
-                                    url=url,
-                                    headers=headers,
-                                    timeout=REQUESTS_TIMEOUT,
-                                    params=parameters)
+    # This section covers the log and the headers logic when we don't have
+    # any error on the _online_request method, and the response from the
+    # Github API is returned.
+    if 'X-Cache' not in resp.headers:
+        LOG.info('ONLINE GET CACHE_MISS %s', url)
+        resp.headers['X-Cache'] = 'ONLINE_MISS'
+        _cache_response(resp, cache, cache_key)
 
-            LOG.info('ONLINE GET CACHE_MISS %s', url)
-            resp.headers['X-Cache'] = 'ONLINE_MISS'
-            _cache_response(resp, cache, cache_key)
-            return resp
-
-        LOG.info('ONLINE GET CACHE_HIT %s', url)
-        cached_response.headers['X-Cache'] = 'ONLINE_HIT'
-        return cached_response
-
-    # When we hit the API limit, let's try to serve from cache
-    if _should_serve_from_cache(resp):
-        if cached_response is None:
-            LOG.info('RATE_LIMITED GET CACHE_MISS %s', url)
-            resp.headers['X-Cache'] = 'RATE_LIMITED_MISS'
-            return resp
-        LOG.info('RATE_LIMITED GET CACHE_HIT %s', url)
-        cached_response.headers['X-Cache'] = 'RATE_LIMITED_HIT'
-        return cached_response
-
-    LOG.info('ONLINE GET CACHE_MISS %s', url)
-    resp.headers['X-Cache'] = 'ONLINE_MISS'
-    _cache_response(resp, cache, cache_key)
     return resp
 
 
-def _should_serve_from_cache(response):
+def _should_error_response_be_served_from_cache(response):
+    """Parse a response to check if we should serve contents
+    from cache
+
+    :param response: requests module response
+    :type response: requests.Response
+
+    :return: The headers that we should return on the request if served
+        from cache
+    :rtype: str, optional
+    """
+
+    if _is_rate_limit_error(response):
+        return "RATE_LIMITED"
+
+    if response.status_code >= 500 and response.status_code < 600:
+        return "API_ERROR"
+
+    return None
+
+
+def _is_rate_limit_error(response):
     """Try to serve response from the cache when we hit API limit
 
     :param response: requests module response
