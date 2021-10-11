@@ -79,8 +79,8 @@ def mocked_requests_api_corner_case(*_args, **kwargs):
 
     return MockResponse('', {'ETag': 'foo'}, 200, json_content=[{'a': 'b'}, {'c', 'd'}])
 
-@pytest.fixture
-def client():
+@pytest.fixture(name="client")
+def fixture_client():
     APP.config['TESTING'] = True
 
     with APP.test_client() as client:
