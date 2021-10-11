@@ -72,13 +72,13 @@ class MockRedis:
             return self.cache[item]
         return None
 
-    def set(self, key, value, ex=None):
+    def set(self, key, value, **_):
         self.cache[key] = value
 
     def _scan_iter(self):
         return iter(self.cache)
 
-    def scan(self, *args):
+    def scan(self, *_args):
         return 0, iter(self.cache)
 
     def dbsize(self):
@@ -88,7 +88,7 @@ class MockRedis:
         return {'used_memory': self.size}
 
 
-def mocked_redis_cache(*args, **kwargs):
+def mocked_redis_cache(*_args, **_kwargs):
     return MockRedis(size=RAND_CACHE_SIZE)
 
 
@@ -100,7 +100,7 @@ class TestRequestsCache(TestCase):
     @mock.patch(
         'ghmirror.data_structures.redis_data_structures.redis.Redis',
         side_effect=mocked_redis_cache)
-    def test_interface_redis(self, mock_cache):
+    def test_interface_redis(self, _mock_cache):
         requests_cache_01 = RequestsCache()
         requests_cache_01['foo'] = MockResponse(content='bar',
                                                 headers={},
