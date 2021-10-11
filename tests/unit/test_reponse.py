@@ -73,7 +73,7 @@ class TestResponse:
                                   gh_mirror_url='bar')
         # No content from the upstream response should stay the
         # same in the mirror response
-        assert response.content == None
+        assert response.content is None
 
         mock_response = MockResponse(content='foobar',
                                      headers={},

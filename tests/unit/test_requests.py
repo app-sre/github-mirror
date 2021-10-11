@@ -143,11 +143,11 @@ class TestParseUrlParameters(TestCase):
 
     def test_url_params_empty(self):
         url_params = None
-        assert _get_elements_per_page(url_params) == None
+        assert _get_elements_per_page(url_params) is None
 
     def test_url_params_no_per_page(self):
         url_params = {}
-        assert _get_elements_per_page(url_params) == None
+        assert _get_elements_per_page(url_params) is None
 
     def test_url_params_per_page(self):
         url_params = {"per_page": 2}
@@ -200,4 +200,4 @@ class TestServeFromCacheCondition(TestCase):
                             status_code=200,
                             text=text)
         header = _should_error_response_be_served_from_cache(resp)
-        assert header == None
+        assert header is None
