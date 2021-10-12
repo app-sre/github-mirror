@@ -10,15 +10,6 @@ class MockResponse:
         self.headers = headers
         self.status_code = status_code
 
-    def content(self):
-        return self.content
-
-    def headers(self):
-        return self.headers
-
-    def status_code(self):
-        return self.status_code
-
 
 class TestResponse:
 

@@ -44,18 +44,6 @@ class MockResponse:
         self.status_code = status_code
         self.text = text
 
-    def content(self):
-        return self.content
-
-    def headers(self):
-        return self.headers
-
-    def status_code(self):
-        return self.status_code
-
-    def text(self):
-        return self.text
-
 
 class MockRedis:
 
