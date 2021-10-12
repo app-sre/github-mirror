@@ -1,3 +1,5 @@
+from unittest import TestCase
+
 from ghmirror.core.mirror_response import MirrorResponse
 
 
@@ -11,7 +13,7 @@ class MockResponse:
         self.status_code = status_code
 
 
-class TestResponse:
+class TestResponse(TestCase):
 
     def test_no_headers(self):
         headers = {'Some-Other-Header': 'foo'}
@@ -23,7 +25,7 @@ class TestResponse:
                                   gh_mirror_url='bar')
 
         # That item should not be part of the response.headers
-        assert not response.headers
+        self.assertFalse(response.headers)
 
     def test_headers(self):
         headers = {'Link': 'foobar',
@@ -44,15 +46,15 @@ class TestResponse:
         link = response_headers.pop('Link')
         # Link should have been modified, replacing the gh_api_url string
         # by the gh_mirror_url string.
-        assert link == 'barbar'
+        self.assertEqual(link, 'barbar')
 
         # Those headers should be there
         for item in ['Content-Type', 'Last-Modified', 'ETag']:
             header = response_headers.pop(item)
-            assert header == 'foo'
+            self.assertEqual(header, 'foo')
 
         # No other headers should be there
-        assert not response_headers
+        self.assertFalse(response_headers)
 
     def test_content(self):
         mock_response = MockResponse(content=None,
@@ -64,7 +66,7 @@ class TestResponse:
                                   gh_mirror_url='bar')
         # No content from the upstream response should stay the
         # same in the mirror response
-        assert response.content is None
+        self.assertIsNone(response.content)
 
         mock_response = MockResponse(content='foobar',
                                      headers={},
@@ -74,7 +76,7 @@ class TestResponse:
                                   gh_mirror_url='bar')
         # content should have been modified, replacing the
         # gh_api_url string by the gh_mirror_url string.
-        assert response.content == 'barbar'.encode()
+        self.assertEqual(response.content, 'barbar'.encode())
 
     def test_status_code(self):
         mock_response = MockResponse(content='foobar',
@@ -86,4 +88,4 @@ class TestResponse:
                                   gh_mirror_url='bar')
 
         # No status code change
-        assert response.status_code == 200
+        self.assertEqual(response.status_code, 200)
