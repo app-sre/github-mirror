@@ -15,6 +15,7 @@ RAND_CACHE_SIZE = randint(100, 1000)
 
 class TestStatsCache(TestCase):
 
+    # pylint: disable=W0212
     def test_shared_state(self):
         stats_cache_01 = StatsCache()
         with pytest.raises(AttributeError) as e_info:
