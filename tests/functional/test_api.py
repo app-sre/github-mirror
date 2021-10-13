@@ -31,7 +31,7 @@ class MockResponse:
             raise requests.exceptions.HTTPError
 
 
-def mocked_requests_get_etag(*args, **kwargs):
+def mocked_requests_get_etag(*_args, **kwargs):
     if 'If-Modified-Since' in kwargs['headers']:
         return MockResponse('', {}, 304)
 
@@ -41,7 +41,7 @@ def mocked_requests_get_etag(*args, **kwargs):
     return MockResponse('', {'ETag': 'foo'}, 200)
 
 
-def mocked_requests_get_last_modified(*args, **kwargs):
+def mocked_requests_get_last_modified(*_args, **kwargs):
     if 'If-Modified-Since' in kwargs['headers']:
         return MockResponse('', {}, 304)
 
@@ -51,36 +51,36 @@ def mocked_requests_get_last_modified(*args, **kwargs):
     return MockResponse('', {'Last-Modified': 'bar'}, 200)
 
 
-def mocked_requests_get_user_orgs_auth(*args, **kwargs):
+def mocked_requests_get_user_orgs_auth(*_args, **_kwargs):
     return MockResponse('', {}, 200, 'app-sre-bot')
 
 
-def mocked_requests_get_user_orgs_unauth(*args, **kwargs):
+def mocked_requests_get_user_orgs_unauth(*_args, **_kwargs):
     return MockResponse('', {}, 200, 'other')
 
 
-def mocked_requests_get_error(*args, **kwargs):
+def mocked_requests_get_error(*_args, **_kwargs):
     return MockResponse('', {}, 500)
 
 
-def mocked_requests_monitor_good(*args, **kwargs):
+def mocked_requests_monitor_good(*_args, **_kwargs):
     return MockResponse('', {}, 200)
 
 
-def mocked_requests_monitor_bad(*args, **kwargs):
+def mocked_requests_monitor_bad(*_args, **_kwargs):
     return MockResponse('', {}, 403)
 
-def mocked_requests_rate_limited(*args, **kwargs):
+def mocked_requests_rate_limited(*_args, **_kwargs):
     return MockResponse('API rate limit exceeded', {}, 403)
 
-def mocked_requests_api_corner_case(*args, **kwargs):
+def mocked_requests_api_corner_case(*_args, **kwargs):
     if 'If-None-Match' in kwargs['headers']:
         return MockResponse('', {}, 304, json_content=[{'a': 'b'}, {'c', 'd'}])
 
-    return MockResponse('', {'ETag': 'foo'} , 200, json_content=[{'a': 'b'}, {'c', 'd'}])
+    return MockResponse('', {'ETag': 'foo'}, 200, json_content=[{'a': 'b'}, {'c', 'd'}])
 
-@pytest.fixture
-def client():
+@pytest.fixture(name="client")
+def fixture_client():
     APP.config['TESTING'] = True
 
     with APP.test_client() as client:
@@ -95,7 +95,7 @@ def test_healthz(client):
 
 @mock.patch('ghmirror.core.mirror_requests.requests.request',
             side_effect=mocked_requests_get_etag)
-def test_mirror_etag(mock_get, client):
+def test_mirror_etag(_mock_get, client):
     # Initially the stats are zeroed
     response = client.get('/metrics')
     assert response.status_code == 200
@@ -133,7 +133,7 @@ def test_mirror_etag(mock_get, client):
 
 @mock.patch('ghmirror.core.mirror_requests.requests.request',
             side_effect=mocked_requests_get_last_modified)
-def test_mirror_last_modified(mock_get, client):
+def test_mirror_last_modified(_mock_get, client):
     # Initially the stats are zeroed
     response = client.get('/metrics')
     assert response.status_code == 200
@@ -233,7 +233,7 @@ def test_mirror_authorized_user_cached(mocked_request, mocked_cond_request,
 @mock.patch('ghmirror.decorators.checks.AUTHORIZED_USERS', 'app-sre-bot')
 @mock.patch('ghmirror.decorators.checks.conditional_request',
             side_effect=mocked_requests_get_user_orgs_unauth)
-def test_mirror_user_forbidden(mocked_cond_request, client):
+def test_mirror_user_forbidden(_mocked_cond_request, client):
     response = client.get('/repos/app-sre/github-mirror',
                           headers={'Authorization': 'foo'})
     assert response.status_code == 403
@@ -249,7 +249,7 @@ def test_mirror_no_auth(client):
 @mock.patch('ghmirror.decorators.checks.AUTHORIZED_USERS', 'app-sre-bot')
 @mock.patch('ghmirror.decorators.checks.conditional_request',
             side_effect=mocked_requests_get_error)
-def test_mirror_auth_error(mocked_cond_request, client):
+def test_mirror_auth_error(_mocked_cond_request, client):
     response = client.get('/repos/app-sre/github-mirror',
                           headers={'Authorization': 'foo'})
     assert response.status_code == 500
@@ -259,7 +259,7 @@ def test_mirror_auth_error(mocked_cond_request, client):
             side_effect=mocked_requests_get_etag)
 @mock.patch('ghmirror.data_structures.monostate.requests.get',
             side_effect=mocked_requests_monitor_good)
-def test_offline_mode(mock_monitor_get, mock_request, client):
+def test_offline_mode(mock_monitor_get, _mock_request, client):
     # Let's wait the mirror consider itself online
     assert wait_for(lambda: GithubStatus().online, timeout=5)
 
@@ -311,7 +311,7 @@ def test_offline_mode(mock_monitor_get, mock_request, client):
             side_effect=mocked_requests_get_etag)
 @mock.patch('ghmirror.data_structures.monostate.requests.get',
             side_effect=mocked_requests_monitor_good)
-def test_offline_mode_upstream_error(mock_monitor_get, mock_request, client):
+def test_offline_mode_upstream_error(mock_monitor_get, _mock_request, client):
     # Let's wait the mirror consider itself online
     assert wait_for(lambda: GithubStatus().online, timeout=5)
 
@@ -346,7 +346,7 @@ def test_offline_mode_upstream_error(mock_monitor_get, mock_request, client):
             side_effect=mocked_requests_rate_limited)
 @mock.patch('ghmirror.data_structures.monostate.requests.get',
             side_effect=mocked_requests_monitor_good)
-def test_rate_limited(mock_monitor_get, mock_request, client):
+def test_rate_limited(_mock_monitor_get, mock_request, client):
     # First request will get a 403/rate-limited. Because it's not cached
     # yet, we receive the same 403
     response = client.get('/repos/app-sre/github-mirror')
@@ -381,7 +381,7 @@ def test_rate_limited(mock_monitor_get, mock_request, client):
 
 @mock.patch('ghmirror.core.mirror_requests.requests.request',
             side_effect=mocked_requests_api_corner_case)
-def test_pagination_corner_case_custom_page_elements(mock_get, client):
+def test_pagination_corner_case_custom_page_elements(_mock_get, client):
     # Initially the stats are zeroed
     response = client.get('/metrics')
     assert response.status_code == 200
@@ -422,7 +422,7 @@ def test_pagination_corner_case_custom_page_elements(mock_get, client):
 @mock.patch('ghmirror.core.mirror_requests.PER_PAGE_ELEMENTS', 2)
 @mock.patch('ghmirror.core.mirror_requests.requests.request',
             side_effect=mocked_requests_api_corner_case)
-def test_pagination_corner_case(mock_get, client):
+def test_pagination_corner_case(_mock_get, client):
     # Initially the stats are zeroed
     response = client.get('/metrics')
     assert response.status_code == 200
@@ -431,9 +431,8 @@ def test_pagination_corner_case(mock_get, client):
     assert ('request_latency_seconds_count{cache="ONLINE_MISS",'
             'method="GET",status="200"}') not in str(response.data)
 
-
     response = client.get('/repos/app-sre/github-mirror',
-                        follow_redirects=True)
+                          follow_redirects=True)
     assert response.status_code == 200
 
     # First get is a cache_miss
@@ -463,7 +462,7 @@ def test_pagination_corner_case(mock_get, client):
 
 @mock.patch('ghmirror.core.mirror_requests.requests.request',
             side_effect=requests.exceptions.Timeout)
-def test_mirror_request_timeout(mock_get, client):
+def test_mirror_request_timeout(_mock_get, client):
     # Initially the stats are zeroed
     response = client.get('/metrics')
     assert response.status_code == 200
