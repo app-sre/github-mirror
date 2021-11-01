@@ -71,7 +71,7 @@ def check_user(function):
         # return the decorated function, but not before caching
         # the user for the next time
         if user_login in authorized_users:
-            users_cache.add(authorization)
+            users_cache.add(authorization, user_login)
             return function(*args, **kwargs)
 
         # No match means user is forbidden
