@@ -148,7 +148,7 @@ class UsersCacheBorg:
 
 class UsersCache(UsersCacheBorg):
     """
-    Set-like implementation for caching users information.
+    Dict-like implementation for caching users information.
     """
     def __getattr__(self, item):
         """
@@ -156,17 +156,17 @@ class UsersCache(UsersCacheBorg):
         (instead of in the __init__()) so we don't overwrite
         them when a new instance is created.
         """
-        setattr(self, item, set())
+        setattr(self, item, dict())
         return getattr(self, item)
 
     def __contains__(self, item):
         return item in self._data
 
-    def add(self, value):
+    def add(self, key, value=None):
         """
-        Adding the value to the backing set
+        Adding the value to the backing dict
         """
-        self._data.add(value)
+        self._data[key] = value
 
 
 class StatsCacheBorg:
