@@ -16,7 +16,6 @@
 Contains all the required verification
 """
 
-import hashlib
 import os
 
 from functools import wraps
@@ -52,10 +51,9 @@ def check_user(function):
                                  documentation_url=DOC_URL), 401
 
         users_cache = UsersCache()
-        auth_sha = hashlib.sha1(authorization.encode()).hexdigest()
         # Users in cache were already checked and authorized,
         # so we just keep serving them
-        if auth_sha in users_cache:
+        if authorization in users_cache:
             return function(*args, **kwargs)
 
         # Using the Authorization header to get the user information
@@ -73,7 +71,7 @@ def check_user(function):
         # return the decorated function, but not before caching
         # the user for the next time
         if user_login in authorized_users:
-            users_cache.add(auth_sha)
+            users_cache.add(authorization)
             return function(*args, **kwargs)
 
         # No match means user is forbidden

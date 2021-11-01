@@ -21,6 +21,7 @@ import time
 import logging
 import pickle
 import sys
+import hashlib
 
 import requests
 
@@ -159,14 +160,18 @@ class UsersCache(UsersCacheBorg):
         setattr(self, item, dict())
         return getattr(self, item)
 
+    @staticmethod
+    def _sha(key):
+        return hashlib.sha1(key.encode()).hexdigest()
+
     def __contains__(self, item):
-        return item in self._data
+        return self._sha(item) in self._data
 
     def add(self, key, value=None):
         """
         Adding the value to the backing dict
         """
-        self._data[key] = value
+        self._data[self._sha(key)] = value
 
 
 class StatsCacheBorg:
