@@ -51,13 +51,16 @@ def requests_metrics(function):
 
         users_cache = UsersCache()
         authorization = flask.request.headers.get('Authorization')
-        user = users_cache.get(authorization)
-        if not user:
-            # This may be the first call to get /user
-            # so users_cache is not yet updated
-            # with the user to match the auth sha.
-            # Try to get the user from the response.
-            user = response.json().get('login')
+        if authorization:
+            user = users_cache.get(authorization)
+            if not user:
+                # This may be the first call to get /user
+                # so users_cache is not yet updated
+                # with the user to match the auth sha.
+                # Try to get the user from the response.
+                user = response.json().get('login')
+        else:
+            user = None
 
         # Adding the request metrics to the histogram
         STATS_CACHE.observe(cache=cache,
