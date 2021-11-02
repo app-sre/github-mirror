@@ -220,7 +220,7 @@ def test_mirror_authorized_user_cached(mocked_request, mocked_cond_request,
     users_cache.add(auth)
 
     client.get('/repos/app-sre/github-mirror',
-               headers={'Authorization': 'foo'})
+               headers={'Authorization': auth})
     assert not mocked_cond_request.called
     mocked_request.assert_called_with(method='GET',
                                       headers={'Authorization': auth},
