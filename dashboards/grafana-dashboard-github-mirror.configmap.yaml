@@ -67,13 +67,13 @@ data:
           "steppedLine": false,
           "targets": [
             {
-              "expr": "sum(increase(request_latency_seconds_count{endpoint=\"github-mirror\",cache=\"ONLINE_HIT\"}[1h]))",
-              "legendFormat": "hit",
+              "expr": "sum(increase(request_latency_seconds_count{endpoint=\"github-mirror\",cache=\"ONLINE_HIT\"}[1h])) by (user)",
+              "legendFormat": "{{user}} hit",
               "refId": "B"
             },
             {
-              "expr": "sum(increase(request_latency_seconds_count{endpoint=\"github-mirror\",cache=\"ONLINE_MISS\"}[1h]))",
-              "legendFormat": "miss",
+              "expr": "sum(increase(request_latency_seconds_count{endpoint=\"github-mirror\",cache=\"ONLINE_MISS\"}[1h])) by (user)",
+              "legendFormat": "{{user}} miss",
               "refId": "C"
             }
           ],
@@ -163,13 +163,13 @@ data:
           "steppedLine": false,
           "targets": [
             {
-              "expr": "sum(increase(request_latency_seconds_count{endpoint=\"github-mirror\",cache=\"OFFLINE_HIT\"}[1h]))",
-              "legendFormat": "hit",
+              "expr": "sum(increase(request_latency_seconds_count{endpoint=\"github-mirror\",cache=\"OFFLINE_HIT\"}[1h])) by (user)",
+              "legendFormat": "{{user}} hit",
               "refId": "B"
             },
             {
-              "expr": "sum(increase(request_latency_seconds_count{endpoint=\"github-mirror\",cache=\"OFFLINE_MISS\"}[1h]))",
-              "legendFormat": "miss",
+              "expr": "sum(increase(request_latency_seconds_count{endpoint=\"github-mirror\",cache=\"OFFLINE_MISS\"}[1h])) by (user)",
+              "legendFormat": "{{user}} miss",
               "refId": "C"
             }
           ],
@@ -259,13 +259,13 @@ data:
           "steppedLine": false,
           "targets": [
             {
-              "expr": "100 * sum(rate(request_latency_seconds_count{cache=\"ONLINE_HIT\",endpoint=\"github-mirror\"}[5m])) / sum(rate(request_latency_seconds_count{endpoint=\"github-mirror\"}[5m]))",
-              "legendFormat": "hit",
+              "expr": "100 * sum(rate(request_latency_seconds_count{cache=\"ONLINE_HIT\",endpoint=\"github-mirror\"}[5m])) by (user) / sum(rate(request_latency_seconds_count{endpoint=\"github-mirror\"}[5m])) by (user)",
+              "legendFormat": "{{user}} hit",
               "refId": "A"
             },
             {
-              "expr": "100 * sum(rate(request_latency_seconds_count{cache=\"ONLINE_MISS\",endpoint=\"github-mirror\"}[5m])) / sum(rate(request_latency_seconds_count{endpoint=\"github-mirror\"}[5m]))",
-              "legendFormat": "miss",
+              "expr": "100 * sum(rate(request_latency_seconds_count{cache=\"ONLINE_MISS\",endpoint=\"github-mirror\"}[5m])) by (user) / sum(rate(request_latency_seconds_count{endpoint=\"github-mirror\"}[5m])) by (user)",
+              "legendFormat": "{{user}} miss",
               "refId": "B"
             }
           ],
@@ -355,13 +355,13 @@ data:
           "steppedLine": false,
           "targets": [
             {
-              "expr": "100 * sum(rate(request_latency_seconds_count{cache=\"OFFLINE_HIT\",endpoint=\"github-mirror\"}[5m])) / sum(rate(request_latency_seconds_count{endpoint=\"github-mirror\"}[5m]))",
-              "legendFormat": "hit",
+              "expr": "100 * sum(rate(request_latency_seconds_count{cache=\"OFFLINE_HIT\",endpoint=\"github-mirror\"}[5m])) by (user) / sum(rate(request_latency_seconds_count{endpoint=\"github-mirror\"}[5m])) by (user)",
+              "legendFormat": "{{user}} hit",
               "refId": "A"
             },
             {
-              "expr": "100 * sum(rate(request_latency_seconds_count{cache=\"OFFLINE_MISS\",endpoint=\"github-mirror\"}[5m])) / sum(rate(request_latency_seconds_count{endpoint=\"github-mirror\"}[5m]))",
-              "legendFormat": "miss",
+              "expr": "100 * sum(rate(request_latency_seconds_count{cache=\"OFFLINE_MISS\",endpoint=\"github-mirror\"}[5m])) by (user) / sum(rate(request_latency_seconds_count{endpoint=\"github-mirror\"}[5m])) by (user)",
+              "legendFormat": "{{user}} miss",
               "refId": "B"
             }
           ],

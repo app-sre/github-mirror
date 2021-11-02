@@ -21,6 +21,7 @@ import time
 import logging
 import pickle
 import sys
+import hashlib
 
 import requests
 
@@ -148,7 +149,7 @@ class UsersCacheBorg:
 
 class UsersCache(UsersCacheBorg):
     """
-    Set-like implementation for caching users information.
+    Dict-like implementation for caching users information.
     """
     def __getattr__(self, item):
         """
@@ -156,17 +157,27 @@ class UsersCache(UsersCacheBorg):
         (instead of in the __init__()) so we don't overwrite
         them when a new instance is created.
         """
-        setattr(self, item, set())
+        setattr(self, item, dict())
         return getattr(self, item)
 
-    def __contains__(self, item):
-        return item in self._data
+    @staticmethod
+    def _sha(key):
+        return hashlib.sha1(key.encode()).hexdigest()
 
-    def add(self, value):
+    def __contains__(self, item):
+        return self._sha(item) in self._data
+
+    def add(self, key, value=None):
         """
-        Adding the value to the backing set
+        Adding the value to the backing dict
         """
-        self._data.add(value)
+        self._data[self._sha(key)] = value
+
+    def get(self, key):
+        """
+        Getting the value from the backing dict
+        """
+        return self._data.get(self._sha(key))
 
 
 class StatsCacheBorg:
@@ -204,7 +215,7 @@ class StatsCache(StatsCacheBorg):
             # call its observe()
             setattr(self, item,
                     Histogram(name='request_latency_seconds',
-                              labelnames=('cache', 'status', 'method'),
+                              labelnames=('cache', 'status', 'method', 'user'),
                               documentation='request latency histogram',
                               registry=self.registry))
         elif item == 'counter':
@@ -239,12 +250,12 @@ class StatsCache(StatsCacheBorg):
         """
         self.counter.inc(1)
 
-    def observe(self, cache, status, value, method):
+    def observe(self, cache, status, value, method, user):
         """
         Convenience method to populate the histogram.
         """
         self.histogram.labels(cache=cache, status=status,
-                              method=method).observe(value)
+                              method=method, user=user).observe(value)
 
     def set_cache_size(self, value):
         """
