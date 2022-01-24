@@ -45,7 +45,7 @@ objects:
                       values:
                       - github-mirror
                   topologyKey: kubernetes.io/hostname
-                weight: 100
+                weight: 90
               - podAffinityTerm:
                   labelSelector:
                     matchExpressions:
