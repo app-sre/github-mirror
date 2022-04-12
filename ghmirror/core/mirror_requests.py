@@ -98,6 +98,15 @@ def _online_request(method, url, cached_response,
         cached_response.headers['X-Cache'] = 'API_TIMEOUT_HIT'
         return cached_response
 
+    except requests.exceptions.ConnectionError:
+
+        if cached_response is None:
+            raise
+
+        LOG.info('API_CONNECTION_ERROR GET CACHE_HIT %s', url)
+        cached_response.headers['X-Cache'] = 'API_CONNECTION_ERROR_HIT'
+        return cached_response
+
 
 def _handle_not_changed(cached_response, per_page_elements,
                         headers, method, url, parameters,
