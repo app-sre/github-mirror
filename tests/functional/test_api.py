@@ -594,3 +594,51 @@ def test_mirror_request_5xx_miss(mock_get, client):
             'method="GET",status="500",user="None"} 1.0') in str(response.data)
     assert ('request_latency_seconds_count{cache="ONLINE_MISS",'
             'method="GET",status="200",user="None"} 1.0') in str(response.data)
+
+@mock.patch('ghmirror.core.mirror_requests.requests.request',
+            side_effect=mocked_requests_get_etag)
+def test_mirror_request_connection_error_hit(mock_get, client):
+    # Initially the stats are zeroed
+    response = client.get('/metrics')
+    assert response.status_code == 200
+    assert ('request_latency_seconds_count{cache="ONLINE_HIT",'
+            'method="GET",status="200",user="None"}') not in str(response.data)
+    assert ('request_latency_seconds_count{cache="ONLINE_MISS",'
+            'method="GET",status="200",user="None"}') not in str(response.data)
+
+    response = client.get('/repos/app-sre/github-mirror',
+                          follow_redirects=True)
+    assert response.status_code == 200
+
+    # First get is a cache_miss
+    response = client.get('/metrics', follow_redirects=True)
+
+    assert response.status_code == 200
+    assert ('request_latency_seconds_count{cache="ONLINE_HIT",'
+            'method="GET",status="200",user="None"}') not in str(response.data)
+    assert ('request_latency_seconds_count{cache="ONLINE_MISS",'
+            'method="GET",status="200",user="None"} 1.0') in str(response.data)
+
+    mock_get.side_effect = requests.exceptions.ConnectionError
+    response = client.get('/repos/app-sre/github-mirror',
+                          follow_redirects=True)
+    assert response.status_code == 200
+
+    # Second get is a cache_hit
+    response = client.get('/metrics', follow_redirects=True)
+
+    assert response.status_code == 200
+    assert ('request_latency_seconds_count{cache="API_CONNECTION_ERROR_HIT",'
+            'method="GET",status="200",user="None"} 1.0') in str(response.data)
+    assert ('request_latency_seconds_count{cache="ONLINE_MISS",'
+            'method="GET",status="200",user="None"} 1.0') in str(response.data)
+
+
+@mock.patch('ghmirror.core.mirror_requests.requests.request',
+            side_effect=mocked_requests_get_etag)
+def test_mirror_request_connection_error_miss(mock_get, client):
+
+    mock_get.side_effect = requests.exceptions.ConnectionError
+    response = client.get('/repos/app-sre/github-mirror',
+                          follow_redirects=True)
+    assert response.status_code == 502
