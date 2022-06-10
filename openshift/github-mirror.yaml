@@ -4,161 +4,161 @@ kind: Template
 metadata:
   name: github-mirror
 objects:
-- apiVersion: policy/v1
-  kind: PodDisruptionBudget
-  metadata:
-    name: github-mirror
-  spec:
-    minAvailable: 1
-    selector:
-      matchLabels:
-        app: github-mirror
-- apiVersion: apps/v1
-  kind: Deployment
-  metadata:
-    labels:
-      app: github-mirror
-    name: github-mirror
-  spec:
-    replicas: ${{REPLICAS}}
-    strategy:
-      type: RollingUpdate
-      rollingUpdate:
-        maxUnavailable: 0
-        maxSurge: 1
-    selector:
-      matchLabels:
-        app: github-mirror
-    template:
-      metadata:
-        labels:
+  - apiVersion: policy/v1
+    kind: PodDisruptionBudget
+    metadata:
+      name: github-mirror
+    spec:
+      minAvailable: 1
+      selector:
+        matchLabels:
           app: github-mirror
-      spec:
-        affinity:
-          podAntiAffinity:
-            preferredDuringSchedulingIgnoredDuringExecution:
-              - podAffinityTerm:
-                  labelSelector:
-                    matchExpressions:
-                    - key: app
-                      operator: In
-                      values:
-                      - github-mirror
-                  topologyKey: kubernetes.io/hostname
-                weight: 90
-              - podAffinityTerm:
-                  labelSelector:
-                    matchExpressions:
-                    - key: app
-                      operator: In
-                      values:
-                      - github-mirror
-                  topologyKey: topology.kubernetes.io/zone
-                weight: 100
-        containers:
-        - image: ${IMAGE}:${IMAGE_TAG}
-          imagePullPolicy: Always
+  - apiVersion: apps/v1
+    kind: Deployment
+    metadata:
+      labels:
+        app: github-mirror
+      name: github-mirror
+    spec:
+      replicas: ${{REPLICAS}}
+      strategy:
+        type: RollingUpdate
+        rollingUpdate:
+          maxUnavailable: 0
+          maxSurge: 1
+      selector:
+        matchLabels:
+          app: github-mirror
+      template:
+        metadata:
+          labels:
+            app: github-mirror
+        spec:
+          affinity:
+            podAntiAffinity:
+              preferredDuringSchedulingIgnoredDuringExecution:
+                - podAffinityTerm:
+                    labelSelector:
+                      matchExpressions:
+                        - key: app
+                          operator: In
+                          values:
+                            - github-mirror
+                    topologyKey: kubernetes.io/hostname
+                  weight: 90
+                - podAffinityTerm:
+                    labelSelector:
+                      matchExpressions:
+                        - key: app
+                          operator: In
+                          values:
+                            - github-mirror
+                    topologyKey: topology.kubernetes.io/zone
+                  weight: 100
+          containers:
+            - image: ${IMAGE}:${IMAGE_TAG}
+              imagePullPolicy: Always
+              name: github-mirror
+              env:
+                - name: GITHUB_USERS
+                  value: ${GITHUB_USERS}
+                - name: GITHUB_MIRROR_URL
+                  value: ${GITHUB_MIRROR_URL}
+                - name: CACHE_TYPE
+                  value: ${CACHE_TYPE}
+                - name: PRIMARY_ENDPOINT
+                  valueFrom:
+                    secretKeyRef:
+                      key: db.endpoint
+                      name: ${EC_SECRET_NAME}
+                - name: READER_ENDPOINT
+                  value: ${READER_ENDPOINT}
+                - name: REDIS_PORT
+                  valueFrom:
+                    secretKeyRef:
+                      key: db.port
+                      name: ${EC_SECRET_NAME}
+                - name: REDIS_TOKEN
+                  valueFrom:
+                    secretKeyRef:
+                      key: db.auth_token
+                      name: ${EC_SECRET_NAME}
+                - name: REDIS_SSL
+                  value: ${REDIS_SSL}
+              ports:
+                - name: github-mirror
+                  containerPort: 8080
+              livenessProbe:
+                httpGet:
+                  path: /healthz
+                  port: 8080
+                initialDelaySeconds: 30
+                periodSeconds: 10
+                timeoutSeconds: 3
+              readinessProbe:
+                httpGet:
+                  path: /healthz
+                  port: 8080
+                initialDelaySeconds: 3
+                periodSeconds: 10
+                timeoutSeconds: 3
+              resources:
+                requests:
+                  memory: ${MEMORY_REQUESTS}
+                  cpu: ${CPU_REQUESTS}
+                limits:
+                  memory: ${MEMORY_LIMIT}
+                  cpu: ${CPU_LIMIT}
+  - apiVersion: v1
+    kind: Service
+    metadata:
+      name: github-mirror
+      labels:
+        app: github-mirror
+    spec:
+      ports:
+        - protocol: TCP
+          port: 80
+          targetPort: 8080
           name: github-mirror
-          env:
-            - name: GITHUB_USERS
-              value: ${GITHUB_USERS}
-            - name: GITHUB_MIRROR_URL
-              value: ${GITHUB_MIRROR_URL}
-            - name: CACHE_TYPE
-              value: ${CACHE_TYPE}
-            - name: PRIMARY_ENDPOINT
-              valueFrom:
-                secretKeyRef:
-                    key: db.endpoint
-                    name: ${EC_SECRET_NAME}
-            - name: READER_ENDPOINT
-              value: ${READER_ENDPOINT}
-            - name: REDIS_PORT
-              valueFrom:
-                secretKeyRef:
-                    key: db.port
-                    name: ${EC_SECRET_NAME}
-            - name: REDIS_TOKEN
-              valueFrom:
-                secretKeyRef:
-                    key: db.auth_token
-                    name: ${EC_SECRET_NAME}
-            - name: REDIS_SSL
-              value: ${REDIS_SSL}
-          ports:
-          - name: github-mirror
-            containerPort: 8080
-          livenessProbe:
-            httpGet:
-              path: /healthz
-              port: 8080
-            initialDelaySeconds: 30
-            periodSeconds: 10
-            timeoutSeconds: 3
-          readinessProbe:
-            httpGet:
-              path: /healthz
-              port: 8080
-            initialDelaySeconds: 3
-            periodSeconds: 10
-            timeoutSeconds: 3
-          resources:
-            requests:
-              memory: ${MEMORY_REQUESTS}
-              cpu: ${CPU_REQUESTS}
-            limits:
-              memory: ${MEMORY_LIMIT}
-              cpu: ${CPU_LIMIT}
-- apiVersion: v1
-  kind: Service
-  metadata:
-    name: github-mirror
-    labels:
-      app: github-mirror
-  spec:
-    ports:
-      - protocol: TCP
-        port: 80
-        targetPort: 8080
-        name: github-mirror
-    selector:
-      app: github-mirror
+      selector:
+        app: github-mirror
 
 parameters:
-- name: IMAGE
-  value: quay.io/app-sre/github-mirror
-  displayName: github mirror image
-  description: github mirror docker image. Defaults to quay.io/app-sre/github-mirror
-- name: IMAGE_TAG
-  value: latest
-  displayName: github mirror version
-  description: github mirror version which defaults to latest
-# It's an in-memory cache service. It needs memory.
-- name: MEMORY_REQUESTS
-  value: 800Mi
-- name: MEMORY_LIMIT
-  value: 1Gi
-# It runs multiple threads, but only one process. If
-# we need more, we should probably increase the number
-# of replicas instead of touching it here.
-- name: CPU_REQUESTS
-  value: 500m
-- name: CPU_LIMIT
-  value: 1000m
-# These values are meant to be overridden by the
-# saas-herder parametrization
-- name: GITHUB_USERS
-  value: app-sre-bot:cs-sre-bot
-- name: GITHUB_MIRROR_URL
-  value: https://github-mirror.stage.devshift.net
-- name: CACHE_TYPE
-  value: redis
-- name: EC_SECRET_NAME
-  value: ghmirror-elasticache-stage
-- name: REDIS_SSL
-  value: 'True'
-- name: READER_ENDPOINT
-  value: ''
-  required: true
-- name: REPLICAS
-  value: '3'
+  - name: IMAGE
+    value: quay.io/app-sre/github-mirror
+    displayName: github mirror image
+    description: github mirror docker image. Defaults to quay.io/app-sre/github-mirror
+  - name: IMAGE_TAG
+    value: latest
+    displayName: github mirror version
+    description: github mirror version which defaults to latest
+  # It's an in-memory cache service. It needs memory.
+  - name: MEMORY_REQUESTS
+    value: 800Mi
+  - name: MEMORY_LIMIT
+    value: 1Gi
+  # It runs multiple threads, but only one process. If
+  # we need more, we should probably increase the number
+  # of replicas instead of touching it here.
+  - name: CPU_REQUESTS
+    value: 500m
+  - name: CPU_LIMIT
+    value: 1000m
+  # These values are meant to be overridden by the
+  # saas-herder parametrization
+  - name: GITHUB_USERS
+    value: app-sre-bot:cs-sre-bot
+  - name: GITHUB_MIRROR_URL
+    value: https://github-mirror.stage.devshift.net
+  - name: CACHE_TYPE
+    value: redis
+  - name: EC_SECRET_NAME
+    value: ghmirror-elasticache-stage
+  - name: REDIS_SSL
+    value: "True"
+  - name: READER_ENDPOINT
+    value: ""
+    required: true
+  - name: REPLICAS
+    value: "3"
