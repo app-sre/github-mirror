@@ -4,6 +4,10 @@ kind: Template
 metadata:
   name: github-mirror-acceptance
 objects:
+  - apiVersion: v1
+    kind: ServiceAccount
+    metadata:
+      name: ${SERVICE_ACCOUNT}
   - apiVersion: batch/v1
     kind: Job
     metadata:
@@ -13,6 +17,7 @@ objects:
       template:
         spec:
           restartPolicy: Never
+          serviceAccountName: ${SERVICE_ACCOUNT}
           containers:
             - image: ${IMAGE}:${IMAGE_TAG}
               imagePullPolicy: Always
@@ -41,3 +46,7 @@ parameters:
   - name: CLIENT_TOKEN_SECRET
     value: ""
     required: true
+  - name: SERVICE_ACCOUNT
+    value: "github-mirror-acceptance"
+    deplayName: github-mirror-acceptance service account
+    description: name of the service account to use when deploying the pod
