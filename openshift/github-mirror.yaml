@@ -13,6 +13,10 @@ objects:
     selector:
       matchLabels:
         app: github-mirror
+- apiVersion: v1
+  kind: ServiceAccount
+  metadata:
+    name: ${SERVICE_ACCOUNT}
 - apiVersion: apps/v1
   kind: Deployment
   metadata:
@@ -55,6 +59,7 @@ objects:
                       - github-mirror
                   topologyKey: topology.kubernetes.io/zone
                 weight: 100
+        serviceAccountName: ${SERVICE_ACCOUNT}
         containers:
         - image: ${IMAGE}:${IMAGE_TAG}
           imagePullPolicy: Always
@@ -162,3 +167,7 @@ parameters:
   required: true
 - name: REPLICAS
   value: '3'
+- name: SERVICE_ACCOUNT
+  value: "github-mirror"
+  deplayName: github-mirror service account
+  description: name of the service account to use when deploying the pod
