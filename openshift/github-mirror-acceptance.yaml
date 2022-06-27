@@ -36,6 +36,13 @@ objects:
               - make
             args:
               - accept
+            resources:
+              requests:
+                memory: ${MEMORY_REQUESTS}
+                cpu: ${CPU_REQUESTS}
+              limits:
+                memory: ${MEMORY_LIMIT}
+                cpu: ${CPU_LIMIT}
 parameters:
 - name: IMAGE
   value: quay.io/app-sre/github-mirror
@@ -52,3 +59,11 @@ parameters:
   value: "github-mirror-acceptance"
   deplayName: github-mirror-acceptance service account
   description: name of the service account to use when deploying the pod
+- name: MEMORY_REQUESTS
+  value: 128Mi
+- name: MEMORY_LIMIT
+  value: 128Mi
+- name: CPU_REQUESTS
+  value: 300m
+- name: CPU_LIMIT
+  value: 300m
