@@ -50,7 +50,7 @@ data:
       "fiscalYearStartMonth": 0,
       "graphTooltip": 0,
       "id": null,
-      "iteration": 1658163449040,
+      "iteration": 1658276566033,
       "links": [],
       "liveNow": false,
       "panels": [
@@ -873,6 +873,394 @@ data:
             "y": 32
           },
           "hiddenSeries": false,
+          "id": 18,
+          "legend": {
+            "avg": false,
+            "current": false,
+            "max": false,
+            "min": false,
+            "show": true,
+            "total": false,
+            "values": false
+          },
+          "lines": true,
+          "linewidth": 1,
+          "nullPointMode": "null",
+          "options": {
+            "alertThreshold": true
+          },
+          "percentage": false,
+          "pluginVersion": "9.0.1",
+          "pointradius": 2,
+          "points": false,
+          "renderer": "flot",
+          "seriesOverrides": [],
+          "spaceLength": 10,
+          "stack": false,
+          "steppedLine": false,
+          "targets": [
+            {
+              "datasource": {
+                "uid": "$datasource"
+              },
+              "editorMode": "code",
+              "expr": "aws_elasticache_get_type_cmds_sum{cache_cluster_id=~\"ghmirror-redis-production.+\"}",
+              "legendFormat": "{{cache_cluster_id}}",
+              "range": true,
+              "refId": "A"
+            }
+          ],
+          "thresholds": [],
+          "timeRegions": [],
+          "title": "Get Commands",
+          "tooltip": {
+            "shared": true,
+            "sort": 0,
+            "value_type": "individual"
+          },
+          "type": "graph",
+          "xaxis": {
+            "mode": "time",
+            "show": true,
+            "values": []
+          },
+          "yaxes": [
+            {
+              "$$hashKey": "object:93",
+              "format": "short",
+              "label": "",
+              "logBase": 1,
+              "show": true
+            },
+            {
+              "$$hashKey": "object:94",
+              "format": "short",
+              "logBase": 1,
+              "show": true
+            }
+          ],
+          "yaxis": {
+            "align": false
+          }
+        },
+        {
+          "aliasColors": {
+            "github-mirror-68cf79444d-jh9d7": "semi-dark-orange",
+            "rss": "semi-dark-orange"
+          },
+          "bars": false,
+          "dashLength": 10,
+          "dashes": false,
+          "datasource": {
+            "type": "prometheus",
+            "uid": "$datasource"
+          },
+          "fieldConfig": {
+            "defaults": {
+              "links": []
+            },
+            "overrides": []
+          },
+          "fill": 1,
+          "fillGradient": 0,
+          "gridPos": {
+            "h": 8,
+            "w": 12,
+            "x": 12,
+            "y": 32
+          },
+          "hiddenSeries": false,
+          "id": 21,
+          "legend": {
+            "avg": false,
+            "current": false,
+            "max": false,
+            "min": false,
+            "show": true,
+            "total": false,
+            "values": false
+          },
+          "lines": true,
+          "linewidth": 1,
+          "nullPointMode": "null",
+          "options": {
+            "alertThreshold": true
+          },
+          "percentage": false,
+          "pluginVersion": "9.0.1",
+          "pointradius": 2,
+          "points": false,
+          "renderer": "flot",
+          "seriesOverrides": [],
+          "spaceLength": 10,
+          "stack": false,
+          "steppedLine": false,
+          "targets": [
+            {
+              "datasource": {
+                "uid": "$datasource"
+              },
+              "editorMode": "code",
+              "expr": "aws_elasticache_get_type_cmds_latency_sum{cache_cluster_id=~\"ghmirror-redis-production.+\"}",
+              "legendFormat": "{{cache_cluster_id}}",
+              "range": true,
+              "refId": "A"
+            }
+          ],
+          "thresholds": [],
+          "timeRegions": [],
+          "title": "Get Command Latency",
+          "tooltip": {
+            "shared": true,
+            "sort": 0,
+            "value_type": "individual"
+          },
+          "type": "graph",
+          "xaxis": {
+            "mode": "time",
+            "show": true,
+            "values": []
+          },
+          "yaxes": [
+            {
+              "$$hashKey": "object:93",
+              "format": "short",
+              "label": "microseconds",
+              "logBase": 1,
+              "show": true
+            },
+            {
+              "$$hashKey": "object:94",
+              "format": "short",
+              "logBase": 1,
+              "show": true
+            }
+          ],
+          "yaxis": {
+            "align": false
+          }
+        },
+        {
+          "aliasColors": {
+            "github-mirror-68cf79444d-jh9d7": "semi-dark-orange",
+            "rss": "semi-dark-orange"
+          },
+          "bars": false,
+          "dashLength": 10,
+          "dashes": false,
+          "datasource": {
+            "type": "prometheus",
+            "uid": "$datasource"
+          },
+          "fieldConfig": {
+            "defaults": {
+              "links": []
+            },
+            "overrides": []
+          },
+          "fill": 1,
+          "fillGradient": 0,
+          "gridPos": {
+            "h": 8,
+            "w": 12,
+            "x": 0,
+            "y": 40
+          },
+          "hiddenSeries": false,
+          "id": 19,
+          "legend": {
+            "avg": false,
+            "current": false,
+            "max": false,
+            "min": false,
+            "show": true,
+            "total": false,
+            "values": false
+          },
+          "lines": true,
+          "linewidth": 1,
+          "nullPointMode": "null",
+          "options": {
+            "alertThreshold": true
+          },
+          "percentage": false,
+          "pluginVersion": "9.0.1",
+          "pointradius": 2,
+          "points": false,
+          "renderer": "flot",
+          "seriesOverrides": [],
+          "spaceLength": 10,
+          "stack": false,
+          "steppedLine": false,
+          "targets": [
+            {
+              "datasource": {
+                "uid": "$datasource"
+              },
+              "editorMode": "code",
+              "expr": "aws_elasticache_set_type_cmds_sum{cache_cluster_id=~\"ghmirror-redis-production.+\"}",
+              "legendFormat": "{{cache_cluster_id}}",
+              "range": true,
+              "refId": "A"
+            }
+          ],
+          "thresholds": [],
+          "timeRegions": [],
+          "title": "Set Commands",
+          "tooltip": {
+            "shared": true,
+            "sort": 0,
+            "value_type": "individual"
+          },
+          "type": "graph",
+          "xaxis": {
+            "mode": "time",
+            "show": true,
+            "values": []
+          },
+          "yaxes": [
+            {
+              "$$hashKey": "object:93",
+              "format": "short",
+              "label": "",
+              "logBase": 1,
+              "show": true
+            },
+            {
+              "$$hashKey": "object:94",
+              "format": "short",
+              "logBase": 1,
+              "show": true
+            }
+          ],
+          "yaxis": {
+            "align": false
+          }
+        },
+        {
+          "aliasColors": {
+            "github-mirror-68cf79444d-jh9d7": "semi-dark-orange",
+            "rss": "semi-dark-orange"
+          },
+          "bars": false,
+          "dashLength": 10,
+          "dashes": false,
+          "datasource": {
+            "type": "prometheus",
+            "uid": "$datasource"
+          },
+          "fieldConfig": {
+            "defaults": {
+              "links": []
+            },
+            "overrides": []
+          },
+          "fill": 1,
+          "fillGradient": 0,
+          "gridPos": {
+            "h": 8,
+            "w": 12,
+            "x": 12,
+            "y": 40
+          },
+          "hiddenSeries": false,
+          "id": 20,
+          "legend": {
+            "avg": false,
+            "current": false,
+            "max": false,
+            "min": false,
+            "show": true,
+            "total": false,
+            "values": false
+          },
+          "lines": true,
+          "linewidth": 1,
+          "nullPointMode": "null",
+          "options": {
+            "alertThreshold": true
+          },
+          "percentage": false,
+          "pluginVersion": "9.0.1",
+          "pointradius": 2,
+          "points": false,
+          "renderer": "flot",
+          "seriesOverrides": [],
+          "spaceLength": 10,
+          "stack": false,
+          "steppedLine": false,
+          "targets": [
+            {
+              "datasource": {
+                "uid": "$datasource"
+              },
+              "editorMode": "code",
+              "expr": "aws_elasticache_set_type_cmds_latency_sum{cache_cluster_id=~\"ghmirror-redis-production.+\"}",
+              "legendFormat": "{{cache_cluster_id}}",
+              "range": true,
+              "refId": "A"
+            }
+          ],
+          "thresholds": [],
+          "timeRegions": [],
+          "title": "Set Command Latency",
+          "tooltip": {
+            "shared": true,
+            "sort": 0,
+            "value_type": "individual"
+          },
+          "type": "graph",
+          "xaxis": {
+            "mode": "time",
+            "show": true,
+            "values": []
+          },
+          "yaxes": [
+            {
+              "$$hashKey": "object:93",
+              "format": "short",
+              "label": "microseconds",
+              "logBase": 1,
+              "show": true
+            },
+            {
+              "$$hashKey": "object:94",
+              "format": "short",
+              "logBase": 1,
+              "show": true
+            }
+          ],
+          "yaxis": {
+            "align": false
+          }
+        },
+        {
+          "aliasColors": {
+            "github-mirror-68cf79444d-jh9d7": "semi-dark-orange",
+            "rss": "semi-dark-orange"
+          },
+          "bars": false,
+          "dashLength": 10,
+          "dashes": false,
+          "datasource": {
+            "type": "prometheus",
+            "uid": "$datasource"
+          },
+          "fieldConfig": {
+            "defaults": {
+              "links": []
+            },
+            "overrides": []
+          },
+          "fill": 1,
+          "fillGradient": 0,
+          "gridPos": {
+            "h": 8,
+            "w": 8,
+            "x": 0,
+            "y": 48
+          },
+          "hiddenSeries": false,
           "id": 15,
           "legend": {
             "avg": false,
@@ -965,9 +1353,9 @@ data:
           "fillGradient": 0,
           "gridPos": {
             "h": 8,
-            "w": 12,
-            "x": 12,
-            "y": 32
+            "w": 8,
+            "x": 8,
+            "y": 48
           },
           "hiddenSeries": false,
           "id": 16,
@@ -1062,9 +1450,9 @@ data:
           "fillGradient": 0,
           "gridPos": {
             "h": 8,
-            "w": 12,
-            "x": 0,
-            "y": 40
+            "w": 8,
+            "x": 16,
+            "y": 48
           },
           "hiddenSeries": false,
           "id": 17,
@@ -1098,7 +1486,7 @@ data:
                 "uid": "$datasource"
               },
               "editorMode": "code",
-              "expr": "max(aws_elasticache_curr_items_average{cache_cluster_id=~\"ghmirror-redis-production.+\"})",
+              "expr": "aws_elasticache_curr_items_average{cache_cluster_id=~\"ghmirror-redis-production.+\"}",
               "legendFormat": "{{cache_cluster_id}}",
               "range": true,
               "refId": "A"
@@ -1146,7 +1534,7 @@ data:
         "list": [
           {
             "current": {
-              "selected": true,
+              "selected": false,
               "text": "app-sre-prod-01-prometheus",
               "value": "app-sre-prod-01-prometheus"
             },
@@ -1156,7 +1544,6 @@ data:
             "name": "datasource",
             "options": [],
             "query": "prometheus",
-            "queryValue": "",
             "refresh": 1,
             "regex": "",
             "skipUrlSync": false,
