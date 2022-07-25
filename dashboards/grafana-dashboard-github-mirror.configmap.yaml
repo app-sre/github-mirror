@@ -2,25 +2,57 @@ apiVersion: v1
 data:
   github-mirror.json: |-
     {
+      "__inputs": [],
+      "__elements": [],
+      "__requires": [
+        {
+          "type": "grafana",
+          "id": "grafana",
+          "name": "Grafana",
+          "version": "9.0.1"
+        },
+        {
+          "type": "panel",
+          "id": "graph",
+          "name": "Graph (old)",
+          "version": ""
+        },
+        {
+          "type": "datasource",
+          "id": "prometheus",
+          "name": "Prometheus",
+          "version": "1.0.0"
+        }
+      ],
       "annotations": {
         "list": [
           {
             "builtIn": 1,
-            "datasource": "-- Grafana --",
+            "datasource": {
+              "type": "datasource",
+              "uid": "grafana"
+            },
             "enable": true,
             "hide": true,
             "iconColor": "rgba(0, 211, 255, 1)",
             "name": "Annotations & Alerts",
+            "target": {
+              "limit": 100,
+              "matchAny": false,
+              "tags": [],
+              "type": "dashboard"
+            },
             "type": "dashboard"
           }
         ]
       },
       "editable": true,
-      "gnetId": null,
+      "fiscalYearStartMonth": 0,
       "graphTooltip": 0,
-      "id": 7,
-      "iteration": 1593511212056,
+      "id": null,
+      "iteration": 1658276566033,
       "links": [],
+      "liveNow": false,
       "panels": [
         {
           "aliasColors": {
@@ -31,7 +63,15 @@ data:
           "bars": false,
           "dashLength": 10,
           "dashes": false,
-          "datasource": "$datasource",
+          "datasource": {
+            "uid": "$datasource"
+          },
+          "fieldConfig": {
+            "defaults": {
+              "links": []
+            },
+            "overrides": []
+          },
           "fill": 1,
           "fillGradient": 0,
           "gridPos": {
@@ -55,9 +95,10 @@ data:
           "linewidth": 1,
           "nullPointMode": "null",
           "options": {
-            "dataLinks": []
+            "alertThreshold": true
           },
           "percentage": false,
+          "pluginVersion": "9.0.1",
           "pointradius": 2,
           "points": false,
           "renderer": "flot",
@@ -67,20 +108,24 @@ data:
           "steppedLine": false,
           "targets": [
             {
+              "datasource": {
+                "uid": "$datasource"
+              },
               "expr": "sum(increase(request_latency_seconds_count{endpoint=\"github-mirror\",cache=\"ONLINE_HIT\"}[1h])) by (user)",
               "legendFormat": "{{user}} hit",
               "refId": "B"
             },
             {
+              "datasource": {
+                "uid": "$datasource"
+              },
               "expr": "sum(increase(request_latency_seconds_count{endpoint=\"github-mirror\",cache=\"ONLINE_MISS\"}[1h])) by (user)",
               "legendFormat": "{{user}} miss",
               "refId": "C"
             }
           ],
           "thresholds": [],
-          "timeFrom": null,
           "timeRegions": [],
-          "timeShift": null,
           "title": "Online Hits and misses: totals per hour",
           "tooltip": {
             "shared": true,
@@ -89,9 +134,7 @@ data:
           },
           "type": "graph",
           "xaxis": {
-            "buckets": null,
             "mode": "time",
-            "name": null,
             "show": true,
             "values": []
           },
@@ -100,22 +143,16 @@ data:
               "format": "short",
               "label": "requests",
               "logBase": 1,
-              "max": null,
-              "min": null,
               "show": true
             },
             {
               "format": "short",
-              "label": null,
               "logBase": 1,
-              "max": null,
-              "min": null,
               "show": true
             }
           ],
           "yaxis": {
-            "align": false,
-            "alignLevel": null
+            "align": false
           }
         },
         {
@@ -127,7 +164,15 @@ data:
           "bars": false,
           "dashLength": 10,
           "dashes": false,
-          "datasource": "$datasource",
+          "datasource": {
+            "uid": "$datasource"
+          },
+          "fieldConfig": {
+            "defaults": {
+              "links": []
+            },
+            "overrides": []
+          },
           "fill": 1,
           "fillGradient": 0,
           "gridPos": {
@@ -151,9 +196,10 @@ data:
           "linewidth": 1,
           "nullPointMode": "null",
           "options": {
-            "dataLinks": []
+            "alertThreshold": true
           },
           "percentage": false,
+          "pluginVersion": "9.0.1",
           "pointradius": 2,
           "points": false,
           "renderer": "flot",
@@ -163,20 +209,24 @@ data:
           "steppedLine": false,
           "targets": [
             {
+              "datasource": {
+                "uid": "$datasource"
+              },
               "expr": "sum(increase(request_latency_seconds_count{endpoint=\"github-mirror\",cache=\"OFFLINE_HIT\"}[1h])) by (user)",
               "legendFormat": "{{user}} hit",
               "refId": "B"
             },
             {
+              "datasource": {
+                "uid": "$datasource"
+              },
               "expr": "sum(increase(request_latency_seconds_count{endpoint=\"github-mirror\",cache=\"OFFLINE_MISS\"}[1h])) by (user)",
               "legendFormat": "{{user}} miss",
               "refId": "C"
             }
           ],
           "thresholds": [],
-          "timeFrom": null,
           "timeRegions": [],
-          "timeShift": null,
           "title": "Offline Hits and misses: totals per hour",
           "tooltip": {
             "shared": true,
@@ -185,9 +235,7 @@ data:
           },
           "type": "graph",
           "xaxis": {
-            "buckets": null,
             "mode": "time",
-            "name": null,
             "show": true,
             "values": []
           },
@@ -196,22 +244,16 @@ data:
               "format": "short",
               "label": "requests",
               "logBase": 1,
-              "max": null,
-              "min": null,
               "show": true
             },
             {
               "format": "short",
-              "label": null,
               "logBase": 1,
-              "max": null,
-              "min": null,
               "show": true
             }
           ],
           "yaxis": {
-            "align": false,
-            "alignLevel": null
+            "align": false
           }
         },
         {
@@ -223,7 +265,15 @@ data:
           "bars": false,
           "dashLength": 10,
           "dashes": false,
-          "datasource": "$datasource",
+          "datasource": {
+            "uid": "$datasource"
+          },
+          "fieldConfig": {
+            "defaults": {
+              "links": []
+            },
+            "overrides": []
+          },
           "fill": 1,
           "fillGradient": 0,
           "gridPos": {
@@ -247,9 +297,10 @@ data:
           "linewidth": 2,
           "nullPointMode": "null",
           "options": {
-            "dataLinks": []
+            "alertThreshold": true
           },
           "percentage": false,
+          "pluginVersion": "9.0.1",
           "pointradius": 2,
           "points": false,
           "renderer": "flot",
@@ -259,20 +310,24 @@ data:
           "steppedLine": false,
           "targets": [
             {
+              "datasource": {
+                "uid": "$datasource"
+              },
               "expr": "100 * sum(rate(request_latency_seconds_count{cache=\"ONLINE_HIT\",endpoint=\"github-mirror\"}[5m])) by (user) / sum(rate(request_latency_seconds_count{endpoint=\"github-mirror\"}[5m])) by (user)",
               "legendFormat": "{{user}} hit",
               "refId": "A"
             },
             {
+              "datasource": {
+                "uid": "$datasource"
+              },
               "expr": "100 * sum(rate(request_latency_seconds_count{cache=\"ONLINE_MISS\",endpoint=\"github-mirror\"}[5m])) by (user) / sum(rate(request_latency_seconds_count{endpoint=\"github-mirror\"}[5m])) by (user)",
               "legendFormat": "{{user}} miss",
               "refId": "B"
             }
           ],
           "thresholds": [],
-          "timeFrom": null,
           "timeRegions": [],
-          "timeShift": null,
           "title": "Online Hits and misses: Percentage",
           "tooltip": {
             "shared": true,
@@ -281,16 +336,13 @@ data:
           },
           "type": "graph",
           "xaxis": {
-            "buckets": null,
             "mode": "time",
-            "name": null,
             "show": true,
             "values": []
           },
           "yaxes": [
             {
               "format": "short",
-              "label": null,
               "logBase": 1,
               "max": "100",
               "min": "0",
@@ -298,16 +350,12 @@ data:
             },
             {
               "format": "short",
-              "label": null,
               "logBase": 1,
-              "max": null,
-              "min": null,
               "show": true
             }
           ],
           "yaxis": {
-            "align": false,
-            "alignLevel": null
+            "align": false
           }
         },
         {
@@ -319,7 +367,15 @@ data:
           "bars": false,
           "dashLength": 10,
           "dashes": false,
-          "datasource": "$datasource",
+          "datasource": {
+            "uid": "$datasource"
+          },
+          "fieldConfig": {
+            "defaults": {
+              "links": []
+            },
+            "overrides": []
+          },
           "fill": 1,
           "fillGradient": 0,
           "gridPos": {
@@ -343,9 +399,10 @@ data:
           "linewidth": 2,
           "nullPointMode": "null",
           "options": {
-            "dataLinks": []
+            "alertThreshold": true
           },
           "percentage": false,
+          "pluginVersion": "9.0.1",
           "pointradius": 2,
           "points": false,
           "renderer": "flot",
@@ -355,20 +412,24 @@ data:
           "steppedLine": false,
           "targets": [
             {
+              "datasource": {
+                "uid": "$datasource"
+              },
               "expr": "100 * sum(rate(request_latency_seconds_count{cache=\"OFFLINE_HIT\",endpoint=\"github-mirror\"}[5m])) by (user) / sum(rate(request_latency_seconds_count{endpoint=\"github-mirror\"}[5m])) by (user)",
               "legendFormat": "{{user}} hit",
               "refId": "A"
             },
             {
+              "datasource": {
+                "uid": "$datasource"
+              },
               "expr": "100 * sum(rate(request_latency_seconds_count{cache=\"OFFLINE_MISS\",endpoint=\"github-mirror\"}[5m])) by (user) / sum(rate(request_latency_seconds_count{endpoint=\"github-mirror\"}[5m])) by (user)",
               "legendFormat": "{{user}} miss",
               "refId": "B"
             }
           ],
           "thresholds": [],
-          "timeFrom": null,
           "timeRegions": [],
-          "timeShift": null,
           "title": "Offline Hits and misses: Percentage",
           "tooltip": {
             "shared": true,
@@ -377,16 +438,13 @@ data:
           },
           "type": "graph",
           "xaxis": {
-            "buckets": null,
             "mode": "time",
-            "name": null,
             "show": true,
             "values": []
           },
           "yaxes": [
             {
               "format": "short",
-              "label": null,
               "logBase": 1,
               "max": "100",
               "min": "0",
@@ -394,16 +452,12 @@ data:
             },
             {
               "format": "short",
-              "label": null,
               "logBase": 1,
-              "max": null,
-              "min": null,
               "show": true
             }
           ],
           "yaxis": {
-            "align": false,
-            "alignLevel": null
+            "align": false
           }
         },
         {
@@ -415,7 +469,15 @@ data:
           "bars": false,
           "dashLength": 10,
           "dashes": false,
-          "datasource": "$datasource",
+          "datasource": {
+            "uid": "$datasource"
+          },
+          "fieldConfig": {
+            "defaults": {
+              "links": []
+            },
+            "overrides": []
+          },
           "fill": 1,
           "fillGradient": 0,
           "gridPos": {
@@ -439,9 +501,10 @@ data:
           "linewidth": 1,
           "nullPointMode": "null",
           "options": {
-            "dataLinks": []
+            "alertThreshold": true
           },
           "percentage": false,
+          "pluginVersion": "9.0.1",
           "pointradius": 2,
           "points": false,
           "renderer": "flot",
@@ -451,18 +514,27 @@ data:
           "steppedLine": false,
           "targets": [
             {
+              "datasource": {
+                "uid": "$datasource"
+              },
               "expr": "histogram_quantile(0.5, sum(rate(request_latency_seconds_bucket{endpoint=\"github-mirror\"}[5m])) by (le))",
               "hide": false,
               "legendFormat": "p50",
               "refId": "C"
             },
             {
+              "datasource": {
+                "uid": "$datasource"
+              },
               "expr": "histogram_quantile(0.95, sum(rate(request_latency_seconds_bucket{endpoint=\"github-mirror\"}[5m])) by (le))",
               "hide": false,
               "legendFormat": "p95",
               "refId": "A"
             },
             {
+              "datasource": {
+                "uid": "$datasource"
+              },
               "expr": "histogram_quantile(0.99, sum(rate(request_latency_seconds_bucket{endpoint=\"github-mirror\"}[5m])) by (le))",
               "hide": false,
               "legendFormat": "p99",
@@ -470,9 +542,7 @@ data:
             }
           ],
           "thresholds": [],
-          "timeFrom": null,
           "timeRegions": [],
-          "timeShift": null,
           "title": "Latencies",
           "tooltip": {
             "shared": true,
@@ -481,9 +551,7 @@ data:
           },
           "type": "graph",
           "xaxis": {
-            "buckets": null,
             "mode": "time",
-            "name": null,
             "show": true,
             "values": []
           },
@@ -492,22 +560,16 @@ data:
               "format": "short",
               "label": "seconds",
               "logBase": 1,
-              "max": null,
-              "min": null,
               "show": true
             },
             {
               "format": "short",
-              "label": null,
               "logBase": 1,
-              "max": null,
-              "min": null,
               "show": true
             }
           ],
           "yaxis": {
-            "align": false,
-            "alignLevel": null
+            "align": false
           }
         },
         {
@@ -517,7 +579,15 @@ data:
           "bars": false,
           "dashLength": 10,
           "dashes": false,
-          "datasource": "$datasource",
+          "datasource": {
+            "uid": "$datasource"
+          },
+          "fieldConfig": {
+            "defaults": {
+              "links": []
+            },
+            "overrides": []
+          },
           "fill": 1,
           "fillGradient": 0,
           "gridPos": {
@@ -541,9 +611,10 @@ data:
           "linewidth": 1,
           "nullPointMode": "null",
           "options": {
-            "dataLinks": []
+            "alertThreshold": true
           },
           "percentage": false,
+          "pluginVersion": "9.0.1",
           "pointradius": 2,
           "points": false,
           "renderer": "flot",
@@ -553,15 +624,16 @@ data:
           "steppedLine": false,
           "targets": [
             {
+              "datasource": {
+                "uid": "$datasource"
+              },
               "expr": "sum(rate(request_latency_seconds_count{endpoint=\"github-mirror\"}[5m]))",
               "legendFormat": "reqs",
               "refId": "A"
             }
           ],
           "thresholds": [],
-          "timeFrom": null,
           "timeRegions": [],
-          "timeShift": null,
           "title": "Requests",
           "tooltip": {
             "shared": true,
@@ -570,9 +642,7 @@ data:
           },
           "type": "graph",
           "xaxis": {
-            "buckets": null,
             "mode": "time",
-            "name": null,
             "show": true,
             "values": []
           },
@@ -581,22 +651,16 @@ data:
               "format": "short",
               "label": "requests/s",
               "logBase": 1,
-              "max": null,
-              "min": null,
               "show": true
             },
             {
               "format": "short",
-              "label": null,
               "logBase": 1,
-              "max": null,
-              "min": null,
               "show": true
             }
           ],
           "yaxis": {
-            "align": false,
-            "alignLevel": null
+            "align": false
           }
         },
         {
@@ -607,7 +671,15 @@ data:
           "bars": false,
           "dashLength": 10,
           "dashes": false,
-          "datasource": "$datasource",
+          "datasource": {
+            "uid": "$datasource"
+          },
+          "fieldConfig": {
+            "defaults": {
+              "links": []
+            },
+            "overrides": []
+          },
           "fill": 1,
           "fillGradient": 0,
           "gridPos": {
@@ -631,9 +703,10 @@ data:
           "linewidth": 1,
           "nullPointMode": "null",
           "options": {
-            "dataLinks": []
+            "alertThreshold": true
           },
           "percentage": false,
+          "pluginVersion": "9.0.1",
           "pointradius": 2,
           "points": false,
           "renderer": "flot",
@@ -643,15 +716,16 @@ data:
           "steppedLine": false,
           "targets": [
             {
+              "datasource": {
+                "uid": "$datasource"
+              },
               "expr": "sum(process_resident_memory_bytes{endpoint=\"github-mirror\"} / 1024^2)",
               "legendFormat": "rss",
               "refId": "A"
             }
           ],
           "thresholds": [],
-          "timeFrom": null,
           "timeRegions": [],
-          "timeShift": null,
           "title": "Memory (RSS)",
           "tooltip": {
             "shared": true,
@@ -660,9 +734,7 @@ data:
           },
           "type": "graph",
           "xaxis": {
-            "buckets": null,
             "mode": "time",
-            "name": null,
             "show": true,
             "values": []
           },
@@ -671,22 +743,16 @@ data:
               "format": "short",
               "label": "megabytes",
               "logBase": 1,
-              "max": null,
-              "min": null,
               "show": true
             },
             {
               "format": "short",
-              "label": null,
               "logBase": 1,
-              "max": null,
-              "min": null,
               "show": true
             }
           ],
           "yaxis": {
-            "align": false,
-            "alignLevel": null
+            "align": false
           }
         },
         {
@@ -697,7 +763,15 @@ data:
           "bars": false,
           "dashLength": 10,
           "dashes": false,
-          "datasource": "$datasource",
+          "datasource": {
+            "uid": "$datasource"
+          },
+          "fieldConfig": {
+            "defaults": {
+              "links": []
+            },
+            "overrides": []
+          },
           "fill": 1,
           "fillGradient": 0,
           "gridPos": {
@@ -721,9 +795,10 @@ data:
           "linewidth": 1,
           "nullPointMode": "null",
           "options": {
-            "dataLinks": []
+            "alertThreshold": true
           },
           "percentage": false,
+          "pluginVersion": "9.0.1",
           "pointradius": 2,
           "points": false,
           "renderer": "flot",
@@ -733,15 +808,16 @@ data:
           "steppedLine": false,
           "targets": [
             {
+              "datasource": {
+                "uid": "$datasource"
+              },
               "expr": "sum(irate(process_cpu_seconds_total{endpoint=\"github-mirror\"}[5m]))",
               "legendFormat": "usage",
               "refId": "A"
             }
           ],
           "thresholds": [],
-          "timeFrom": null,
           "timeRegions": [],
-          "timeShift": null,
           "title": "CPU usage",
           "tooltip": {
             "shared": true,
@@ -750,50 +826,720 @@ data:
           },
           "type": "graph",
           "xaxis": {
-            "buckets": null,
             "mode": "time",
-            "name": null,
             "show": true,
             "values": []
           },
           "yaxes": [
             {
               "format": "short",
-              "label": null,
               "logBase": 1,
-              "max": null,
-              "min": null,
               "show": true
             },
             {
               "format": "short",
-              "label": null,
               "logBase": 1,
-              "max": null,
-              "min": null,
               "show": true
             }
           ],
           "yaxis": {
-            "align": false,
-            "alignLevel": null
+            "align": false
+          }
+        },
+        {
+          "aliasColors": {
+            "github-mirror-68cf79444d-jh9d7": "semi-dark-orange",
+            "rss": "semi-dark-orange"
+          },
+          "bars": false,
+          "dashLength": 10,
+          "dashes": false,
+          "datasource": {
+            "type": "prometheus",
+            "uid": "$datasource"
+          },
+          "fieldConfig": {
+            "defaults": {
+              "links": []
+            },
+            "overrides": []
+          },
+          "fill": 1,
+          "fillGradient": 0,
+          "gridPos": {
+            "h": 8,
+            "w": 12,
+            "x": 0,
+            "y": 32
+          },
+          "hiddenSeries": false,
+          "id": 18,
+          "legend": {
+            "avg": false,
+            "current": false,
+            "max": false,
+            "min": false,
+            "show": true,
+            "total": false,
+            "values": false
+          },
+          "lines": true,
+          "linewidth": 1,
+          "nullPointMode": "null",
+          "options": {
+            "alertThreshold": true
+          },
+          "percentage": false,
+          "pluginVersion": "9.0.1",
+          "pointradius": 2,
+          "points": false,
+          "renderer": "flot",
+          "seriesOverrides": [],
+          "spaceLength": 10,
+          "stack": false,
+          "steppedLine": false,
+          "targets": [
+            {
+              "datasource": {
+                "uid": "$datasource"
+              },
+              "editorMode": "code",
+              "expr": "aws_elasticache_get_type_cmds_sum{cache_cluster_id=~\"ghmirror-redis-production.+\"}",
+              "legendFormat": "{{cache_cluster_id}}",
+              "range": true,
+              "refId": "A"
+            }
+          ],
+          "thresholds": [],
+          "timeRegions": [],
+          "title": "Get Commands",
+          "tooltip": {
+            "shared": true,
+            "sort": 0,
+            "value_type": "individual"
+          },
+          "type": "graph",
+          "xaxis": {
+            "mode": "time",
+            "show": true,
+            "values": []
+          },
+          "yaxes": [
+            {
+              "$$hashKey": "object:93",
+              "format": "short",
+              "label": "",
+              "logBase": 1,
+              "show": true
+            },
+            {
+              "$$hashKey": "object:94",
+              "format": "short",
+              "logBase": 1,
+              "show": true
+            }
+          ],
+          "yaxis": {
+            "align": false
+          }
+        },
+        {
+          "aliasColors": {
+            "github-mirror-68cf79444d-jh9d7": "semi-dark-orange",
+            "rss": "semi-dark-orange"
+          },
+          "bars": false,
+          "dashLength": 10,
+          "dashes": false,
+          "datasource": {
+            "type": "prometheus",
+            "uid": "$datasource"
+          },
+          "fieldConfig": {
+            "defaults": {
+              "links": []
+            },
+            "overrides": []
+          },
+          "fill": 1,
+          "fillGradient": 0,
+          "gridPos": {
+            "h": 8,
+            "w": 12,
+            "x": 12,
+            "y": 32
+          },
+          "hiddenSeries": false,
+          "id": 21,
+          "legend": {
+            "avg": false,
+            "current": false,
+            "max": false,
+            "min": false,
+            "show": true,
+            "total": false,
+            "values": false
+          },
+          "lines": true,
+          "linewidth": 1,
+          "nullPointMode": "null",
+          "options": {
+            "alertThreshold": true
+          },
+          "percentage": false,
+          "pluginVersion": "9.0.1",
+          "pointradius": 2,
+          "points": false,
+          "renderer": "flot",
+          "seriesOverrides": [],
+          "spaceLength": 10,
+          "stack": false,
+          "steppedLine": false,
+          "targets": [
+            {
+              "datasource": {
+                "uid": "$datasource"
+              },
+              "editorMode": "code",
+              "expr": "aws_elasticache_get_type_cmds_latency_sum{cache_cluster_id=~\"ghmirror-redis-production.+\"}",
+              "legendFormat": "{{cache_cluster_id}}",
+              "range": true,
+              "refId": "A"
+            }
+          ],
+          "thresholds": [],
+          "timeRegions": [],
+          "title": "Get Command Latency",
+          "tooltip": {
+            "shared": true,
+            "sort": 0,
+            "value_type": "individual"
+          },
+          "type": "graph",
+          "xaxis": {
+            "mode": "time",
+            "show": true,
+            "values": []
+          },
+          "yaxes": [
+            {
+              "$$hashKey": "object:93",
+              "format": "short",
+              "label": "microseconds",
+              "logBase": 1,
+              "show": true
+            },
+            {
+              "$$hashKey": "object:94",
+              "format": "short",
+              "logBase": 1,
+              "show": true
+            }
+          ],
+          "yaxis": {
+            "align": false
+          }
+        },
+        {
+          "aliasColors": {
+            "github-mirror-68cf79444d-jh9d7": "semi-dark-orange",
+            "rss": "semi-dark-orange"
+          },
+          "bars": false,
+          "dashLength": 10,
+          "dashes": false,
+          "datasource": {
+            "type": "prometheus",
+            "uid": "$datasource"
+          },
+          "fieldConfig": {
+            "defaults": {
+              "links": []
+            },
+            "overrides": []
+          },
+          "fill": 1,
+          "fillGradient": 0,
+          "gridPos": {
+            "h": 8,
+            "w": 12,
+            "x": 0,
+            "y": 40
+          },
+          "hiddenSeries": false,
+          "id": 19,
+          "legend": {
+            "avg": false,
+            "current": false,
+            "max": false,
+            "min": false,
+            "show": true,
+            "total": false,
+            "values": false
+          },
+          "lines": true,
+          "linewidth": 1,
+          "nullPointMode": "null",
+          "options": {
+            "alertThreshold": true
+          },
+          "percentage": false,
+          "pluginVersion": "9.0.1",
+          "pointradius": 2,
+          "points": false,
+          "renderer": "flot",
+          "seriesOverrides": [],
+          "spaceLength": 10,
+          "stack": false,
+          "steppedLine": false,
+          "targets": [
+            {
+              "datasource": {
+                "uid": "$datasource"
+              },
+              "editorMode": "code",
+              "expr": "aws_elasticache_set_type_cmds_sum{cache_cluster_id=~\"ghmirror-redis-production.+\"}",
+              "legendFormat": "{{cache_cluster_id}}",
+              "range": true,
+              "refId": "A"
+            }
+          ],
+          "thresholds": [],
+          "timeRegions": [],
+          "title": "Set Commands",
+          "tooltip": {
+            "shared": true,
+            "sort": 0,
+            "value_type": "individual"
+          },
+          "type": "graph",
+          "xaxis": {
+            "mode": "time",
+            "show": true,
+            "values": []
+          },
+          "yaxes": [
+            {
+              "$$hashKey": "object:93",
+              "format": "short",
+              "label": "",
+              "logBase": 1,
+              "show": true
+            },
+            {
+              "$$hashKey": "object:94",
+              "format": "short",
+              "logBase": 1,
+              "show": true
+            }
+          ],
+          "yaxis": {
+            "align": false
+          }
+        },
+        {
+          "aliasColors": {
+            "github-mirror-68cf79444d-jh9d7": "semi-dark-orange",
+            "rss": "semi-dark-orange"
+          },
+          "bars": false,
+          "dashLength": 10,
+          "dashes": false,
+          "datasource": {
+            "type": "prometheus",
+            "uid": "$datasource"
+          },
+          "fieldConfig": {
+            "defaults": {
+              "links": []
+            },
+            "overrides": []
+          },
+          "fill": 1,
+          "fillGradient": 0,
+          "gridPos": {
+            "h": 8,
+            "w": 12,
+            "x": 12,
+            "y": 40
+          },
+          "hiddenSeries": false,
+          "id": 20,
+          "legend": {
+            "avg": false,
+            "current": false,
+            "max": false,
+            "min": false,
+            "show": true,
+            "total": false,
+            "values": false
+          },
+          "lines": true,
+          "linewidth": 1,
+          "nullPointMode": "null",
+          "options": {
+            "alertThreshold": true
+          },
+          "percentage": false,
+          "pluginVersion": "9.0.1",
+          "pointradius": 2,
+          "points": false,
+          "renderer": "flot",
+          "seriesOverrides": [],
+          "spaceLength": 10,
+          "stack": false,
+          "steppedLine": false,
+          "targets": [
+            {
+              "datasource": {
+                "uid": "$datasource"
+              },
+              "editorMode": "code",
+              "expr": "aws_elasticache_set_type_cmds_latency_sum{cache_cluster_id=~\"ghmirror-redis-production.+\"}",
+              "legendFormat": "{{cache_cluster_id}}",
+              "range": true,
+              "refId": "A"
+            }
+          ],
+          "thresholds": [],
+          "timeRegions": [],
+          "title": "Set Command Latency",
+          "tooltip": {
+            "shared": true,
+            "sort": 0,
+            "value_type": "individual"
+          },
+          "type": "graph",
+          "xaxis": {
+            "mode": "time",
+            "show": true,
+            "values": []
+          },
+          "yaxes": [
+            {
+              "$$hashKey": "object:93",
+              "format": "short",
+              "label": "microseconds",
+              "logBase": 1,
+              "show": true
+            },
+            {
+              "$$hashKey": "object:94",
+              "format": "short",
+              "logBase": 1,
+              "show": true
+            }
+          ],
+          "yaxis": {
+            "align": false
+          }
+        },
+        {
+          "aliasColors": {
+            "github-mirror-68cf79444d-jh9d7": "semi-dark-orange",
+            "rss": "semi-dark-orange"
+          },
+          "bars": false,
+          "dashLength": 10,
+          "dashes": false,
+          "datasource": {
+            "type": "prometheus",
+            "uid": "$datasource"
+          },
+          "fieldConfig": {
+            "defaults": {
+              "links": []
+            },
+            "overrides": []
+          },
+          "fill": 1,
+          "fillGradient": 0,
+          "gridPos": {
+            "h": 8,
+            "w": 8,
+            "x": 0,
+            "y": 48
+          },
+          "hiddenSeries": false,
+          "id": 15,
+          "legend": {
+            "avg": false,
+            "current": false,
+            "max": false,
+            "min": false,
+            "show": true,
+            "total": false,
+            "values": false
+          },
+          "lines": true,
+          "linewidth": 1,
+          "nullPointMode": "null",
+          "options": {
+            "alertThreshold": true
+          },
+          "percentage": false,
+          "pluginVersion": "9.0.1",
+          "pointradius": 2,
+          "points": false,
+          "renderer": "flot",
+          "seriesOverrides": [],
+          "spaceLength": 10,
+          "stack": false,
+          "steppedLine": false,
+          "targets": [
+            {
+              "datasource": {
+                "uid": "$datasource"
+              },
+              "editorMode": "code",
+              "expr": "aws_elasticache_database_memory_usage_percentage_average{cache_cluster_id=~\"ghmirror-redis-production.+\"}",
+              "legendFormat": "{{cache_cluster_id}}",
+              "range": true,
+              "refId": "A"
+            }
+          ],
+          "thresholds": [],
+          "timeRegions": [],
+          "title": "Redis Memory Usage: Percentage",
+          "tooltip": {
+            "shared": true,
+            "sort": 0,
+            "value_type": "individual"
+          },
+          "type": "graph",
+          "xaxis": {
+            "mode": "time",
+            "show": true,
+            "values": []
+          },
+          "yaxes": [
+            {
+              "$$hashKey": "object:93",
+              "format": "short",
+              "label": "",
+              "logBase": 1,
+              "show": true
+            },
+            {
+              "$$hashKey": "object:94",
+              "format": "short",
+              "logBase": 1,
+              "show": true
+            }
+          ],
+          "yaxis": {
+            "align": false
+          }
+        },
+        {
+          "aliasColors": {
+            "github-mirror-68cf79444d-jh9d7": "semi-dark-orange",
+            "rss": "semi-dark-orange"
+          },
+          "bars": false,
+          "dashLength": 10,
+          "dashes": false,
+          "datasource": {
+            "type": "prometheus",
+            "uid": "$datasource"
+          },
+          "fieldConfig": {
+            "defaults": {
+              "links": []
+            },
+            "overrides": []
+          },
+          "fill": 1,
+          "fillGradient": 0,
+          "gridPos": {
+            "h": 8,
+            "w": 8,
+            "x": 8,
+            "y": 48
+          },
+          "hiddenSeries": false,
+          "id": 16,
+          "legend": {
+            "avg": false,
+            "current": false,
+            "max": false,
+            "min": false,
+            "show": true,
+            "total": false,
+            "values": false
+          },
+          "lines": true,
+          "linewidth": 1,
+          "nullPointMode": "null",
+          "options": {
+            "alertThreshold": true
+          },
+          "percentage": false,
+          "pluginVersion": "9.0.1",
+          "pointradius": 2,
+          "points": false,
+          "renderer": "flot",
+          "seriesOverrides": [],
+          "spaceLength": 10,
+          "stack": false,
+          "steppedLine": false,
+          "targets": [
+            {
+              "datasource": {
+                "uid": "$datasource"
+              },
+              "editorMode": "code",
+              "expr": "aws_elasticache_engine_cpuutilization_average{cache_cluster_id=~\"ghmirror-redis-production.+\"}",
+              "legendFormat": "{{cache_cluster_id}}",
+              "range": true,
+              "refId": "A"
+            }
+          ],
+          "thresholds": [],
+          "timeRegions": [],
+          "title": "Redis CPU Usage: Percentage",
+          "tooltip": {
+            "shared": true,
+            "sort": 0,
+            "value_type": "individual"
+          },
+          "type": "graph",
+          "xaxis": {
+            "mode": "time",
+            "show": true,
+            "values": []
+          },
+          "yaxes": [
+            {
+              "$$hashKey": "object:93",
+              "format": "short",
+              "label": "",
+              "logBase": 1,
+              "show": true
+            },
+            {
+              "$$hashKey": "object:94",
+              "format": "short",
+              "logBase": 1,
+              "show": true
+            }
+          ],
+          "yaxis": {
+            "align": false
+          }
+        },
+        {
+          "aliasColors": {
+            "github-mirror-68cf79444d-jh9d7": "semi-dark-orange",
+            "rss": "semi-dark-orange"
+          },
+          "bars": false,
+          "dashLength": 10,
+          "dashes": false,
+          "datasource": {
+            "type": "prometheus",
+            "uid": "$datasource"
+          },
+          "fieldConfig": {
+            "defaults": {
+              "links": []
+            },
+            "overrides": []
+          },
+          "fill": 1,
+          "fillGradient": 0,
+          "gridPos": {
+            "h": 8,
+            "w": 8,
+            "x": 16,
+            "y": 48
+          },
+          "hiddenSeries": false,
+          "id": 17,
+          "legend": {
+            "avg": false,
+            "current": false,
+            "max": false,
+            "min": false,
+            "show": true,
+            "total": false,
+            "values": false
+          },
+          "lines": true,
+          "linewidth": 1,
+          "nullPointMode": "null",
+          "options": {
+            "alertThreshold": true
+          },
+          "percentage": false,
+          "pluginVersion": "9.0.1",
+          "pointradius": 2,
+          "points": false,
+          "renderer": "flot",
+          "seriesOverrides": [],
+          "spaceLength": 10,
+          "stack": false,
+          "steppedLine": false,
+          "targets": [
+            {
+              "datasource": {
+                "uid": "$datasource"
+              },
+              "editorMode": "code",
+              "expr": "aws_elasticache_curr_items_average{cache_cluster_id=~\"ghmirror-redis-production.+\"}",
+              "legendFormat": "{{cache_cluster_id}}",
+              "range": true,
+              "refId": "A"
+            }
+          ],
+          "thresholds": [],
+          "timeRegions": [],
+          "title": "Redis Current Items",
+          "tooltip": {
+            "shared": true,
+            "sort": 0,
+            "value_type": "individual"
+          },
+          "type": "graph",
+          "xaxis": {
+            "mode": "time",
+            "show": true,
+            "values": []
+          },
+          "yaxes": [
+            {
+              "$$hashKey": "object:93",
+              "format": "short",
+              "label": "",
+              "logBase": 1,
+              "show": true
+            },
+            {
+              "$$hashKey": "object:94",
+              "format": "short",
+              "logBase": 1,
+              "show": true
+            }
+          ],
+          "yaxis": {
+            "align": false
           }
         }
       ],
       "refresh": "5m",
-      "schemaVersion": 22,
+      "schemaVersion": 36,
       "style": "dark",
       "tags": [],
       "templating": {
         "list": [
           {
             "current": {
+              "selected": false,
               "text": "app-sre-prod-01-prometheus",
               "value": "app-sre-prod-01-prometheus"
             },
             "hide": 0,
             "includeAll": false,
-            "label": null,
             "multi": false,
             "name": "datasource",
             "options": [],
@@ -826,7 +1572,8 @@ data:
       "timezone": "",
       "title": "Github Mirror",
       "uid": "DE29QJlWk",
-      "version": 1
+      "version": 1,
+      "weekStart": ""
     }
 kind: ConfigMap
 metadata:
