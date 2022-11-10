@@ -10,7 +10,7 @@ has not changed, we serve the client with the previously cached response.
 That reduces the number of API calls that consume quota, helping you not to
 hit the API GitHub API rate limit.
 
-The mirror acts only on GET requests, by-passing other HTTP methods.
+The mirror acts only on GET requests, bypassing other HTTP methods.
 
 The default cache backend is in-memory, and we also support Redis. The
 in-memory cache is shared among all the threads, but not shared between
