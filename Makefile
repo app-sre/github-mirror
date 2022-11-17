@@ -9,4 +9,5 @@ check:
 	pytest -v --forked --cov=ghmirror --cov-report=term-missing tests/
 
 accept:
+	pip install -r requirements-accept.txt
 	pytest -v acceptance/

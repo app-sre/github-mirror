@@ -16,7 +16,6 @@ WORKDIR     /ghmirror
 COPY        --chown=ghmirror:ghmirror . ./
 
 RUN         pip install --no-cache-dir --user .
-RUN         pip install --no-cache-dir --user -r requirements-accept.txt
 RUN         pip install --no-cache-dir --user gunicorn
 
 ENTRYPOINT  ["gunicorn", "ghmirror.app:APP"]
