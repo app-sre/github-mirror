@@ -5,6 +5,7 @@ RUN         python3 -m pip install --no-cache-dir --upgrade pip setuptools
 
 ARG         CONTAINER_UID=1000
 RUN         adduser --uid ${CONTAINER_UID} --user-group ghmirror
+RUN         chmod 755 /home/ghmirror
 RUN         mkdir /ghmirror && chown ghmirror:ghmirror /ghmirror
 
 USER        ghmirror
