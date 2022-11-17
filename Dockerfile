@@ -5,6 +5,7 @@ RUN         python3 -m pip install --no-cache-dir --upgrade pip setuptools
 
 ARG         CONTAINER_UID=1000
 RUN         adduser --uid ${CONTAINER_UID} --user-group ghmirror
+RUN         chmod 755 /home/ghmirror
 RUN         mkdir /ghmirror && chown ghmirror:ghmirror /ghmirror
 
 USER        ghmirror
@@ -15,6 +16,7 @@ WORKDIR     /ghmirror
 COPY        --chown=ghmirror:ghmirror . ./
 
 RUN         pip install --no-cache-dir --user .
+RUN         pip install --no-cache-dir --user -r requirements-accept.txt
 RUN         pip install --no-cache-dir --user gunicorn
 
 ENTRYPOINT  ["gunicorn", "ghmirror.app:APP"]
