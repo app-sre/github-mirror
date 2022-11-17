@@ -1,7 +1,4 @@
-FROM        registry.access.redhat.com/ubi8/ubi-minimal
-
-RUN         microdnf install python3.9 && microdnf clean all
-RUN         python3 -m pip install --no-cache-dir --upgrade pip setuptools
+FROM        registry.access.redhat.com/ubi8/python-39
 
 USER        root
 
