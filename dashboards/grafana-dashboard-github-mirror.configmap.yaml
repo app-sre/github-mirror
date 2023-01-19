@@ -2,28 +2,6 @@ apiVersion: v1
 data:
   github-mirror.json: |-
     {
-      "__inputs": [],
-      "__elements": [],
-      "__requires": [
-        {
-          "type": "grafana",
-          "id": "grafana",
-          "name": "Grafana",
-          "version": "9.0.1"
-        },
-        {
-          "type": "panel",
-          "id": "graph",
-          "name": "Graph (old)",
-          "version": ""
-        },
-        {
-          "type": "datasource",
-          "id": "prometheus",
-          "name": "Prometheus",
-          "version": "1.0.0"
-        }
-      ],
       "annotations": {
         "list": [
           {
@@ -49,8 +27,7 @@ data:
       "editable": true,
       "fiscalYearStartMonth": 0,
       "graphTooltip": 0,
-      "id": null,
-      "iteration": 1658276566033,
+      "iteration": 1674145995137,
       "links": [],
       "liveNow": false,
       "panels": [
@@ -98,7 +75,7 @@ data:
             "alertThreshold": true
           },
           "percentage": false,
-          "pluginVersion": "9.0.1",
+          "pluginVersion": "9.0.3",
           "pointradius": 2,
           "points": false,
           "renderer": "flot",
@@ -199,7 +176,7 @@ data:
             "alertThreshold": true
           },
           "percentage": false,
-          "pluginVersion": "9.0.1",
+          "pluginVersion": "9.0.3",
           "pointradius": 2,
           "points": false,
           "renderer": "flot",
@@ -300,7 +277,7 @@ data:
             "alertThreshold": true
           },
           "percentage": false,
-          "pluginVersion": "9.0.1",
+          "pluginVersion": "9.0.3",
           "pointradius": 2,
           "points": false,
           "renderer": "flot",
@@ -402,7 +379,7 @@ data:
             "alertThreshold": true
           },
           "percentage": false,
-          "pluginVersion": "9.0.1",
+          "pluginVersion": "9.0.3",
           "pointradius": 2,
           "points": false,
           "renderer": "flot",
@@ -504,7 +481,7 @@ data:
             "alertThreshold": true
           },
           "percentage": false,
-          "pluginVersion": "9.0.1",
+          "pluginVersion": "9.0.3",
           "pointradius": 2,
           "points": false,
           "renderer": "flot",
@@ -614,7 +591,7 @@ data:
             "alertThreshold": true
           },
           "percentage": false,
-          "pluginVersion": "9.0.1",
+          "pluginVersion": "9.0.3",
           "pointradius": 2,
           "points": false,
           "renderer": "flot",
@@ -706,7 +683,7 @@ data:
             "alertThreshold": true
           },
           "percentage": false,
-          "pluginVersion": "9.0.1",
+          "pluginVersion": "9.0.3",
           "pointradius": 2,
           "points": false,
           "renderer": "flot",
@@ -798,7 +775,7 @@ data:
             "alertThreshold": true
           },
           "percentage": false,
-          "pluginVersion": "9.0.1",
+          "pluginVersion": "9.0.3",
           "pointradius": 2,
           "points": false,
           "renderer": "flot",
@@ -890,7 +867,7 @@ data:
             "alertThreshold": true
           },
           "percentage": false,
-          "pluginVersion": "9.0.1",
+          "pluginVersion": "9.0.3",
           "pointradius": 2,
           "points": false,
           "renderer": "flot",
@@ -904,7 +881,7 @@ data:
                 "uid": "$datasource"
               },
               "editorMode": "code",
-              "expr": "aws_elasticache_get_type_cmds_sum{cache_cluster_id=~\"ghmirror-redis-production.+\"}",
+              "expr": "aws_elasticache_get_type_cmds_sum{cache_cluster_id=~\"$cache_cluster_id_prefix.+\"}",
               "legendFormat": "{{cache_cluster_id}}",
               "range": true,
               "refId": "A"
@@ -987,7 +964,7 @@ data:
             "alertThreshold": true
           },
           "percentage": false,
-          "pluginVersion": "9.0.1",
+          "pluginVersion": "9.0.3",
           "pointradius": 2,
           "points": false,
           "renderer": "flot",
@@ -1001,7 +978,7 @@ data:
                 "uid": "$datasource"
               },
               "editorMode": "code",
-              "expr": "aws_elasticache_get_type_cmds_latency_sum{cache_cluster_id=~\"ghmirror-redis-production.+\"}",
+              "expr": "aws_elasticache_get_type_cmds_latency_sum{cache_cluster_id=~\"$cache_cluster_id_prefix.+\"}",
               "legendFormat": "{{cache_cluster_id}}",
               "range": true,
               "refId": "A"
@@ -1084,7 +1061,7 @@ data:
             "alertThreshold": true
           },
           "percentage": false,
-          "pluginVersion": "9.0.1",
+          "pluginVersion": "9.0.3",
           "pointradius": 2,
           "points": false,
           "renderer": "flot",
@@ -1098,7 +1075,7 @@ data:
                 "uid": "$datasource"
               },
               "editorMode": "code",
-              "expr": "aws_elasticache_set_type_cmds_sum{cache_cluster_id=~\"ghmirror-redis-production.+\"}",
+              "expr": "aws_elasticache_set_type_cmds_sum{cache_cluster_id=~\"$cache_cluster_id_prefix.+\"}",
               "legendFormat": "{{cache_cluster_id}}",
               "range": true,
               "refId": "A"
@@ -1181,7 +1158,7 @@ data:
             "alertThreshold": true
           },
           "percentage": false,
-          "pluginVersion": "9.0.1",
+          "pluginVersion": "9.0.3",
           "pointradius": 2,
           "points": false,
           "renderer": "flot",
@@ -1195,7 +1172,7 @@ data:
                 "uid": "$datasource"
               },
               "editorMode": "code",
-              "expr": "aws_elasticache_set_type_cmds_latency_sum{cache_cluster_id=~\"ghmirror-redis-production.+\"}",
+              "expr": "aws_elasticache_set_type_cmds_latency_sum{cache_cluster_id=~\"$cache_cluster_id_prefix.+\"}",
               "legendFormat": "{{cache_cluster_id}}",
               "range": true,
               "refId": "A"
@@ -1278,7 +1255,7 @@ data:
             "alertThreshold": true
           },
           "percentage": false,
-          "pluginVersion": "9.0.1",
+          "pluginVersion": "9.0.3",
           "pointradius": 2,
           "points": false,
           "renderer": "flot",
@@ -1292,7 +1269,7 @@ data:
                 "uid": "$datasource"
               },
               "editorMode": "code",
-              "expr": "aws_elasticache_database_memory_usage_percentage_average{cache_cluster_id=~\"ghmirror-redis-production.+\"}",
+              "expr": "aws_elasticache_database_memory_usage_percentage_average{cache_cluster_id=~\"$cache_cluster_id_prefix.+\"}",
               "legendFormat": "{{cache_cluster_id}}",
               "range": true,
               "refId": "A"
@@ -1375,7 +1352,7 @@ data:
             "alertThreshold": true
           },
           "percentage": false,
-          "pluginVersion": "9.0.1",
+          "pluginVersion": "9.0.3",
           "pointradius": 2,
           "points": false,
           "renderer": "flot",
@@ -1389,7 +1366,7 @@ data:
                 "uid": "$datasource"
               },
               "editorMode": "code",
-              "expr": "aws_elasticache_engine_cpuutilization_average{cache_cluster_id=~\"ghmirror-redis-production.+\"}",
+              "expr": "aws_elasticache_engine_cpuutilization_average{cache_cluster_id=~\"$cache_cluster_id_prefix.+\"}",
               "legendFormat": "{{cache_cluster_id}}",
               "range": true,
               "refId": "A"
@@ -1472,7 +1449,7 @@ data:
             "alertThreshold": true
           },
           "percentage": false,
-          "pluginVersion": "9.0.1",
+          "pluginVersion": "9.0.3",
           "pointradius": 2,
           "points": false,
           "renderer": "flot",
@@ -1486,7 +1463,7 @@ data:
                 "uid": "$datasource"
               },
               "editorMode": "code",
-              "expr": "aws_elasticache_curr_items_average{cache_cluster_id=~\"ghmirror-redis-production.+\"}",
+              "expr": "aws_elasticache_curr_items_average{cache_cluster_id=~\"$cache_cluster_id_prefix.+\"}",
               "legendFormat": "{{cache_cluster_id}}",
               "range": true,
               "refId": "A"
@@ -1548,6 +1525,32 @@ data:
             "regex": "",
             "skipUrlSync": false,
             "type": "datasource"
+          },
+          {
+            "current": {
+              "selected": true,
+              "text": "ghmirror-redis-production",
+              "value": "ghmirror-redis-production"
+            },
+            "datasource": {
+              "type": "prometheus",
+              "uid": "${datasource}"
+            },
+            "definition": "label_values(aws_elasticache_database_memory_usage_percentage_average, cache_cluster_id)",
+            "hide": 0,
+            "includeAll": false,
+            "multi": false,
+            "name": "cache_cluster_id_prefix",
+            "options": [],
+            "query": {
+              "query": "label_values(aws_elasticache_database_memory_usage_percentage_average, cache_cluster_id)",
+              "refId": "StandardVariableQuery"
+            },
+            "refresh": 1,
+            "regex": "/^(ghmirror-redis-production|ghmirror-redis).*$/",
+            "skipUrlSync": false,
+            "sort": 0,
+            "type": "query"
           }
         ]
       },
