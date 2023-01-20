@@ -881,7 +881,7 @@ data:
                 "uid": "$datasource"
               },
               "editorMode": "code",
-              "expr": "aws_elasticache_get_type_cmds_sum{cache_cluster_id=~\"$cache_cluster_id_prefix.+\"}",
+              "expr": "aws_elasticache_get_type_cmds_sum{cache_cluster_id=~\"$cache_cluster_id_prefix-\\\\d+\"}",
               "legendFormat": "{{cache_cluster_id}}",
               "range": true,
               "refId": "A"
@@ -978,7 +978,7 @@ data:
                 "uid": "$datasource"
               },
               "editorMode": "code",
-              "expr": "aws_elasticache_get_type_cmds_latency_sum{cache_cluster_id=~\"$cache_cluster_id_prefix.+\"}",
+              "expr": "aws_elasticache_get_type_cmds_latency_sum{cache_cluster_id=~\"$cache_cluster_id_prefix-\\\\d+\"}",
               "legendFormat": "{{cache_cluster_id}}",
               "range": true,
               "refId": "A"
@@ -1075,7 +1075,7 @@ data:
                 "uid": "$datasource"
               },
               "editorMode": "code",
-              "expr": "aws_elasticache_set_type_cmds_sum{cache_cluster_id=~\"$cache_cluster_id_prefix.+\"}",
+              "expr": "aws_elasticache_set_type_cmds_sum{cache_cluster_id=~\"$cache_cluster_id_prefix-\\\\d+\"}",
               "legendFormat": "{{cache_cluster_id}}",
               "range": true,
               "refId": "A"
@@ -1172,7 +1172,7 @@ data:
                 "uid": "$datasource"
               },
               "editorMode": "code",
-              "expr": "aws_elasticache_set_type_cmds_latency_sum{cache_cluster_id=~\"$cache_cluster_id_prefix.+\"}",
+              "expr": "aws_elasticache_set_type_cmds_latency_sum{cache_cluster_id=~\"$cache_cluster_id_prefix-\\\\d+\"}",
               "legendFormat": "{{cache_cluster_id}}",
               "range": true,
               "refId": "A"
@@ -1269,7 +1269,7 @@ data:
                 "uid": "$datasource"
               },
               "editorMode": "code",
-              "expr": "aws_elasticache_database_memory_usage_percentage_average{cache_cluster_id=~\"$cache_cluster_id_prefix.+\"}",
+              "expr": "aws_elasticache_database_memory_usage_percentage_average{cache_cluster_id=~\"$cache_cluster_id_prefix-\\\\d+\"}",
               "legendFormat": "{{cache_cluster_id}}",
               "range": true,
               "refId": "A"
@@ -1366,7 +1366,7 @@ data:
                 "uid": "$datasource"
               },
               "editorMode": "code",
-              "expr": "aws_elasticache_engine_cpuutilization_average{cache_cluster_id=~\"$cache_cluster_id_prefix.+\"}",
+              "expr": "aws_elasticache_engine_cpuutilization_average{cache_cluster_id=~\"$cache_cluster_id_prefix-\\\\d+\"}",
               "legendFormat": "{{cache_cluster_id}}",
               "range": true,
               "refId": "A"
@@ -1463,7 +1463,7 @@ data:
                 "uid": "$datasource"
               },
               "editorMode": "code",
-              "expr": "aws_elasticache_curr_items_average{cache_cluster_id=~\"$cache_cluster_id_prefix.+\"}",
+              "expr": "aws_elasticache_curr_items_average{cache_cluster_id=~\"$cache_cluster_id_prefix-\\\\d+\"}",
               "legendFormat": "{{cache_cluster_id}}",
               "range": true,
               "refId": "A"
