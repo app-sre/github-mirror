@@ -169,4 +169,3 @@ request_latency_seconds_count{endpoint="github-mirror",cache="OFFLINE_MISS"}
 
 For contributing to the project, please follow the
 [Development Guide](docs/devel_guide.md).
-
