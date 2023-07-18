@@ -30,5 +30,6 @@ setup(name='ghmirror',
       install_requires=['Flask~=1.1',
                         'requests~=2.22',
                         'prometheus_client~=0.7',
+                        'gunicorn~=20.0',
                         'redis~=3.5',
                         'MarkupSafe==2.0.1'])
