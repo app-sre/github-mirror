@@ -67,7 +67,8 @@ class _GithubStatus:
                 self.online = True
             except (requests.exceptions.ConnectionError,
                     requests.exceptions.Timeout,
-                    requests.exceptions.HTTPError):
+                    requests.exceptions.HTTPError) as error:
+                LOG.warning('Github API is offline, reason: %s', error)
                 self.online = False
             time.sleep(self.SLEEP_TIME)
 
