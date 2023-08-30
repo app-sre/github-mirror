@@ -92,6 +92,8 @@ objects:
                     name: ${EC_SECRET_NAME}
             - name: REDIS_SSL
               value: ${REDIS_SSL}
+            - name: GITHUB_STATUS_SLEEP_TIME
+              value: "${GITHUB_STATUS_SLEEP_TIME}"
           ports:
           - name: github-mirror
             containerPort: 8080
@@ -173,3 +175,5 @@ parameters:
   value: "github-mirror"
   deplayName: github-mirror service account
   description: name of the service account to use when deploying the pod
+- name: GITHUB_STATUS_SLEEP_TIME
+  value: '1'
