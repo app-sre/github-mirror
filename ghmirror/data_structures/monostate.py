@@ -16,6 +16,7 @@
 Caching data structures.
 """
 
+import os
 import threading
 import time
 import logging
@@ -46,7 +47,7 @@ LOG = logging.getLogger(__name__)
 
 class _GithubStatus:
 
-    SLEEP_TIME = 1
+    SLEEP_TIME = int(os.environ.get("GITHUB_STATUS_SLEEP_TIME", 1))
 
     def __init__(self):
         self.online = True
