@@ -79,11 +79,13 @@ class GithubStatus:
     """
 
     _instance = None
+    _lock = threading.Lock()
 
     @classmethod
     def __new__(cls, *args, **kwargs):  # pylint: disable=unused-argument
-        if cls._instance is None:
-            cls._instance = _GithubStatus()
+        with cls._lock:
+            if cls._instance is None:
+                cls._instance = _GithubStatus()
         return cls._instance
 
 
