@@ -64,7 +64,7 @@ class _GithubStatus:
     def check(self):
         """
         Method to be called in a thread. It will check the
-        Github API status every sleep_time seconds and set
+        Github API status every self.sleep_time seconds and set
         the self.online accordingly.
         """
         while True:
