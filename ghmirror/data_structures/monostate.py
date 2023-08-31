@@ -50,6 +50,14 @@ class _GithubStatus:
     def __init__(self, sleep_time):
         self.sleep_time = sleep_time
         self.online = True
+        self._start_check()
+
+    def _start_check(self):
+        """
+        Starting a daemon thread to check the GitHub API status.
+        daemon is required so the thread is killed when the main
+        thread completes. This is also useful for the tests.
+        """
         thread = threading.Thread(target=self.check, daemon=True)
         thread.start()
 
