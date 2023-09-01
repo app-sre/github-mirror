@@ -94,6 +94,9 @@ class _GithubStatus:
                                             timeout=STATUS_TIMEOUT)
                 response.raise_for_status()
                 self.online = self._is_github_online(response)
+                if not self.online:
+                    LOG.warning('Github API is offline, response: %s',
+                                response.text)
             except (requests.exceptions.ConnectionError,
                     requests.exceptions.Timeout,
                     requests.exceptions.HTTPError) as error:

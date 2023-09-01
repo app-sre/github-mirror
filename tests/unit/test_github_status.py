@@ -80,16 +80,15 @@ def build_github_status_response_builder(status):
     }
 
 
-@pytest.mark.parametrize('status,expected_online',
+@pytest.mark.parametrize('status',
                          [
-                             ('operational', True),
-                             ('degraded_performance', True),
-                             ('partial_outage', True),
-                             ('major_outage', False),
+                             'operational',
+                             'degraded_performance',
+                             'partial_outage',
                          ])
 @mock.patch('ghmirror.data_structures.monostate.time.sleep', side_effect=InterruptedError)
 @mock.patch('ghmirror.data_structures.monostate.threading.Thread')
-def test_github_status_check(_mock_thread, mock_sleep, status, expected_online):
+def test_github_status_check_success(_mock_thread, mock_sleep, status):
     mocked_response = mock.create_autospec(requests.Response)
     mocked_response.json.return_value = build_github_status_response_builder(status)
     session = mock.create_autospec(requests.Session)
@@ -100,7 +99,28 @@ def test_github_status_check(_mock_thread, mock_sleep, status, expected_online):
     with pytest.raises(InterruptedError):
         github_status.check()
 
-    assert github_status.online is expected_online
+    assert github_status.online is True
+    session.get.assert_called_once_with('https://www.githubstatus.com/api/v2/components.json', timeout=2)
+    mocked_response.raise_for_status.assert_called_once_with()
+    mock_sleep.assert_called_once_with(sleep_time)
+
+
+@mock.patch('ghmirror.data_structures.monostate.LOG')
+@mock.patch('ghmirror.data_structures.monostate.time.sleep', side_effect=InterruptedError)
+@mock.patch('ghmirror.data_structures.monostate.threading.Thread')
+def test_github_status_check_outage(_mock_thread, mock_sleep, mock_log):
+    mocked_response = mock.create_autospec(requests.Response)
+    mocked_response.json.return_value = build_github_status_response_builder('major_outage')
+    session = mock.create_autospec(requests.Session)
+    session.get.return_value = mocked_response
+    sleep_time = 1
+    github_status = _GithubStatus(sleep_time=sleep_time, session=session)
+
+    with pytest.raises(InterruptedError):
+        github_status.check()
+
+    assert github_status.online is False
+    mock_log.warning.assert_called_once_with('Github API is offline, response: %s', mocked_response.text)
     session.get.assert_called_once_with('https://www.githubstatus.com/api/v2/components.json', timeout=2)
     mocked_response.raise_for_status.assert_called_once_with()
     mock_sleep.assert_called_once_with(sleep_time)
