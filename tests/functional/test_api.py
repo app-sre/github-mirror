@@ -63,7 +63,14 @@ def mocked_requests_get_error(*_args, **_kwargs):
 
 
 def mocked_requests_monitor_good(*_args, **_kwargs):
-    return MockResponse('', {}, 200)
+    return MockResponse('',
+                        {},
+                        200,
+                        json_content={
+                            'components': [
+                                {'name': 'API', 'status': 'operational'}
+                            ]
+                        })
 
 
 def mocked_requests_monitor_bad(*_args, **_kwargs):

@@ -32,7 +32,7 @@ from prometheus_client import Gauge
 from prometheus_client import Histogram
 from prometheus_client import ProcessCollector
 
-from ghmirror.core.constants import GH_API
+from ghmirror.core.constants import GH_STATUS_API
 from ghmirror.core.constants import STATUS_TIMEOUT
 
 
@@ -62,6 +62,18 @@ class _GithubStatus:
         thread = threading.Thread(target=self.check, daemon=True)
         thread.start()
 
+    @staticmethod
+    def _is_github_online(response):
+        """
+        Check if the Github API is online based on the response.
+        If API component status is major_outage, then it's offline.
+        If API component status is one of operational,
+        degraded_performance, or partial_outage, then it's online.
+        """
+        components = response.json()['components']
+        return any(c['name'] == 'API' and c['status'] != 'major_outage'
+                   for c in components)
+
     @classmethod
     def create(cls):
         """
@@ -78,10 +90,10 @@ class _GithubStatus:
         """
         while True:
             try:
-                response = self.session.get(f'{GH_API}/status',
+                response = self.session.get(GH_STATUS_API,
                                             timeout=STATUS_TIMEOUT)
                 response.raise_for_status()
-                self.online = True
+                self.online = self._is_github_online(response)
             except (requests.exceptions.ConnectionError,
                     requests.exceptions.Timeout,
                     requests.exceptions.HTTPError) as error:

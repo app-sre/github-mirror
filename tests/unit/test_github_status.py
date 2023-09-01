@@ -37,10 +37,61 @@ def test_create_github_status(mock_thread, mock_environ, mock_session, env_sleep
     mock_session.assert_called_once_with()
 
 
+def build_github_status_response_builder(status):
+    return {
+        "page": {
+            "id": "kctbh9vrtdwd",
+            "name": "GitHub",
+            "url": "https://www.githubstatus.com",
+            "updated_at": "2023-08-31T07:56:30Z"
+        },
+        "components": [
+            {
+                "created_at": "2014-05-03T01:22:07.274Z",
+                "description": None,
+                "group": False,
+                "group_id": None,
+                "id": "b13yz5g2cw10",
+                "name": "API",
+                "only_show_if_degraded": False,
+                "page_id": "kctbh9vrtdwd",
+                "position": 1,
+                "showcase": True,
+                "start_date": None,
+                "status": status,
+                "updated_at": "2014-05-14T20:34:43.340Z"
+            },
+            {
+                "created_at": "2014-05-03T01:22:07.286Z",
+                "description": None,
+                "group": False,
+                "group_id": None,
+                "id": "9397cnvk62zn",
+                "name": "Management Portal",
+                "only_show_if_degraded": False,
+                "page_id": "kctbh9vrtdwd",
+                "position": 2,
+                "showcase": True,
+                "start_date": None,
+                "status": "major_outage",
+                "updated_at": "2014-05-14T20:34:44.470Z"
+            }
+        ]
+    }
+
+
+@pytest.mark.parametrize('status,expected_online',
+                         [
+                             ('operational', True),
+                             ('degraded_performance', True),
+                             ('partial_outage', True),
+                             ('major_outage', False),
+                         ])
 @mock.patch('ghmirror.data_structures.monostate.time.sleep', side_effect=InterruptedError)
 @mock.patch('ghmirror.data_structures.monostate.threading.Thread')
-def test_github_status_check_success(_mock_thread, mock_sleep):
+def test_github_status_check(_mock_thread, mock_sleep, status, expected_online):
     mocked_response = mock.create_autospec(requests.Response)
+    mocked_response.json.return_value = build_github_status_response_builder(status)
     session = mock.create_autospec(requests.Session)
     session.get.return_value = mocked_response
     sleep_time = 1
@@ -49,8 +100,8 @@ def test_github_status_check_success(_mock_thread, mock_sleep):
     with pytest.raises(InterruptedError):
         github_status.check()
 
-    assert github_status.online is True
-    session.get.assert_called_once_with('https://api.github.com/status', timeout=2)
+    assert github_status.online is expected_online
+    session.get.assert_called_once_with('https://www.githubstatus.com/api/v2/components.json', timeout=2)
     mocked_response.raise_for_status.assert_called_once_with()
     mock_sleep.assert_called_once_with(sleep_time)
 
@@ -77,6 +128,6 @@ def test_github_status_check_fail(_mock_thread, mock_sleep, mock_log, error):
 
     assert github_status.online is False
     mock_log.warning.assert_called_once_with('Github API is offline, reason: %s', error)
-    session.get.assert_called_once_with('https://api.github.com/status', timeout=2)
+    session.get.assert_called_once_with('https://www.githubstatus.com/api/v2/components.json', timeout=2)
     mocked_response.raise_for_status.assert_called_once_with()
     mock_sleep.assert_called_once_with(sleep_time)
