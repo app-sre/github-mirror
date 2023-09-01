@@ -47,17 +47,32 @@ LOG = logging.getLogger(__name__)
 
 class _GithubStatus:
 
-    SLEEP_TIME = int(os.environ.get("GITHUB_STATUS_SLEEP_TIME", 1))
-
-    def __init__(self):
+    def __init__(self, sleep_time):
+        self.sleep_time = sleep_time
         self.online = True
-        theard = threading.Thread(target=self.check)
-        theard.start()
+        self._start_check()
+
+    def _start_check(self):
+        """
+        Starting a daemon thread to check the GitHub API status.
+        daemon is required so the thread is killed when the main
+        thread completes. This is also useful for the tests.
+        """
+        thread = threading.Thread(target=self.check, daemon=True)
+        thread.start()
+
+    @classmethod
+    def create(cls):
+        """
+        Class method to create a new instance of _GithubStatus.
+        """
+        sleep_time = int(os.environ.get("GITHUB_STATUS_SLEEP_TIME", 1))
+        return cls(sleep_time)
 
     def check(self):
         """
         Method to be called in a thread. It will check the
-        Github API status every SLEEP_TIME seconds and set
+        Github API status every self.sleep_time seconds and set
         the self.online accordingly.
         """
         while True:
@@ -71,7 +86,7 @@ class _GithubStatus:
                     requests.exceptions.HTTPError) as error:
                 LOG.warning('Github API is offline, reason: %s', error)
                 self.online = False
-            time.sleep(self.SLEEP_TIME)
+            time.sleep(self.sleep_time)
 
 
 class GithubStatus:
@@ -86,7 +101,7 @@ class GithubStatus:
     def __new__(cls, *args, **kwargs):  # pylint: disable=unused-argument
         with cls._lock:
             if cls._instance is None:
-                cls._instance = _GithubStatus()
+                cls._instance = _GithubStatus.create()
         return cls._instance
 
 
