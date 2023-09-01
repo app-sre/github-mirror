@@ -47,9 +47,10 @@ LOG = logging.getLogger(__name__)
 
 class _GithubStatus:
 
-    def __init__(self, sleep_time):
+    def __init__(self, sleep_time, session):
         self.sleep_time = sleep_time
         self.online = True
+        self.session = session
         self._start_check()
 
     def _start_check(self):
@@ -67,7 +68,7 @@ class _GithubStatus:
         Class method to create a new instance of _GithubStatus.
         """
         sleep_time = int(os.environ.get("GITHUB_STATUS_SLEEP_TIME", 1))
-        return cls(sleep_time)
+        return cls(sleep_time, requests.Session())
 
     def check(self):
         """
@@ -77,8 +78,8 @@ class _GithubStatus:
         """
         while True:
             try:
-                response = requests.get(f'{GH_API}/status',
-                                        timeout=STATUS_TIMEOUT)
+                response = self.session.get(f'{GH_API}/status',
+                                            timeout=STATUS_TIMEOUT)
                 response.raise_for_status()
                 self.online = True
             except (requests.exceptions.ConnectionError,
