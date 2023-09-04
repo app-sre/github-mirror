@@ -52,7 +52,7 @@ def build_github_status_response_builder(status):
                 "group": False,
                 "group_id": None,
                 "id": "b13yz5g2cw10",
-                "name": "API",
+                "name": "API Requests",
                 "only_show_if_degraded": False,
                 "page_id": "kctbh9vrtdwd",
                 "position": 1,

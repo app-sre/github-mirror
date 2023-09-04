@@ -147,7 +147,7 @@ There's a built-in mechanism to detect when the Github API is offline.
 
 To do so, we have a separate thread that keeps checking the url
 `https://www.githubstatus.com/api/v2/components.json` every second.
-When we don't get a success response, or `API` component is `major_outage`,
+When we don't get a success response, or `API Requests` component is `major_outage`,
 we consider the Github API offline.
 
 When that happens, all the requests are served from the cache until we detect

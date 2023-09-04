@@ -66,12 +66,13 @@ class _GithubStatus:
     def _is_github_online(response):
         """
         Check if the Github API is online based on the response.
-        If API component status is major_outage, then it's offline.
-        If API component status is one of operational,
+        If API Requests component status is major_outage, then it's offline.
+        If API Requests component status is one of operational,
         degraded_performance, or partial_outage, then it's online.
         """
         components = response.json()['components']
-        return any(c['name'] == 'API' and c['status'] != 'major_outage'
+        return any(c['name'] == 'API Requests'
+                   and c['status'] != 'major_outage'
                    for c in components)
 
     @classmethod
