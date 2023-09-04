@@ -68,7 +68,7 @@ def mocked_requests_monitor_good(*_args, **_kwargs):
                         200,
                         json_content={
                             'components': [
-                                {'name': 'API', 'status': 'operational'}
+                                {'name': 'API Requests', 'status': 'operational'}
                             ]
                         })
 
