@@ -19,5 +19,5 @@ System constants.
 GH_API = 'https://api.github.com'
 GH_STATUS_API = 'https://www.githubstatus.com/api/v2/components.json'
 REQUESTS_TIMEOUT = 10
-STATUS_TIMEOUT = 2
+STATUS_TIMEOUT = 10
 PER_PAGE_ELEMENTS = 30

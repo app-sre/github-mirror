@@ -5,6 +5,7 @@ import requests
 
 from ghmirror.data_structures.monostate import GithubStatus, _GithubStatus
 
+EXPECTED_TIMEOUT = 10
 
 @mock.patch('ghmirror.data_structures.monostate.threading.Thread')
 def test_create_github_status_singleton(_mock_thread):
@@ -100,7 +101,8 @@ def test_github_status_check_success(_mock_thread, mock_sleep, status):
         github_status.check()
 
     assert github_status.online is True
-    session.get.assert_called_once_with('https://www.githubstatus.com/api/v2/components.json', timeout=2)
+    session.get.assert_called_once_with('https://www.githubstatus.com/api/v2/components.json',
+                                        timeout=EXPECTED_TIMEOUT)
     mocked_response.raise_for_status.assert_called_once_with()
     mock_sleep.assert_called_once_with(sleep_time)
 
@@ -121,7 +123,8 @@ def test_github_status_check_outage(_mock_thread, mock_sleep, mock_log):
 
     assert github_status.online is False
     mock_log.warning.assert_called_once_with('Github API is offline, response: %s', mocked_response.text)
-    session.get.assert_called_once_with('https://www.githubstatus.com/api/v2/components.json', timeout=2)
+    session.get.assert_called_once_with('https://www.githubstatus.com/api/v2/components.json',
+                                        timeout=EXPECTED_TIMEOUT)
     mocked_response.raise_for_status.assert_called_once_with()
     mock_sleep.assert_called_once_with(sleep_time)
 
@@ -148,6 +151,7 @@ def test_github_status_check_fail(_mock_thread, mock_sleep, mock_log, error):
 
     assert github_status.online is False
     mock_log.warning.assert_called_once_with('Github API is offline, reason: %s', error)
-    session.get.assert_called_once_with('https://www.githubstatus.com/api/v2/components.json', timeout=2)
+    session.get.assert_called_once_with('https://www.githubstatus.com/api/v2/components.json',
+                                        timeout=EXPECTED_TIMEOUT)
     mocked_response.raise_for_status.assert_called_once_with()
     mock_sleep.assert_called_once_with(sleep_time)
