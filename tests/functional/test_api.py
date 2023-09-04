@@ -1,4 +1,3 @@
-import hashlib
 from unittest import mock
 
 import pytest
@@ -64,20 +63,34 @@ def mocked_requests_get_error(*_args, **_kwargs):
 
 
 def mocked_requests_monitor_good(*_args, **_kwargs):
-    return MockResponse('', {}, 200)
+    return MockResponse('',
+                        {},
+                        200,
+                        json_content={
+                            'components': [
+                                {'name': 'API', 'status': 'operational'}
+                            ]
+                        })
 
 
 def mocked_requests_monitor_bad(*_args, **_kwargs):
     return MockResponse('', {}, 403)
 
+
+def setup_mocked_requests_session_get(mocked_session, side_effect):
+    mocked_session.return_value.get.side_effect = side_effect
+
+
 def mocked_requests_rate_limited(*_args, **_kwargs):
     return MockResponse('API rate limit exceeded', {}, 403)
+
 
 def mocked_requests_api_corner_case(*_args, **kwargs):
     if 'If-None-Match' in kwargs['headers']:
         return MockResponse('', {}, 304, json_content=[{'a': 'b'}, {'c', 'd'}])
 
     return MockResponse('', {'ETag': 'foo'}, 200, json_content=[{'a': 'b'}, {'c', 'd'}])
+
 
 @pytest.fixture(name="client")
 def fixture_client():
@@ -95,7 +108,9 @@ def test_healthz(client):
 
 @mock.patch('ghmirror.core.mirror_requests.requests.request',
             side_effect=mocked_requests_get_etag)
-def test_mirror_etag(_mock_get, client):
+@mock.patch('ghmirror.data_structures.monostate.requests.Session')
+def test_mirror_etag(mock_monitor_session, _mock_get, client):
+    setup_mocked_requests_session_get(mock_monitor_session, mocked_requests_monitor_good)
     # Initially the stats are zeroed
     response = client.get('/metrics')
     assert response.status_code == 200
@@ -133,7 +148,9 @@ def test_mirror_etag(_mock_get, client):
 
 @mock.patch('ghmirror.core.mirror_requests.requests.request',
             side_effect=mocked_requests_get_last_modified)
-def test_mirror_last_modified(_mock_get, client):
+@mock.patch('ghmirror.data_structures.monostate.requests.Session')
+def test_mirror_last_modified(mock_monitor_session, _mock_get, client):
+    setup_mocked_requests_session_get(mock_monitor_session, mocked_requests_monitor_good)
     # Initially the stats are zeroed
     response = client.get('/metrics')
     assert response.status_code == 200
@@ -170,7 +187,9 @@ def test_mirror_last_modified(_mock_get, client):
 
 @mock.patch('ghmirror.core.mirror_requests.requests.request',
             side_effect=mocked_requests_get_last_modified)
-def test_mirror_upstream_call(mocked_request, client):
+@mock.patch('ghmirror.data_structures.monostate.requests.Session')
+def test_mirror_upstream_call(mock_monitor_session, mocked_request, client):
+    setup_mocked_requests_session_get(mock_monitor_session, mocked_requests_monitor_good)
     client.get('/user/repos?page=2',
                headers={'Authorization': 'foo'})
     expected_url = 'https://api.github.com/user/repos?page=2'
@@ -183,7 +202,9 @@ def test_mirror_upstream_call(mocked_request, client):
 
 @mock.patch('ghmirror.core.mirror_requests.requests.request',
             side_effect=mocked_requests_get_last_modified)
-def test_mirror_non_get(mocked_request, client):
+@mock.patch('ghmirror.data_structures.monostate.requests.Session')
+def test_mirror_non_get(mock_monitor_session, mocked_request, client):
+    setup_mocked_requests_session_get(mock_monitor_session, mocked_requests_monitor_good)
     client.patch('/repos/foo/bar', data=b'foo')
     expected_url = 'https://api.github.com/repos/foo/bar'
     mocked_request.assert_called_with(method='PATCH', data=b'foo', headers={},
@@ -196,7 +217,9 @@ def test_mirror_non_get(mocked_request, client):
 @mock.patch('ghmirror.decorators.checks.conditional_request',
             side_effect=mocked_requests_get_user_orgs_auth)
 @mock.patch('ghmirror.core.mirror_requests.requests.request')
-def test_mirror_authorized_user(mocked_request, mocked_cond_request, client):
+@mock.patch('ghmirror.data_structures.monostate.requests.Session')
+def test_mirror_authorized_user(mock_monitor_session, mocked_request, mocked_cond_request, client):
+    setup_mocked_requests_session_get(mock_monitor_session, mocked_requests_monitor_good)
     client.get('/repos/app-sre/github-mirror',
                headers={'Authorization': 'foo'})
     mocked_cond_request.assert_called_with(auth='foo', method='GET',
@@ -213,8 +236,12 @@ def test_mirror_authorized_user(mocked_request, mocked_cond_request, client):
 @mock.patch('ghmirror.decorators.checks.conditional_request',
             side_effect=mocked_requests_get_user_orgs_auth)
 @mock.patch('ghmirror.core.mirror_requests.requests.request')
-def test_mirror_authorized_user_cached(mocked_request, mocked_cond_request,
+@mock.patch('ghmirror.data_structures.monostate.requests.Session')
+def test_mirror_authorized_user_cached(mock_monitor_session,
+                                       mocked_request,
+                                       mocked_cond_request,
                                        client):
+    setup_mocked_requests_session_get(mock_monitor_session, mocked_requests_monitor_good)
     users_cache = UsersCache()
     auth = 'foo'
     users_cache.add(auth)
@@ -233,14 +260,18 @@ def test_mirror_authorized_user_cached(mocked_request, mocked_cond_request,
 @mock.patch('ghmirror.decorators.checks.AUTHORIZED_USERS', 'app-sre-bot')
 @mock.patch('ghmirror.decorators.checks.conditional_request',
             side_effect=mocked_requests_get_user_orgs_unauth)
-def test_mirror_user_forbidden(_mocked_cond_request, client):
+@mock.patch('ghmirror.data_structures.monostate.requests.Session')
+def test_mirror_user_forbidden(mock_monitor_session, _mocked_cond_request, client):
+    setup_mocked_requests_session_get(mock_monitor_session, mocked_requests_monitor_good)
     response = client.get('/repos/app-sre/github-mirror',
                           headers={'Authorization': 'foo'})
     assert response.status_code == 403
 
 
 @mock.patch('ghmirror.decorators.checks.AUTHORIZED_USERS', 'app-sre-bot')
-def test_mirror_no_auth(client):
+@mock.patch('ghmirror.data_structures.monostate.requests.Session')
+def test_mirror_no_auth(mock_monitor_session, client):
+    setup_mocked_requests_session_get(mock_monitor_session, mocked_requests_monitor_good)
     response = client.get('/repos/app-sre/github-mirror',
                           headers={})
     assert response.status_code == 401
@@ -249,7 +280,9 @@ def test_mirror_no_auth(client):
 @mock.patch('ghmirror.decorators.checks.AUTHORIZED_USERS', 'app-sre-bot')
 @mock.patch('ghmirror.decorators.checks.conditional_request',
             side_effect=mocked_requests_get_error)
-def test_mirror_auth_error(_mocked_cond_request, client):
+@mock.patch('ghmirror.data_structures.monostate.requests.Session')
+def test_mirror_auth_error(mock_monitor_session, _mocked_cond_request, client):
+    setup_mocked_requests_session_get(mock_monitor_session, mocked_requests_monitor_good)
     response = client.get('/repos/app-sre/github-mirror',
                           headers={'Authorization': 'foo'})
     assert response.status_code == 500
@@ -257,9 +290,9 @@ def test_mirror_auth_error(_mocked_cond_request, client):
 
 @mock.patch('ghmirror.core.mirror_requests.requests.request',
             side_effect=mocked_requests_get_etag)
-@mock.patch('ghmirror.data_structures.monostate.requests.get',
-            side_effect=mocked_requests_monitor_good)
-def test_offline_mode(mock_monitor_get, _mock_request, client):
+@mock.patch('ghmirror.data_structures.monostate.requests.Session')
+def test_offline_mode(mock_monitor_session, _mock_request, client):
+    setup_mocked_requests_session_get(mock_monitor_session, mocked_requests_monitor_good)
     # Let's wait the mirror consider itself online
     assert wait_for(lambda: GithubStatus().online, timeout=5)
 
@@ -273,7 +306,7 @@ def test_offline_mode(mock_monitor_get, _mock_request, client):
             'method="GET",status="200",user="None"} 1.0') in str(response.data)
 
     # Now make the mirror go offline for upstream timeout
-    mock_monitor_get.side_effect = requests.exceptions.Timeout
+    setup_mocked_requests_session_get(mock_monitor_session, requests.exceptions.Timeout)
 
     # Let's wait the mirror to consider itself offline
     assert wait_for(lambda: not GithubStatus().online, timeout=5)
@@ -309,9 +342,9 @@ def test_offline_mode(mock_monitor_get, _mock_request, client):
 
 @mock.patch('ghmirror.core.mirror_requests.requests.request',
             side_effect=mocked_requests_get_etag)
-@mock.patch('ghmirror.data_structures.monostate.requests.get',
-            side_effect=mocked_requests_monitor_good)
-def test_offline_mode_upstream_error(mock_monitor_get, _mock_request, client):
+@mock.patch('ghmirror.data_structures.monostate.requests.Session')
+def test_offline_mode_upstream_error(mock_monitor_session, _mock_request, client):
+    setup_mocked_requests_session_get(mock_monitor_session, mocked_requests_monitor_good)
     # Let's wait the mirror consider itself online
     assert wait_for(lambda: GithubStatus().online, timeout=5)
 
@@ -326,7 +359,7 @@ def test_offline_mode_upstream_error(mock_monitor_get, _mock_request, client):
             'method="GET",status="200",user="None"} 1.0') in str(response.data)
 
     # Now make the mirror go offline for upstream error
-    mock_monitor_get.side_effect = mocked_requests_monitor_bad
+    setup_mocked_requests_session_get(mock_monitor_session, mocked_requests_get_error)
 
     # Let's wait the mirror to consider itself offline
     assert wait_for(lambda: not GithubStatus().online, timeout=5)
@@ -344,9 +377,9 @@ def test_offline_mode_upstream_error(mock_monitor_get, _mock_request, client):
 
 @mock.patch('ghmirror.core.mirror_requests.requests.request',
             side_effect=mocked_requests_rate_limited)
-@mock.patch('ghmirror.data_structures.monostate.requests.get',
-            side_effect=mocked_requests_monitor_good)
-def test_rate_limited(_mock_monitor_get, mock_request, client):
+@mock.patch('ghmirror.data_structures.monostate.requests.Session')
+def test_rate_limited(_mock_monitor_session, mock_request, client):
+    setup_mocked_requests_session_get(_mock_monitor_session, mocked_requests_monitor_good)
     # First request will get a 403/rate-limited. Because it's not cached
     # yet, we receive the same 403
     response = client.get('/repos/app-sre/github-mirror')
@@ -381,7 +414,9 @@ def test_rate_limited(_mock_monitor_get, mock_request, client):
 
 @mock.patch('ghmirror.core.mirror_requests.requests.request',
             side_effect=mocked_requests_api_corner_case)
-def test_pagination_corner_case_custom_page_elements(_mock_get, client):
+@mock.patch('ghmirror.data_structures.monostate.requests.Session')
+def test_pagination_corner_case_custom_page_elements(mock_monitor_session, _mock_get, client):
+    setup_mocked_requests_session_get(mock_monitor_session, mocked_requests_monitor_good)
     # Initially the stats are zeroed
     response = client.get('/metrics')
     assert response.status_code == 200
@@ -422,7 +457,9 @@ def test_pagination_corner_case_custom_page_elements(_mock_get, client):
 @mock.patch('ghmirror.core.mirror_requests.PER_PAGE_ELEMENTS', 2)
 @mock.patch('ghmirror.core.mirror_requests.requests.request',
             side_effect=mocked_requests_api_corner_case)
-def test_pagination_corner_case(_mock_get, client):
+@mock.patch('ghmirror.data_structures.monostate.requests.Session')
+def test_pagination_corner_case(mock_monitor_session, _mock_get, client):
+    setup_mocked_requests_session_get(mock_monitor_session, mocked_requests_monitor_good)
     # Initially the stats are zeroed
     response = client.get('/metrics')
     assert response.status_code == 200
@@ -462,7 +499,9 @@ def test_pagination_corner_case(_mock_get, client):
 
 @mock.patch('ghmirror.core.mirror_requests.requests.request',
             side_effect=requests.exceptions.Timeout)
-def test_mirror_request_timeout(_mock_get, client):
+@mock.patch('ghmirror.data_structures.monostate.requests.Session')
+def test_mirror_request_timeout(mock_monitor_session, _mock_get, client):
+    setup_mocked_requests_session_get(mock_monitor_session, mocked_requests_monitor_good)
     # Initially the stats are zeroed
     response = client.get('/metrics')
     assert response.status_code == 200
@@ -479,7 +518,9 @@ def test_mirror_request_timeout(_mock_get, client):
 
 @mock.patch('ghmirror.core.mirror_requests.requests.request',
             side_effect=mocked_requests_get_etag)
-def test_mirror_request_timeout_hit(mock_get, client):
+@mock.patch('ghmirror.data_structures.monostate.requests.Session')
+def test_mirror_request_timeout_hit(mock_monitor_session, mock_get, client):
+    setup_mocked_requests_session_get(mock_monitor_session, mocked_requests_monitor_good)
     # Initially the stats are zeroed
     response = client.get('/metrics')
     assert response.status_code == 200
@@ -518,7 +559,9 @@ def test_mirror_request_timeout_hit(mock_get, client):
 
 @mock.patch('ghmirror.core.mirror_requests.requests.request',
             side_effect=mocked_requests_get_etag)
-def test_mirror_request_5xx(mock_get, client):
+@mock.patch('ghmirror.data_structures.monostate.requests.Session')
+def test_mirror_request_5xx(mock_monitor_session, mock_get, client):
+    setup_mocked_requests_session_get(mock_monitor_session, mocked_requests_monitor_good)
     # Initially the stats are zeroed
     response = client.get('/metrics')
     assert response.status_code == 200
@@ -558,7 +601,9 @@ def test_mirror_request_5xx(mock_get, client):
 
 @mock.patch('ghmirror.core.mirror_requests.requests.request',
             side_effect=mocked_requests_get_etag)
-def test_mirror_request_5xx_miss(mock_get, client):
+@mock.patch('ghmirror.data_structures.monostate.requests.Session')
+def test_mirror_request_5xx_miss(mock_monitor_session, mock_get, client):
+    setup_mocked_requests_session_get(mock_monitor_session, mocked_requests_monitor_good)
     # Initially the stats are zeroed
     response = client.get('/metrics')
     assert response.status_code == 200
@@ -597,7 +642,9 @@ def test_mirror_request_5xx_miss(mock_get, client):
 
 @mock.patch('ghmirror.core.mirror_requests.requests.request',
             side_effect=mocked_requests_get_etag)
-def test_mirror_request_connection_error_hit(mock_get, client):
+@mock.patch('ghmirror.data_structures.monostate.requests.Session')
+def test_mirror_request_connection_error_hit(mock_monitor_session, mock_get, client):
+    setup_mocked_requests_session_get(mock_monitor_session, mocked_requests_monitor_good)
     # Initially the stats are zeroed
     response = client.get('/metrics')
     assert response.status_code == 200
@@ -636,8 +683,9 @@ def test_mirror_request_connection_error_hit(mock_get, client):
 
 @mock.patch('ghmirror.core.mirror_requests.requests.request',
             side_effect=mocked_requests_get_etag)
-def test_mirror_request_connection_error_miss(mock_get, client):
-
+@mock.patch('ghmirror.data_structures.monostate.requests.Session')
+def test_mirror_request_connection_error_miss(mock_monitor_session, mock_get, client):
+    setup_mocked_requests_session_get(mock_monitor_session, mocked_requests_monitor_good)
     mock_get.side_effect = requests.exceptions.ConnectionError
     response = client.get('/repos/app-sre/github-mirror',
                           follow_redirects=True)

@@ -32,7 +32,7 @@ from prometheus_client import Gauge
 from prometheus_client import Histogram
 from prometheus_client import ProcessCollector
 
-from ghmirror.core.constants import GH_API
+from ghmirror.core.constants import GH_STATUS_API
 from ghmirror.core.constants import STATUS_TIMEOUT
 
 
@@ -47,9 +47,10 @@ LOG = logging.getLogger(__name__)
 
 class _GithubStatus:
 
-    def __init__(self, sleep_time):
+    def __init__(self, sleep_time, session):
         self.sleep_time = sleep_time
         self.online = True
+        self.session = session
         self._start_check()
 
     def _start_check(self):
@@ -61,13 +62,25 @@ class _GithubStatus:
         thread = threading.Thread(target=self.check, daemon=True)
         thread.start()
 
+    @staticmethod
+    def _is_github_online(response):
+        """
+        Check if the Github API is online based on the response.
+        If API component status is major_outage, then it's offline.
+        If API component status is one of operational,
+        degraded_performance, or partial_outage, then it's online.
+        """
+        components = response.json()['components']
+        return any(c['name'] == 'API' and c['status'] != 'major_outage'
+                   for c in components)
+
     @classmethod
     def create(cls):
         """
         Class method to create a new instance of _GithubStatus.
         """
         sleep_time = int(os.environ.get("GITHUB_STATUS_SLEEP_TIME", 1))
-        return cls(sleep_time)
+        return cls(sleep_time, requests.Session())
 
     def check(self):
         """
@@ -77,10 +90,13 @@ class _GithubStatus:
         """
         while True:
             try:
-                response = requests.get(f'{GH_API}/status',
-                                        timeout=STATUS_TIMEOUT)
+                response = self.session.get(GH_STATUS_API,
+                                            timeout=STATUS_TIMEOUT)
                 response.raise_for_status()
-                self.online = True
+                self.online = self._is_github_online(response)
+                if not self.online:
+                    LOG.warning('Github API is offline, response: %s',
+                                response.text)
             except (requests.exceptions.ConnectionError,
                     requests.exceptions.Timeout,
                     requests.exceptions.HTTPError) as error:
