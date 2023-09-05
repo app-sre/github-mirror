@@ -13,6 +13,8 @@ objects:
 - apiVersion: batch/v1
   kind: Job
   metadata:
+    annotations:
+      ignore-check.kube-linter.io/unset-cpu-requirements: "no cpu limits"
     name: github-mirror-acceptance-${IMAGE_TAG}
   spec:
     backoffLimit: 5
@@ -42,7 +44,6 @@ objects:
                 cpu: ${CPU_REQUESTS}
               limits:
                 memory: ${MEMORY_LIMIT}
-                cpu: ${CPU_LIMIT}
 parameters:
 - name: IMAGE
   value: quay.io/app-sre/github-mirror
@@ -64,6 +65,4 @@ parameters:
 - name: MEMORY_LIMIT
   value: 128Mi
 - name: CPU_REQUESTS
-  value: 300m
-- name: CPU_LIMIT
-  value: 300m
+  value: 100m
