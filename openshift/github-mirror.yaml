@@ -94,6 +94,8 @@ objects:
               value: ${REDIS_SSL}
             - name: GITHUB_STATUS_SLEEP_TIME
               value: "${GITHUB_STATUS_SLEEP_TIME}"
+            - name: GITHUB_STATUS_TIMEOUT
+              value: "${GITHUB_STATUS_TIMEOUT}"
           ports:
           - name: github-mirror
             containerPort: 8080
@@ -177,3 +179,5 @@ parameters:
   description: name of the service account to use when deploying the pod
 - name: GITHUB_STATUS_SLEEP_TIME
   value: '1'
+- name: GITHUB_STATUS_TIMEOUT
+  value: '10'

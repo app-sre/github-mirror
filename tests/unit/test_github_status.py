@@ -6,6 +6,8 @@ import requests
 from ghmirror.data_structures.monostate import GithubStatus, _GithubStatus
 
 EXPECTED_TIMEOUT = 10
+EXPECTED_SLEEP_TIME = 1
+
 
 @mock.patch('ghmirror.data_structures.monostate.threading.Thread')
 def test_create_github_status_singleton(_mock_thread):
@@ -16,25 +18,29 @@ def test_create_github_status_singleton(_mock_thread):
     assert github_status is github_status2
 
 
-@pytest.mark.parametrize('env_sleep_time,expected_sleep_time',
+@pytest.mark.parametrize('env,expected_sleep_time,expected_timeout',
                          [
-                             ('3', 3),
-                             (1, 1),
+                             ({}, 1, 10),
+                             ({'GITHUB_STATUS_SLEEP_TIME': '3'}, 3, 10),
+                             ({'GITHUB_STATUS_TIMEOUT': '2'}, 1, 2),
                          ])
 @mock.patch('ghmirror.data_structures.monostate.requests.Session')
-@mock.patch('ghmirror.data_structures.monostate.os.environ')
 @mock.patch('ghmirror.data_structures.monostate.threading.Thread')
-def test_create_github_status(mock_thread, mock_environ, mock_session, env_sleep_time, expected_sleep_time):
-    mock_environ.get.return_value = env_sleep_time
-
-    github_status = _GithubStatus.create()
+def test_create_github_status_with_sleep_time(mock_thread,
+                                              mock_session,
+                                              env,
+                                              expected_sleep_time,
+                                              expected_timeout):
+    with mock.patch.dict('ghmirror.data_structures.monostate.os.environ',
+                         env):
+        github_status = _GithubStatus.create()
 
     assert github_status.online is True
     assert github_status.sleep_time == expected_sleep_time
+    assert github_status.timeout == expected_timeout
     assert github_status.session is mock_session.return_value
     mock_thread.assert_called_once_with(target=github_status.check, daemon=True)
     mock_thread.return_value.start.assert_called_once_with()
-    mock_environ.get.assert_called_once_with('GITHUB_STATUS_SLEEP_TIME', 1)
     mock_session.assert_called_once_with()
 
 
@@ -94,8 +100,9 @@ def test_github_status_check_success(_mock_thread, mock_sleep, status):
     mocked_response.json.return_value = build_github_status_response_builder(status)
     session = mock.create_autospec(requests.Session)
     session.get.return_value = mocked_response
-    sleep_time = 1
-    github_status = _GithubStatus(sleep_time=sleep_time, session=session)
+    github_status = _GithubStatus(sleep_time=EXPECTED_SLEEP_TIME,
+                                  timeout=EXPECTED_TIMEOUT,
+                                  session=session)
 
     with pytest.raises(InterruptedError):
         github_status.check()
@@ -104,7 +111,7 @@ def test_github_status_check_success(_mock_thread, mock_sleep, status):
     session.get.assert_called_once_with('https://www.githubstatus.com/api/v2/components.json',
                                         timeout=EXPECTED_TIMEOUT)
     mocked_response.raise_for_status.assert_called_once_with()
-    mock_sleep.assert_called_once_with(sleep_time)
+    mock_sleep.assert_called_once_with(EXPECTED_SLEEP_TIME)
 
 
 @mock.patch('ghmirror.data_structures.monostate.LOG')
@@ -115,8 +122,9 @@ def test_github_status_check_outage(_mock_thread, mock_sleep, mock_log):
     mocked_response.json.return_value = build_github_status_response_builder('major_outage')
     session = mock.create_autospec(requests.Session)
     session.get.return_value = mocked_response
-    sleep_time = 1
-    github_status = _GithubStatus(sleep_time=sleep_time, session=session)
+    github_status = _GithubStatus(sleep_time=EXPECTED_SLEEP_TIME,
+                                  timeout=EXPECTED_TIMEOUT,
+                                  session=session)
 
     with pytest.raises(InterruptedError):
         github_status.check()
@@ -126,7 +134,7 @@ def test_github_status_check_outage(_mock_thread, mock_sleep, mock_log):
     session.get.assert_called_once_with('https://www.githubstatus.com/api/v2/components.json',
                                         timeout=EXPECTED_TIMEOUT)
     mocked_response.raise_for_status.assert_called_once_with()
-    mock_sleep.assert_called_once_with(sleep_time)
+    mock_sleep.assert_called_once_with(EXPECTED_SLEEP_TIME)
 
 
 @pytest.mark.parametrize('error',
@@ -143,8 +151,9 @@ def test_github_status_check_fail(_mock_thread, mock_sleep, mock_log, error):
     session = mock.create_autospec(requests.Session)
     session.get.return_value = mocked_response
     mocked_response.raise_for_status.side_effect = error
-    sleep_time = 1
-    github_status = _GithubStatus(sleep_time=sleep_time, session=session)
+    github_status = _GithubStatus(sleep_time=EXPECTED_SLEEP_TIME,
+                                  timeout=EXPECTED_TIMEOUT,
+                                  session=session)
 
     with pytest.raises(InterruptedError):
         github_status.check()
@@ -154,4 +163,4 @@ def test_github_status_check_fail(_mock_thread, mock_sleep, mock_log, error):
     session.get.assert_called_once_with('https://www.githubstatus.com/api/v2/components.json',
                                         timeout=EXPECTED_TIMEOUT)
     mocked_response.raise_for_status.assert_called_once_with()
-    mock_sleep.assert_called_once_with(sleep_time)
+    mock_sleep.assert_called_once_with(EXPECTED_SLEEP_TIME)

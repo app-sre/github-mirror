@@ -32,8 +32,11 @@ from prometheus_client import Gauge
 from prometheus_client import Histogram
 from prometheus_client import ProcessCollector
 
-from ghmirror.core.constants import GH_STATUS_API
-from ghmirror.core.constants import STATUS_TIMEOUT
+from ghmirror.core.constants import (
+    GH_STATUS_API,
+    STATUS_SLEEP_TIME,
+    STATUS_TIMEOUT,
+)
 
 
 __all__ = ['GithubStatus', 'InMemoryCache', 'StatsCache', 'UsersCache']
@@ -47,10 +50,11 @@ LOG = logging.getLogger(__name__)
 
 class _GithubStatus:
 
-    def __init__(self, sleep_time, session):
+    def __init__(self, sleep_time, timeout, session):
         self.sleep_time = sleep_time
-        self.online = True
+        self.timeout = timeout
         self.session = session
+        self.online = True
         self._start_check()
 
     def _start_check(self):
@@ -80,8 +84,13 @@ class _GithubStatus:
         """
         Class method to create a new instance of _GithubStatus.
         """
-        sleep_time = int(os.environ.get("GITHUB_STATUS_SLEEP_TIME", 1))
-        return cls(sleep_time, requests.Session())
+        sleep_time = int(os.environ.get("GITHUB_STATUS_SLEEP_TIME",
+                                        STATUS_SLEEP_TIME))
+        timeout = int(os.environ.get("GITHUB_STATUS_TIMEOUT",
+                                     STATUS_TIMEOUT))
+        return cls(sleep_time=sleep_time,
+                   timeout=timeout,
+                   session=requests.Session())
 
     def check(self):
         """
