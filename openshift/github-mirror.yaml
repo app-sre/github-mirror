@@ -22,6 +22,8 @@ objects:
 - apiVersion: apps/v1
   kind: Deployment
   metadata:
+    annotations:
+      ignore-check.kube-linter.io/unset-cpu-requirements: "no cpu limits"
     labels:
       app: github-mirror
     name: github-mirror
@@ -119,7 +121,6 @@ objects:
               cpu: ${CPU_REQUESTS}
             limits:
               memory: ${MEMORY_LIMIT}
-              cpu: ${CPU_LIMIT}
 - apiVersion: v1
   kind: Service
   metadata:
@@ -153,9 +154,7 @@ parameters:
 # we need more, we should probably increase the number
 # of replicas instead of touching it here.
 - name: CPU_REQUESTS
-  value: 500m
-- name: CPU_LIMIT
-  value: 1000m
+  value: 200m
 # These values are meant to be overridden by the
 # saas-herder parametrization
 - name: GITHUB_USERS
