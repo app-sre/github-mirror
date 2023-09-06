@@ -24,10 +24,12 @@ def test_create_github_status_singleton(_mock_thread):
                              ({'GITHUB_STATUS_SLEEP_TIME': '3'}, 3, 10),
                              ({'GITHUB_STATUS_TIMEOUT': '2'}, 1, 2),
                          ])
+@mock.patch('ghmirror.data_structures.monostate.HTTPAdapter')
 @mock.patch('ghmirror.data_structures.monostate.requests.Session')
 @mock.patch('ghmirror.data_structures.monostate.threading.Thread')
 def test_create_github_status_with_sleep_time(mock_thread,
                                               mock_session,
+                                              mock_http_adapter,
                                               env,
                                               expected_sleep_time,
                                               expected_timeout):
@@ -42,6 +44,9 @@ def test_create_github_status_with_sleep_time(mock_thread,
     mock_thread.assert_called_once_with(target=github_status.check, daemon=True)
     mock_thread.return_value.start.assert_called_once_with()
     mock_session.assert_called_once_with()
+    mock_http_adapter.assert_called_once_with(max_retries=3)
+    mock_session.return_value.mount.assert_called_once_with('https://',
+                                                            mock_http_adapter.return_value)
 
 
 def build_github_status_response_builder(status):

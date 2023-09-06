@@ -25,6 +25,7 @@ import sys
 import hashlib
 
 import requests
+from requests.adapters import HTTPAdapter
 
 from prometheus_client import CollectorRegistry
 from prometheus_client import Counter
@@ -34,6 +35,7 @@ from prometheus_client import ProcessCollector
 
 from ghmirror.core.constants import (
     GH_STATUS_API,
+    STATUS_MAX_RETRIES,
     STATUS_SLEEP_TIME,
     STATUS_TIMEOUT,
 )
@@ -88,9 +90,11 @@ class _GithubStatus:
                                         STATUS_SLEEP_TIME))
         timeout = int(os.environ.get("GITHUB_STATUS_TIMEOUT",
                                      STATUS_TIMEOUT))
+        session = requests.Session()
+        session.mount('https://', HTTPAdapter(max_retries=STATUS_MAX_RETRIES))
         return cls(sleep_time=sleep_time,
                    timeout=timeout,
-                   session=requests.Session())
+                   session=session)
 
     def check(self):
         """
