@@ -1,4 +1,4 @@
-FROM        registry.access.redhat.com/ubi8/python-39:1-83
+FROM        quay.io/app-sre/python:3.9.18
 
 WORKDIR     /ghmirror
 
