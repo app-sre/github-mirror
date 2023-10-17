@@ -109,36 +109,6 @@ def _online_request(method, url, cached_response, headers=None, parameters=None)
         return cached_response
 
 
-def _handle_not_changed(
-    cached_response,
-    per_page_elements,
-    headers,
-    method,
-    url,
-    parameters,
-    cache,
-    cache_key,
-):
-    if len(cached_response.json()) == per_page_elements and not cached_response.links:
-        headers.pop("If-None-Match")
-        resp = requests.request(
-            method=method,
-            url=url,
-            headers=headers,
-            timeout=REQUESTS_TIMEOUT,
-            params=parameters,
-        )
-
-        LOG.info("ONLINE GET CACHE_MISS %s", url)
-        resp.headers["X-Cache"] = "ONLINE_MISS"
-        _cache_response(resp, cache, cache_key)
-        return resp
-
-    LOG.info("ONLINE GET CACHE_HIT %s", url)
-    cached_response.headers["X-Cache"] = "ONLINE_HIT"
-    return cached_response
-
-
 @requests_metrics
 def conditional_request(method, url, auth, data=None, url_params=None):
     """
@@ -210,16 +180,21 @@ def online_request(method, url, auth, data=None, url_params=None):
     )
 
     if resp.status_code == 304:
-        return _handle_not_changed(
-            cached_response,
-            per_page_elements,
-            headers,
-            method,
-            url,
-            parameters,
-            cache,
-            cache_key,
-        )
+        # Pagination data can change without modifying the ETAG
+        # or the last-modified headers. Returning the updated
+        # pagination data ensures all data is fetched in all cases.
+        if cached_response.links != resp.links:
+            LOG.info("ONLINE GET PAGINATION HEADER UPDATE %s", url)
+            if resp.links:
+                cached_response.headers["Link"] = resp.headers["Link"]
+            else:
+                cached_response.headers.pop("Link")
+
+            _cache_response(cached_response, cache, cache_key)
+
+        LOG.info("ONLINE GET CACHE_HIT %s", url)
+        cached_response.headers["X-Cache"] = "ONLINE_HIT"
+        return cached_response
 
     # This section covers the log and the headers logic when we don't have
     # any error on the _online_request method, and the response from the

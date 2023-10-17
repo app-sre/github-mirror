@@ -16,16 +16,17 @@ from ghmirror.utils.wait import wait_for
 
 
 class MockResponse:
-    def __init__(
-        self, content, headers, status_code, user=None, links=None, json_content=None
-    ):
+    def __init__(self, content, headers, status_code, user=None, json_content=None):
         self.content = content.encode()
         self.text = content
         self.headers = headers
         self.status_code = status_code
         self.user = user
-        self.links = links
         self.json_content = json_content
+
+    @property
+    def links(self):
+        return self.headers.get("Link", {})
 
     def json(self):
         if self.json_content is not None:
@@ -90,13 +91,6 @@ def setup_mocked_requests_session_get(mocked_session, side_effect):
 
 def mocked_requests_rate_limited(*_args, **_kwargs):
     return MockResponse("API rate limit exceeded", {}, 403)
-
-
-def mocked_requests_api_corner_case(*_args, **kwargs):
-    if "If-None-Match" in kwargs["headers"]:
-        return MockResponse("", {}, 304, json_content=[{"a": "b"}, {"c", "d"}])
-
-    return MockResponse("", {"ETag": "foo"}, 200, json_content=[{"a": "b"}, {"c", "d"}])
 
 
 @pytest.fixture(name="client")
@@ -511,72 +505,24 @@ def test_rate_limited(_mock_monitor_session, mock_request, client):
     ) in str(response.data)
 
 
-@mock.patch(
-    "ghmirror.core.mirror_requests.requests.request",
-    side_effect=mocked_requests_api_corner_case,
-)
-@mock.patch("ghmirror.data_structures.monostate.requests.Session")
-def test_pagination_corner_case_custom_page_elements(
-    mock_monitor_session, _mock_get, client
-):
-    setup_mocked_requests_session_get(
-        mock_monitor_session, mocked_requests_monitor_good
-    )
-    # Initially the stats are zeroed
-    response = client.get("/metrics")
-    assert response.status_code == 200
-    assert (
-        'request_latency_seconds_count{cache="ONLINE_HIT",'
-        'method="GET",status="200",user="None"}'
-    ) not in str(response.data)
-    assert (
-        'request_latency_seconds_count{cache="ONLINE_MISS",'
-        'method="GET",status="200",user="None"}'
-    ) not in str(response.data)
-
-    response = client.get(
-        "/repos/app-sre/github-mirror?per_page=2", follow_redirects=True
-    )
-    assert response.status_code == 200
-
-    # First get is a cache_miss
-    response = client.get("/metrics", follow_redirects=True)
-
-    assert response.status_code == 200
-    assert (
-        'request_latency_seconds_count{cache="ONLINE_HIT",'
-        'method="GET",status="200",user="None"}'
-    ) not in str(response.data)
-    assert (
-        'request_latency_seconds_count{cache="ONLINE_MISS",'
-        'method="GET",status="200",user="None"} 1.0'
-    ) in str(response.data)
-
-    response = client.get(
-        "/repos/app-sre/github-mirror?per_page=2", follow_redirects=True
-    )
-    assert response.status_code == 200
-
-    # Second get is a cache_miss as the request content has the same
-    # number of elements as the PER_PAGE_ELEMENTS and links content
-    # is empty
-    response = client.get("/metrics", follow_redirects=True)
-
-    assert response.status_code == 200
-    assert (
-        'request_latency_seconds_count{cache="ONLINE_HIT",'
-        'method="GET",status="200",user="None"}'
-    ) not in str(response.data)
-    assert (
-        'request_latency_seconds_count{cache="ONLINE_MISS",'
-        'method="GET",status="200",user="None"} 2.0'
-    ) in str(response.data)
+mocked_requests_pagination = [
+    MockResponse("", {"ETag": "foo"}, 200, json_content=[{"a": "b"}, {"c", "d"}]),
+    MockResponse(
+        "",
+        {
+            "Link": '<https://api.github.com/blabla?page=2>; rel="next", <https://api.github.com/blabla?page=3>; rel="last"'
+        },
+        304,
+        json_content=[{"a": "b"}, {"c", "d"}],
+    ),
+    MockResponse("", {}, 304, json_content=[{"a": "b"}, {"c", "d"}]),
+]
 
 
 @mock.patch("ghmirror.core.mirror_requests.PER_PAGE_ELEMENTS", 2)
 @mock.patch(
     "ghmirror.core.mirror_requests.requests.request",
-    side_effect=mocked_requests_api_corner_case,
+    side_effect=mocked_requests_pagination,
 )
 @mock.patch("ghmirror.data_structures.monostate.requests.Session")
 def test_pagination_corner_case(mock_monitor_session, _mock_get, client):
@@ -600,7 +546,6 @@ def test_pagination_corner_case(mock_monitor_session, _mock_get, client):
 
     # First get is a cache_miss
     response = client.get("/metrics", follow_redirects=True)
-
     assert response.status_code == 200
     assert (
         'request_latency_seconds_count{cache="ONLINE_HIT",'
@@ -611,22 +556,38 @@ def test_pagination_corner_case(mock_monitor_session, _mock_get, client):
         'method="GET",status="200",user="None"} 1.0'
     ) in str(response.data)
 
+    # 2nd request is a hit, but it contains pagination data
+    # Ensure the pagination data is updated.
     response = client.get("/repos/app-sre/github-mirror", follow_redirects=True)
     assert response.status_code == 200
+    assert "Link" in response.headers
 
-    # Second get is a cache_miss as the request content has the same
-    # number of elements as the PER_PAGE_ELEMENTS and links content
-    # is empty
     response = client.get("/metrics", follow_redirects=True)
-
     assert response.status_code == 200
     assert (
         'request_latency_seconds_count{cache="ONLINE_HIT",'
-        'method="GET",status="200",user="None"}'
-    ) not in str(response.data)
+        'method="GET",status="200",user="None"} 1.0'
+    ) in str(response.data)
     assert (
         'request_latency_seconds_count{cache="ONLINE_MISS",'
+        'method="GET",status="200",user="None"} 1.0'
+    ) in str(response.data)
+
+    # 3nd request is a hit, but it DOES NOT contain pagination data
+    # Ensure the pagination data is updated.
+    response = client.get("/repos/app-sre/github-mirror", follow_redirects=True)
+    assert response.status_code == 200
+    assert "Link" not in response.headers
+
+    response = client.get("/metrics", follow_redirects=True)
+    assert response.status_code == 200
+    assert (
+        'request_latency_seconds_count{cache="ONLINE_HIT",'
         'method="GET",status="200",user="None"} 2.0'
+    ) in str(response.data)
+    assert (
+        'request_latency_seconds_count{cache="ONLINE_MISS",'
+        'method="GET",status="200",user="None"} 1.0'
     ) in str(response.data)
 
 
