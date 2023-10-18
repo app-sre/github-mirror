@@ -19,20 +19,21 @@ Caching data in Redis.
 import os
 import pickle
 from random import randint
+
 import redis
 
-
-PRIMARY_ENDPOINT = os.environ.get('PRIMARY_ENDPOINT', 'localhost')
-READER_ENDPOINT = os.environ.get('READER_ENDPOINT', PRIMARY_ENDPOINT)
-REDIS_PORT = os.environ.get('REDIS_PORT', 6379)
-REDIS_TOKEN = os.environ.get('REDIS_TOKEN')
-REDIS_SSL = os.environ.get('REDIS_SSL')
+PRIMARY_ENDPOINT = os.environ.get("PRIMARY_ENDPOINT", "localhost")
+READER_ENDPOINT = os.environ.get("READER_ENDPOINT", PRIMARY_ENDPOINT)
+REDIS_PORT = os.environ.get("REDIS_PORT", 6379)
+REDIS_TOKEN = os.environ.get("REDIS_TOKEN")
+REDIS_SSL = os.environ.get("REDIS_SSL")
 
 
 class RedisCache:
     """
     Dictionary-like implementation for caching requests in Redis.
     """
+
     def __init__(self):
         self.wr_cache = self._get_connection(PRIMARY_ENDPOINT)
         self.ro_cache = self._get_connection(READER_ENDPOINT)
@@ -62,14 +63,14 @@ class RedisCache:
         return self.ro_cache.dbsize()
 
     def __sizeof__(self):
-        return self.ro_cache.info()['used_memory']
+        return self.ro_cache.info()["used_memory"]
 
     def _scan_iter(self):
         """
         Make an iterator so that the client doesn't need to remember
         the cursor position.
         """
-        cursor = '0'
+        cursor = "0"
         while cursor != 0:
             cursor, data = self.wr_cache.scan(cursor)
             for item in data:
@@ -77,21 +78,19 @@ class RedisCache:
 
     @staticmethod
     def _get_connection(host):
-        parameters = {'host': host, 'port': REDIS_PORT}
+        parameters = {"host": host, "port": REDIS_PORT}
         if REDIS_TOKEN is not None:
-            parameters['password'] = REDIS_TOKEN
-        if REDIS_SSL is not None and REDIS_SSL.lower() == 'true':
-            parameters['ssl'] = True
+            parameters["password"] = REDIS_TOKEN
+        if REDIS_SSL is not None and REDIS_SSL.lower() == "true":
+            parameters["ssl"] = True
         return redis.Redis(**parameters)
 
     @staticmethod
     def _serialize(item):
-        """ Serialize items for storage in Redis
-        """
+        """Serialize items for storage in Redis"""
         return pickle.dumps(item)
 
     @staticmethod
     def _deserialize(item):
-        """ Deserialize items stored in Redis
-        """
+        """Deserialize items stored in Redis"""
         return pickle.loads(item)

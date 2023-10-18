@@ -21,36 +21,36 @@ import os
 from ghmirror.data_structures.monostate import InMemoryCache
 from ghmirror.data_structures.redis_data_structures import RedisCache
 
-
-CACHE_TYPE = os.environ.get('CACHE_TYPE', 'in-memory')
+CACHE_TYPE = os.environ.get("CACHE_TYPE", "in-memory")
 
 
 class RequestsCache:
     """
     Instantiates either a InMemoryCache or a Redis Cache object
     """
+
     def __new__(cls, *args, **kwargs):
-        if CACHE_TYPE == 'redis':
+        if CACHE_TYPE == "redis":
             return RedisCache(*args, **kwargs)
         return InMemoryCache(*args, **kwargs)
 
-    def __init__(self):   # pragma: no cover
+    def __init__(self):  # pragma: no cover
         pass
 
-    def __contains__(self, item):   # pragma: no cover
+    def __contains__(self, item):  # pragma: no cover
         pass
 
-    def __getitem__(self, item):   # pragma: no cover
+    def __getitem__(self, item):  # pragma: no cover
         pass
 
-    def __setitem__(self, key, value):   # pragma: no cover
+    def __setitem__(self, key, value):  # pragma: no cover
         pass
 
-    def __iter__(self):   # pragma: no cover
+    def __iter__(self):  # pragma: no cover
         pass
 
-    def __len__(self):   # pragma: no cover
+    def __len__(self):  # pragma: no cover
         pass
 
-    def __sizeof__(self):   # pragma: no cover
+    def __sizeof__(self):  # pragma: no cover
         pass
