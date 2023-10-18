@@ -155,7 +155,7 @@ class InMemoryCache(InMemoryCacheBorg):
         (instead of in the __init__()) so we don't overwrite
         them on when a new instance is created.
         """
-        setattr(self, item, dict())
+        setattr(self, item, {})
         return getattr(self, item)
 
     def __contains__(self, item):
@@ -206,7 +206,7 @@ class UsersCache(UsersCacheBorg):
         (instead of in the __init__()) so we don't overwrite
         them when a new instance is created.
         """
-        setattr(self, item, dict())
+        setattr(self, item, {})
         return getattr(self, item)
 
     @staticmethod

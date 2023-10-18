@@ -47,7 +47,7 @@ class MirrorResponse:
         :return: the sanitized headers
         :rtype: dict
         """
-        sanitized_headers = dict()
+        sanitized_headers = {}
 
         x_cache = self._original_response.headers.get('X-Cache')
         if x_cache is not None:

@@ -29,3 +29,4 @@ def wait_for(func, timeout, first=0.0, step=1.0, args=None, kwargs=None):
         if result:
             return result
         time.sleep(step)
+    return None

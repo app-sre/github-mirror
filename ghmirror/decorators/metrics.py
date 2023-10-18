@@ -40,7 +40,7 @@ def requests_metrics(function):
         response = function(*args, **kwargs)
 
         # This is the total time spent to process the request
-        elapsed_time = (time.time() - start)
+        elapsed_time = time.time() - start
 
         # Incrementing the total requests couter
         STATS_CACHE.count()
