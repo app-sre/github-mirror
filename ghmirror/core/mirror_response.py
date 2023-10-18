@@ -32,10 +32,11 @@ class MirrorResponse:
     :type gh_api_url: str
     :type gh_mirror_url: str
     """
+
     def __init__(self, original_response, gh_api_url, gh_mirror_url):
         self._original_response = original_response
-        self._gh_api_url = gh_api_url.rstrip('/')
-        self._gh_mirror_url = gh_mirror_url.rstrip('/')
+        self._gh_api_url = gh_api_url.rstrip("/")
+        self._gh_mirror_url = gh_mirror_url.rstrip("/")
 
     @property
     def headers(self):
@@ -47,30 +48,29 @@ class MirrorResponse:
         :return: the sanitized headers
         :rtype: dict
         """
-        sanitized_headers = dict()
+        sanitized_headers = {}
 
-        x_cache = self._original_response.headers.get('X-Cache')
+        x_cache = self._original_response.headers.get("X-Cache")
         if x_cache is not None:
-            sanitized_headers['X-Cache'] = x_cache
+            sanitized_headers["X-Cache"] = x_cache
 
-        link = self._original_response.headers.get('Link')
+        link = self._original_response.headers.get("Link")
         if link is not None:
-            sanitized_headers['Link'] = link.replace(
-                self._gh_api_url,
-                self._gh_mirror_url
+            sanitized_headers["Link"] = link.replace(
+                self._gh_api_url, self._gh_mirror_url
             )
 
-        content_type = self._original_response.headers.get('Content-Type')
+        content_type = self._original_response.headers.get("Content-Type")
         if content_type is not None:
-            sanitized_headers['Content-Type'] = content_type
+            sanitized_headers["Content-Type"] = content_type
 
-        last_modified = self._original_response.headers.get('Last-Modified')
+        last_modified = self._original_response.headers.get("Last-Modified")
         if last_modified is not None:
-            sanitized_headers['Last-Modified'] = last_modified
+            sanitized_headers["Last-Modified"] = last_modified
 
-        etag = self._original_response.headers.get('ETag')
+        etag = self._original_response.headers.get("ETag")
         if etag is not None:
-            sanitized_headers['ETag'] = etag
+            sanitized_headers["ETag"] = etag
 
         return sanitized_headers
 
@@ -87,8 +87,7 @@ class MirrorResponse:
             return None
 
         sanitized_content = self._original_response.content.replace(
-            self._gh_api_url.encode(),
-            self._gh_mirror_url.encode()
+            self._gh_api_url.encode(), self._gh_mirror_url.encode()
         )
 
         return sanitized_content

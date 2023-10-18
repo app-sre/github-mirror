@@ -211,16 +211,10 @@ Then checkout to a new branch:
 To run the code checks, use:
 
 ```
-(venv) user@localhost:~/github-mirror$ flake8 ghmirror
+(venv) user@localhost:~/github-mirror$ make check
 ```
 
-and
-
-```
-(venv) user@localhost:~/github-mirror$ flake8 ghmirror
-```
-
-To run the tests, use:
+Or to run the tests only, use:
 
 ```
 (venv) user@localhost:~/github-mirror$ pytest -v --forked --cov=ghmirror --cov-report=term-missing tests/

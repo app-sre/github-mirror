@@ -17,14 +17,14 @@ Metrics decorators.
 """
 
 import time
-
 from functools import wraps
 
 import flask
 
-from ghmirror.data_structures.monostate import StatsCache
-from ghmirror.data_structures.monostate import UsersCache
-
+from ghmirror.data_structures.monostate import (
+    StatsCache,
+    UsersCache,
+)
 
 STATS_CACHE = StatsCache()
 
@@ -34,23 +34,24 @@ def requests_metrics(function):
     Decorator to collect metrics from the request and populate the
     StatsCache object.
     """
+
     @wraps(function)
     def wrapper(*args, **kwargs):
         start = time.time()
         response = function(*args, **kwargs)
 
         # This is the total time spent to process the request
-        elapsed_time = (time.time() - start)
+        elapsed_time = time.time() - start
 
         # Incrementing the total requests couter
         STATS_CACHE.count()
 
         # The X-Cache header is added by the flask APP
         # and it contains either HIT or MISS
-        cache = response.headers['X-Cache']
+        cache = response.headers["X-Cache"]
 
         users_cache = UsersCache()
-        authorization = flask.request.headers.get('Authorization')
+        authorization = flask.request.headers.get("Authorization")
         if authorization:
             user = users_cache.get(authorization)
             if not user:
@@ -58,16 +59,19 @@ def requests_metrics(function):
                 # so users_cache is not yet updated
                 # with the user to match the auth sha.
                 # Try to get the user from the response.
-                user = response.json().get('login')
+                user = response.json().get("login")
         else:
             user = None
 
         # Adding the request metrics to the histogram
-        STATS_CACHE.observe(cache=cache,
-                            status=response.status_code,
-                            value=elapsed_time,
-                            method=flask.request.method,
-                            user=user)
+        STATS_CACHE.observe(
+            cache=cache,
+            status=response.status_code,
+            value=elapsed_time,
+            method=flask.request.method,
+            user=user,
+        )
 
         return response
+
     return wrapper

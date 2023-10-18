@@ -17,7 +17,6 @@ Contains all the required verification
 """
 
 import os
-
 from functools import wraps
 
 import flask
@@ -26,9 +25,8 @@ from ghmirror.core.constants import GH_API
 from ghmirror.core.mirror_requests import conditional_request
 from ghmirror.data_structures.monostate import UsersCache
 
-
-AUTHORIZED_USERS = os.environ.get('GITHUB_USERS')
-DOC_URL = 'https://github.com/app-sre/github-mirror#user-validation'
+AUTHORIZED_USERS = os.environ.get("GITHUB_USERS")
+DOC_URL = "https://github.com/app-sre/github-mirror#user-validation"
 
 
 def check_user(function):
@@ -36,6 +34,7 @@ def check_user(function):
     Checks whether the user is a member of one of the
     authorized organizations
     """
+
     @wraps(function)
     def wrapper(*args, **kwargs):
         # When the GITHUB_USERS is not set, we resume the normal
@@ -43,12 +42,17 @@ def check_user(function):
         if AUTHORIZED_USERS is None:
             return function(*args, **kwargs)
 
-        authorized_users = AUTHORIZED_USERS.split(':')
-        authorization = flask.request.headers.get('Authorization')
+        authorized_users = AUTHORIZED_USERS.split(":")
+        authorization = flask.request.headers.get("Authorization")
         # At this stage, Authorization header is mandatory
         if authorization is None:
-            return flask.jsonify(message='Authorization header is required',
-                                 documentation_url=DOC_URL), 401
+            return (
+                flask.jsonify(
+                    message="Authorization header is required",
+                    documentation_url=DOC_URL,
+                ),
+                401,
+            )
 
         users_cache = UsersCache()
         # Users in cache were already checked and authorized,
@@ -57,15 +61,14 @@ def check_user(function):
             return function(*args, **kwargs)
 
         # Using the Authorization header to get the user information
-        user_url = f'{GH_API}/user'
-        resp = conditional_request(method='GET', url=user_url,
-                                   auth=authorization)
+        user_url = f"{GH_API}/user"
+        resp = conditional_request(method="GET", url=user_url, auth=authorization)
 
         # Fail early when Github API tells something is wrong
         if resp.status_code != 200:
             return flask.Response(resp.content, resp.status_code)
 
-        user_login = resp.json()['login']
+        user_login = resp.json()["login"]
         # At this point we have the authorized_users list and the
         # user login from Github. If there's a match, we just
         # return the decorated function, but not before caching
@@ -75,8 +78,13 @@ def check_user(function):
             return function(*args, **kwargs)
 
         # No match means user is forbidden
-        return flask.jsonify(message='User %s has no permission to use the '
-                                     'github-mirror' % user_login,
-                             documentation_url=DOC_URL), 403
+        return (
+            flask.jsonify(
+                message=f"User {user_login} has no permission to "
+                "use the github-mirror",
+                documentation_url=DOC_URL,
+            ),
+            403,
+        )
 
     return wrapper
