@@ -184,7 +184,7 @@ def online_request(method, url, auth, data=None, url_params=None):
         # or the last-modified headers. Returning the updated
         # pagination data ensures all data is fetched in all cases.
         if cached_response.links != resp.links:
-            LOG.info("ONLINE GET PAGINATION HEADER UPDATE %s", url)
+            LOG.info("ONLINE GET LINK HEADER UPDATE %s", url)
             if resp.links:
                 cached_response.headers["Link"] = resp.headers["Link"]
             else:
