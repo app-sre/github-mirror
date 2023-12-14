@@ -27,7 +27,7 @@ data:
       "editable": true,
       "fiscalYearStartMonth": 0,
       "graphTooltip": 0,
-      "iteration": 1674145995137,
+      "id": 665087,
       "links": [],
       "liveNow": false,
       "panels": [
@@ -75,7 +75,7 @@ data:
             "alertThreshold": true
           },
           "percentage": false,
-          "pluginVersion": "9.0.3",
+          "pluginVersion": "9.3.8",
           "pointradius": 2,
           "points": false,
           "renderer": "flot",
@@ -176,7 +176,7 @@ data:
             "alertThreshold": true
           },
           "percentage": false,
-          "pluginVersion": "9.0.3",
+          "pluginVersion": "9.3.8",
           "pointradius": 2,
           "points": false,
           "renderer": "flot",
@@ -277,7 +277,7 @@ data:
             "alertThreshold": true
           },
           "percentage": false,
-          "pluginVersion": "9.0.3",
+          "pluginVersion": "9.3.8",
           "pointradius": 2,
           "points": false,
           "renderer": "flot",
@@ -379,7 +379,7 @@ data:
             "alertThreshold": true
           },
           "percentage": false,
-          "pluginVersion": "9.0.3",
+          "pluginVersion": "9.3.8",
           "pointradius": 2,
           "points": false,
           "renderer": "flot",
@@ -481,7 +481,7 @@ data:
             "alertThreshold": true
           },
           "percentage": false,
-          "pluginVersion": "9.0.3",
+          "pluginVersion": "9.3.8",
           "pointradius": 2,
           "points": false,
           "renderer": "flot",
@@ -591,7 +591,7 @@ data:
             "alertThreshold": true
           },
           "percentage": false,
-          "pluginVersion": "9.0.3",
+          "pluginVersion": "9.3.8",
           "pointradius": 2,
           "points": false,
           "renderer": "flot",
@@ -683,7 +683,7 @@ data:
             "alertThreshold": true
           },
           "percentage": false,
-          "pluginVersion": "9.0.3",
+          "pluginVersion": "9.3.8",
           "pointradius": 2,
           "points": false,
           "renderer": "flot",
@@ -775,7 +775,7 @@ data:
             "alertThreshold": true
           },
           "percentage": false,
-          "pluginVersion": "9.0.3",
+          "pluginVersion": "9.3.8",
           "pointradius": 2,
           "points": false,
           "renderer": "flot",
@@ -833,7 +833,7 @@ data:
           "dashes": false,
           "datasource": {
             "type": "prometheus",
-            "uid": "$datasource"
+            "uid": "${cache_datasource}"
           },
           "fieldConfig": {
             "defaults": {
@@ -867,7 +867,7 @@ data:
             "alertThreshold": true
           },
           "percentage": false,
-          "pluginVersion": "9.0.3",
+          "pluginVersion": "9.3.8",
           "pointradius": 2,
           "points": false,
           "renderer": "flot",
@@ -878,7 +878,8 @@ data:
           "targets": [
             {
               "datasource": {
-                "uid": "$datasource"
+                "type": "prometheus",
+                "uid": "${cache_datasource}"
               },
               "editorMode": "code",
               "expr": "aws_elasticache_get_type_cmds_sum{cache_cluster_id=~\"$cache_cluster_id_prefix-\\\\d+\"}",
@@ -930,7 +931,7 @@ data:
           "dashes": false,
           "datasource": {
             "type": "prometheus",
-            "uid": "$datasource"
+            "uid": "${cache_datasource}"
           },
           "fieldConfig": {
             "defaults": {
@@ -964,7 +965,7 @@ data:
             "alertThreshold": true
           },
           "percentage": false,
-          "pluginVersion": "9.0.3",
+          "pluginVersion": "9.3.8",
           "pointradius": 2,
           "points": false,
           "renderer": "flot",
@@ -975,7 +976,8 @@ data:
           "targets": [
             {
               "datasource": {
-                "uid": "$datasource"
+                "type": "prometheus",
+                "uid": "${cache_datasource}"
               },
               "editorMode": "code",
               "expr": "aws_elasticache_get_type_cmds_latency_sum{cache_cluster_id=~\"$cache_cluster_id_prefix-\\\\d+\"}",
@@ -1027,7 +1029,7 @@ data:
           "dashes": false,
           "datasource": {
             "type": "prometheus",
-            "uid": "$datasource"
+            "uid": "${cache_datasource}"
           },
           "fieldConfig": {
             "defaults": {
@@ -1061,7 +1063,7 @@ data:
             "alertThreshold": true
           },
           "percentage": false,
-          "pluginVersion": "9.0.3",
+          "pluginVersion": "9.3.8",
           "pointradius": 2,
           "points": false,
           "renderer": "flot",
@@ -1072,7 +1074,8 @@ data:
           "targets": [
             {
               "datasource": {
-                "uid": "$datasource"
+                "type": "prometheus",
+                "uid": "${cache_datasource}"
               },
               "editorMode": "code",
               "expr": "aws_elasticache_set_type_cmds_sum{cache_cluster_id=~\"$cache_cluster_id_prefix-\\\\d+\"}",
@@ -1124,7 +1127,7 @@ data:
           "dashes": false,
           "datasource": {
             "type": "prometheus",
-            "uid": "$datasource"
+            "uid": "${cache_datasource}"
           },
           "fieldConfig": {
             "defaults": {
@@ -1158,7 +1161,7 @@ data:
             "alertThreshold": true
           },
           "percentage": false,
-          "pluginVersion": "9.0.3",
+          "pluginVersion": "9.3.8",
           "pointradius": 2,
           "points": false,
           "renderer": "flot",
@@ -1169,7 +1172,8 @@ data:
           "targets": [
             {
               "datasource": {
-                "uid": "$datasource"
+                "type": "prometheus",
+                "uid": "${cache_datasource}"
               },
               "editorMode": "code",
               "expr": "aws_elasticache_set_type_cmds_latency_sum{cache_cluster_id=~\"$cache_cluster_id_prefix-\\\\d+\"}",
@@ -1221,7 +1225,7 @@ data:
           "dashes": false,
           "datasource": {
             "type": "prometheus",
-            "uid": "$datasource"
+            "uid": "${cache_datasource}"
           },
           "fieldConfig": {
             "defaults": {
@@ -1255,7 +1259,7 @@ data:
             "alertThreshold": true
           },
           "percentage": false,
-          "pluginVersion": "9.0.3",
+          "pluginVersion": "9.3.8",
           "pointradius": 2,
           "points": false,
           "renderer": "flot",
@@ -1266,7 +1270,8 @@ data:
           "targets": [
             {
               "datasource": {
-                "uid": "$datasource"
+                "type": "prometheus",
+                "uid": "${cache_datasource}"
               },
               "editorMode": "code",
               "expr": "aws_elasticache_database_memory_usage_percentage_average{cache_cluster_id=~\"$cache_cluster_id_prefix-\\\\d+\"}",
@@ -1318,7 +1323,7 @@ data:
           "dashes": false,
           "datasource": {
             "type": "prometheus",
-            "uid": "$datasource"
+            "uid": "${cache_datasource}"
           },
           "fieldConfig": {
             "defaults": {
@@ -1352,7 +1357,7 @@ data:
             "alertThreshold": true
           },
           "percentage": false,
-          "pluginVersion": "9.0.3",
+          "pluginVersion": "9.3.8",
           "pointradius": 2,
           "points": false,
           "renderer": "flot",
@@ -1363,7 +1368,8 @@ data:
           "targets": [
             {
               "datasource": {
-                "uid": "$datasource"
+                "type": "prometheus",
+                "uid": "${cache_datasource}"
               },
               "editorMode": "code",
               "expr": "aws_elasticache_engine_cpuutilization_average{cache_cluster_id=~\"$cache_cluster_id_prefix-\\\\d+\"}",
@@ -1415,7 +1421,7 @@ data:
           "dashes": false,
           "datasource": {
             "type": "prometheus",
-            "uid": "$datasource"
+            "uid": "${cache_datasource}"
           },
           "fieldConfig": {
             "defaults": {
@@ -1449,7 +1455,7 @@ data:
             "alertThreshold": true
           },
           "percentage": false,
-          "pluginVersion": "9.0.3",
+          "pluginVersion": "9.3.8",
           "pointradius": 2,
           "points": false,
           "renderer": "flot",
@@ -1460,7 +1466,8 @@ data:
           "targets": [
             {
               "datasource": {
-                "uid": "$datasource"
+                "type": "prometheus",
+                "uid": "${cache_datasource}"
               },
               "editorMode": "code",
               "expr": "aws_elasticache_curr_items_average{cache_cluster_id=~\"$cache_cluster_id_prefix-\\\\d+\"}",
@@ -1504,16 +1511,16 @@ data:
         }
       ],
       "refresh": "5m",
-      "schemaVersion": 36,
+      "schemaVersion": 37,
       "style": "dark",
       "tags": [],
       "templating": {
         "list": [
           {
             "current": {
-              "selected": false,
-              "text": "app-sre-prod-01-prometheus",
-              "value": "app-sre-prod-01-prometheus"
+              "selected": true,
+              "text": "appsrep07ue1-prometheus",
+              "value": "appsrep07ue1-prometheus"
             },
             "hide": 0,
             "includeAll": false,
@@ -1521,6 +1528,7 @@ data:
             "name": "datasource",
             "options": [],
             "query": "prometheus",
+            "queryValue": "",
             "refresh": 1,
             "regex": "",
             "skipUrlSync": false,
@@ -1534,7 +1542,7 @@ data:
             },
             "datasource": {
               "type": "prometheus",
-              "uid": "${datasource}"
+              "uid": "${cache_datasource}"
             },
             "definition": "label_values(aws_elasticache_database_memory_usage_percentage_average, cache_cluster_id)",
             "hide": 0,
@@ -1551,6 +1559,24 @@ data:
             "skipUrlSync": false,
             "sort": 0,
             "type": "query"
+          },
+          {
+            "current": {
+              "selected": true,
+              "text": "app-sre-prod-01-prometheus",
+              "value": "app-sre-prod-01-prometheus"
+            },
+            "hide": 0,
+            "includeAll": false,
+            "multi": false,
+            "name": "cache_datasource",
+            "options": [],
+            "query": "prometheus",
+            "queryValue": "",
+            "refresh": 1,
+            "regex": "",
+            "skipUrlSync": false,
+            "type": "datasource"
           }
         ]
       },
@@ -1575,7 +1601,7 @@ data:
       "timezone": "",
       "title": "Github Mirror",
       "uid": "DE29QJlWk",
-      "version": 1,
+      "version": 3,
       "weekStart": ""
     }
 kind: ConfigMap
