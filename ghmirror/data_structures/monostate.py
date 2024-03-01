@@ -32,6 +32,7 @@ from prometheus_client import (
     Histogram,
     ProcessCollector,
 )
+from prometheus_client.utils import INF
 from requests.adapters import HTTPAdapter
 
 from ghmirror.core.constants import (
@@ -269,6 +270,21 @@ class StatsCache(StatsCacheBorg):
                     labelnames=("cache", "status", "method", "user"),
                     documentation="request latency histogram",
                     registry=self.registry,
+                    buckets=(
+                        0.05,
+                        0.075,
+                        0.1,
+                        0.2,
+                        0.3,
+                        0.4,
+                        0.5,
+                        0.75,
+                        1.0,
+                        2.5,
+                        5.0,
+                        10.0,
+                        INF,
+                    ),
                 ),
             )
         elif item == "counter":
