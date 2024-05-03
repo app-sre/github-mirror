@@ -11,7 +11,7 @@ setup(name='ghmirror',
                   'responses when the GitHub API replies with a 304 HTTP '
                   'code, reducing the number of API calls, making a more '
                   'efficient use of the GitHub API rate limit.',
-      python_requires='>=3.6',
+      python_requires='>=3.11',
       license="GPLv2+",
       classifiers=[
             'Development Status :: 2 - Pre-Alpha',
@@ -28,8 +28,7 @@ setup(name='ghmirror',
             'Topic :: Internet :: WWW/HTTP :: WSGI :: Middleware',
       ],
       install_requires=['Flask~=2.3.3',
-                        'requests~=2.22',
-                        'prometheus_client~=0.7',
-                        'gunicorn==20.1.0',
-                        'redis~=3.5',
-                        'MarkupSafe>=2.1.1'])
+                        'requests~=2.31',
+                        'prometheus_client~=0.20',
+                        'gunicorn==22.0.0',
+                        'redis~=3.5'])
