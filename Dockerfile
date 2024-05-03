@@ -2,7 +2,7 @@ FROM        registry.access.redhat.com/ubi8/python-311:1-25
 
 WORKDIR     /ghmirror
 
-COPY        . ./
+COPY        --chown=1001:0 . ./
 
 RUN         pip install .
 RUN         pip install gunicorn
