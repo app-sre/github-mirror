@@ -35,9 +35,9 @@ objects:
                     name: ${CLIENT_TOKEN_SECRET}
                     key: CLIENT_TOKEN
             command:
-              - python3
+              - make
             args:
-              - acceptance/test_basic.py
+              - accept
             resources:
               requests:
                 memory: ${MEMORY_REQUESTS}
