@@ -1,11 +1,23 @@
-FROM        registry.access.redhat.com/ubi8/python-311:1-25
-
+FROM        registry.access.redhat.com/ubi8/python-311:1-25 as builder
 WORKDIR     /ghmirror
-
-COPY        --chown=1001:0 . ./
-
+RUN         python3 -m venv venv
+ENV         VIRTUAL_ENV=/ghmirror/venv
+ENV         PATH="$VIRTUAL_ENV/bin:$PATH"
+COPY        --chown=1001:0 setup.py VERSION ./
 RUN         pip install .
-RUN         pip install gunicorn
 
+FROM        builder as test
+COPY        --chown=1001:0 requirements-check.txt ./
+RUN         pip install -r requirements-check.txt
+COPY        --chown=1001:0 . ./
+ENTRYPOINT  ["make"]
+CMD         ["check"]
+
+FROM        registry.access.redhat.com/ubi8/python-311:1-25
+WORKDIR     /ghmirror
+ENV         VIRTUAL_ENV=/ghmirror/venv
+ENV         PATH="$VIRTUAL_ENV/bin:$PATH"
+COPY        --from=builder $VIRTUAL_ENV $VIRTUAL_ENV
+COPY        --chown=1001:0 . ./
 ENTRYPOINT  ["gunicorn", "ghmirror.app:APP"]
 CMD         ["--workers", "1", "--threads",  "8", "--bind", "0.0.0.0:8080"]
