@@ -1,0 +1,10 @@
+FROM        registry.access.redhat.com/ubi8/python-311:1-25
+
+WORKDIR     /ghmirror
+
+COPY        --chown=1001:0 . ./
+
+RUN         make develop
+
+ENTRYPOINT  ["make"]
+CMD         ["check"]
