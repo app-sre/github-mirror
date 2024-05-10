@@ -14,10 +14,11 @@ ENTRYPOINT  ["make"]
 CMD         ["check"]
 
 FROM        registry.access.redhat.com/ubi9/ubi-minimal:9.4-949.1714662671
-WORKDIR     /ghmirror
 RUN         microdnf upgrade -y && \
             microdnf install -y python3.11 && \
             microdnf clean all
+USER        1001
+WORKDIR     /ghmirror
 ENV         VIRTUAL_ENV=/ghmirror/venv
 ENV         PATH="$VIRTUAL_ENV/bin:$PATH"
 COPY        --from=builder $VIRTUAL_ENV $VIRTUAL_ENV
