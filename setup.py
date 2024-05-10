@@ -31,4 +31,4 @@ setup(name='ghmirror',
                         'requests~=2.31',
                         'prometheus_client~=0.20',
                         'gunicorn==22.0.0',
-                        'redis~=3.5'])
+                        'redis~=5.0.4'])
