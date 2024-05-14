@@ -23,6 +23,7 @@ import sys
 import flask
 from prometheus_client import generate_latest
 
+from ghmirror.app.extensions import session
 from ghmirror.core.constants import GH_API
 from ghmirror.core.mirror_requests import conditional_request
 from ghmirror.core.mirror_response import MirrorResponse
@@ -91,6 +92,7 @@ def ghmirror(path):
         url = url.rstrip("&")
 
     resp = conditional_request(
+        session=session,
         method=flask.request.method,
         url=url,
         auth=flask.request.headers.get("Authorization"),

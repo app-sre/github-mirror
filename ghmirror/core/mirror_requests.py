@@ -60,13 +60,15 @@ def _cache_response(resp, cache, cache_key):
         cache[cache_key] = resp
 
 
-def _online_request(method, url, cached_response, headers=None, parameters=None):
+def _online_request(
+    session, method, url, cached_response, headers=None, parameters=None
+):
     """
     Handle API errors on conditional requests and try
     to serve contents from cache
     """
     try:
-        resp = requests.request(
+        resp = session.request(
             method=method,
             url=url,
             headers=headers,
@@ -110,6 +112,7 @@ def _online_request(method, url, cached_response, headers=None, parameters=None)
 
 
 def _handle_not_changed(
+    session,
     cached_response,
     per_page_elements,
     headers,
@@ -121,7 +124,7 @@ def _handle_not_changed(
 ):
     if len(cached_response.json()) == per_page_elements and not cached_response.links:
         headers.pop("If-None-Match")
-        resp = requests.request(
+        resp = session.request(
             method=method,
             url=url,
             headers=headers,
@@ -140,18 +143,18 @@ def _handle_not_changed(
 
 
 @requests_metrics
-def conditional_request(method, url, auth, data=None, url_params=None):
+def conditional_request(session, method, url, auth, data=None, url_params=None):
     """
     Implements conditional requests, checking first whether
     the upstream API is online of offline to decide which
     request routine to call.
     """
     if GithubStatus().online:
-        return online_request(method, url, auth, data, url_params)
+        return online_request(session, method, url, auth, data, url_params)
     return offline_request(method, url, auth)
 
 
-def online_request(method, url, auth, data=None, url_params=None):
+def online_request(session, method, url, auth, data=None, url_params=None):
     """
     Implements conditional requests.
     """
@@ -174,7 +177,7 @@ def online_request(method, url, auth, data=None, url_params=None):
     # Special case for non-GET requests
     if method != "GET":
         # Just forward the request with the auth header
-        resp = requests.request(
+        resp = session.request(
             method=method,
             url=url,
             headers=headers,
@@ -202,6 +205,7 @@ def online_request(method, url, auth, data=None, url_params=None):
             headers["If-Modified-Since"] = last_mod
 
     resp = _online_request(
+        session=session,
         method=method,
         url=url,
         headers=headers,
@@ -211,6 +215,7 @@ def online_request(method, url, auth, data=None, url_params=None):
 
     if resp.status_code == 304:
         return _handle_not_changed(
+            session,
             cached_response,
             per_page_elements,
             headers,
