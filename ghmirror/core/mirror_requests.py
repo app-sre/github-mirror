@@ -154,6 +154,7 @@ def conditional_request(session, method, url, auth, data=None, url_params=None):
     return offline_request(method, url, auth)
 
 
+# pylint: disable-msg=too-many-locals
 def online_request(session, method, url, auth, data=None, url_params=None):
     """
     Implements conditional requests.

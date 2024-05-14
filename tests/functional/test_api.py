@@ -1,4 +1,5 @@
 from unittest import mock
+from unittest.mock import ANY
 
 import pytest
 import requests
@@ -276,7 +277,7 @@ def test_mirror_authorized_user(
     )
     client.get("/repos/app-sre/github-mirror", headers={"Authorization": "foo"})
     mocked_cond_request.assert_called_with(
-        auth="foo", method="GET", url="https://api.github.com/user"
+        session=ANY, auth="foo", method="GET", url="https://api.github.com/user"
     )
     mocked_request.assert_called_with(
         method="GET",
