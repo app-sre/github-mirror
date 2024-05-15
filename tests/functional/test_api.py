@@ -1,4 +1,5 @@
 from unittest import mock
+from unittest.mock import ANY
 
 import pytest
 import requests
@@ -114,7 +115,7 @@ def test_healthz(client):
 
 
 @mock.patch(
-    "ghmirror.core.mirror_requests.requests.request",
+    "ghmirror.app.extensions.session.request",
     side_effect=mocked_requests_get_etag,
 )
 @mock.patch("ghmirror.data_structures.monostate.requests.Session")
@@ -168,7 +169,7 @@ def test_mirror_etag(mock_monitor_session, _mock_get, client):
 
 
 @mock.patch(
-    "ghmirror.core.mirror_requests.requests.request",
+    "ghmirror.app.extensions.session.request",
     side_effect=mocked_requests_get_last_modified,
 )
 @mock.patch("ghmirror.data_structures.monostate.requests.Session")
@@ -221,7 +222,7 @@ def test_mirror_last_modified(mock_monitor_session, _mock_get, client):
 
 
 @mock.patch(
-    "ghmirror.core.mirror_requests.requests.request",
+    "ghmirror.app.extensions.session.request",
     side_effect=mocked_requests_get_last_modified,
 )
 @mock.patch("ghmirror.data_structures.monostate.requests.Session")
@@ -241,7 +242,7 @@ def test_mirror_upstream_call(mock_monitor_session, mocked_request, client):
 
 
 @mock.patch(
-    "ghmirror.core.mirror_requests.requests.request",
+    "ghmirror.app.extensions.session.request",
     side_effect=mocked_requests_get_last_modified,
 )
 @mock.patch("ghmirror.data_structures.monostate.requests.Session")
@@ -266,7 +267,7 @@ def test_mirror_non_get(mock_monitor_session, mocked_request, client):
     "ghmirror.decorators.checks.conditional_request",
     side_effect=mocked_requests_get_user_orgs_auth,
 )
-@mock.patch("ghmirror.core.mirror_requests.requests.request")
+@mock.patch("ghmirror.app.extensions.session.request")
 @mock.patch("ghmirror.data_structures.monostate.requests.Session")
 def test_mirror_authorized_user(
     mock_monitor_session, mocked_request, mocked_cond_request, client
@@ -276,7 +277,7 @@ def test_mirror_authorized_user(
     )
     client.get("/repos/app-sre/github-mirror", headers={"Authorization": "foo"})
     mocked_cond_request.assert_called_with(
-        auth="foo", method="GET", url="https://api.github.com/user"
+        session=ANY, auth="foo", method="GET", url="https://api.github.com/user"
     )
     mocked_request.assert_called_with(
         method="GET",
@@ -292,7 +293,7 @@ def test_mirror_authorized_user(
     "ghmirror.decorators.checks.conditional_request",
     side_effect=mocked_requests_get_user_orgs_auth,
 )
-@mock.patch("ghmirror.core.mirror_requests.requests.request")
+@mock.patch("ghmirror.app.extensions.session.request")
 @mock.patch("ghmirror.data_structures.monostate.requests.Session")
 def test_mirror_authorized_user_cached(
     mock_monitor_session, mocked_request, mocked_cond_request, client
@@ -358,7 +359,7 @@ def test_mirror_auth_error(mock_monitor_session, _mocked_cond_request, client):
 
 
 @mock.patch(
-    "ghmirror.core.mirror_requests.requests.request",
+    "ghmirror.app.extensions.session.request",
     side_effect=mocked_requests_get_etag,
 )
 @mock.patch("ghmirror.data_structures.monostate.requests.Session")
@@ -422,7 +423,7 @@ def test_offline_mode(mock_monitor_session, _mock_request, client):
 
 
 @mock.patch(
-    "ghmirror.core.mirror_requests.requests.request",
+    "ghmirror.app.extensions.session.request",
     side_effect=mocked_requests_get_etag,
 )
 @mock.patch("ghmirror.data_structures.monostate.requests.Session")
@@ -465,7 +466,7 @@ def test_offline_mode_upstream_error(mock_monitor_session, _mock_request, client
 
 
 @mock.patch(
-    "ghmirror.core.mirror_requests.requests.request",
+    "ghmirror.app.extensions.session.request",
     side_effect=mocked_requests_rate_limited,
 )
 @mock.patch("ghmirror.data_structures.monostate.requests.Session")
@@ -512,7 +513,7 @@ def test_rate_limited(_mock_monitor_session, mock_request, client):
 
 
 @mock.patch(
-    "ghmirror.core.mirror_requests.requests.request",
+    "ghmirror.app.extensions.session.request",
     side_effect=mocked_requests_api_corner_case,
 )
 @mock.patch("ghmirror.data_structures.monostate.requests.Session")
@@ -575,7 +576,7 @@ def test_pagination_corner_case_custom_page_elements(
 
 @mock.patch("ghmirror.core.mirror_requests.PER_PAGE_ELEMENTS", 2)
 @mock.patch(
-    "ghmirror.core.mirror_requests.requests.request",
+    "ghmirror.app.extensions.session.request",
     side_effect=mocked_requests_api_corner_case,
 )
 @mock.patch("ghmirror.data_structures.monostate.requests.Session")
@@ -631,7 +632,7 @@ def test_pagination_corner_case(mock_monitor_session, _mock_get, client):
 
 
 @mock.patch(
-    "ghmirror.core.mirror_requests.requests.request",
+    "ghmirror.app.extensions.session.request",
     side_effect=requests.exceptions.Timeout,
 )
 @mock.patch("ghmirror.data_structures.monostate.requests.Session")
@@ -656,7 +657,7 @@ def test_mirror_request_timeout(mock_monitor_session, _mock_get, client):
 
 
 @mock.patch(
-    "ghmirror.core.mirror_requests.requests.request",
+    "ghmirror.app.extensions.session.request",
     side_effect=mocked_requests_get_etag,
 )
 @mock.patch("ghmirror.data_structures.monostate.requests.Session")
@@ -711,7 +712,7 @@ def test_mirror_request_timeout_hit(mock_monitor_session, mock_get, client):
 
 
 @mock.patch(
-    "ghmirror.core.mirror_requests.requests.request",
+    "ghmirror.app.extensions.session.request",
     side_effect=mocked_requests_get_etag,
 )
 @mock.patch("ghmirror.data_structures.monostate.requests.Session")
@@ -766,7 +767,7 @@ def test_mirror_request_5xx(mock_monitor_session, mock_get, client):
 
 
 @mock.patch(
-    "ghmirror.core.mirror_requests.requests.request",
+    "ghmirror.app.extensions.session.request",
     side_effect=mocked_requests_get_etag,
 )
 @mock.patch("ghmirror.data_structures.monostate.requests.Session")
@@ -821,7 +822,7 @@ def test_mirror_request_5xx_miss(mock_monitor_session, mock_get, client):
 
 
 @mock.patch(
-    "ghmirror.core.mirror_requests.requests.request",
+    "ghmirror.app.extensions.session.request",
     side_effect=mocked_requests_get_etag,
 )
 @mock.patch("ghmirror.data_structures.monostate.requests.Session")
@@ -876,7 +877,7 @@ def test_mirror_request_connection_error_hit(mock_monitor_session, mock_get, cli
 
 
 @mock.patch(
-    "ghmirror.core.mirror_requests.requests.request",
+    "ghmirror.app.extensions.session.request",
     side_effect=mocked_requests_get_etag,
 )
 @mock.patch("ghmirror.data_structures.monostate.requests.Session")
