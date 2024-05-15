@@ -64,9 +64,10 @@ def check_user(function):
         # Using the Authorization header to get the user information
         user_url = f"{GH_API}/user"
         # Create a new session is fine here, cause it's not called often
-        resp = conditional_request(
-            session=requests.Session(), method="GET", url=user_url, auth=authorization
-        )
+        with requests.Session() as session:
+            resp = conditional_request(
+                session=session, method="GET", url=user_url, auth=authorization
+            )
 
         # Fail early when Github API tells something is wrong
         if resp.status_code != 200:
