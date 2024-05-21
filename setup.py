@@ -28,7 +28,7 @@ setup(name='ghmirror',
             'Topic :: Internet :: WWW/HTTP :: WSGI :: Middleware',
       ],
       install_requires=['Flask~=3.0.3',
-                        'requests~=2.31',
+                        'requests~=2.32',
                         'prometheus_client~=0.20',
                         'gunicorn==22.0.0',
                         'redis~=5.0.4'])
