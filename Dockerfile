@@ -1,4 +1,4 @@
-FROM        registry.access.redhat.com/ubi8/python-311:1-56.1712880527 as builder
+FROM        registry.access.redhat.com/ubi9/python-311:1-62.1715774368 as builder
 WORKDIR     /ghmirror
 RUN         python3 -m venv venv
 ENV         VIRTUAL_ENV=/ghmirror/venv
@@ -13,7 +13,7 @@ COPY        --chown=1001:0 . ./
 ENTRYPOINT  ["make"]
 CMD         ["check"]
 
-FROM        registry.access.redhat.com/ubi8/ubi-minimal:8.9-1161.1715068733
+FROM        registry.access.redhat.com/ubi9/ubi-minimal:9.4-949.1714662671
 RUN         microdnf upgrade -y && \
             microdnf install -y python3.11 && \
             microdnf clean all
