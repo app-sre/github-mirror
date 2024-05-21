@@ -20,11 +20,11 @@ import os
 from functools import wraps
 
 import flask
-import requests
 
 from ghmirror.core.constants import GH_API
 from ghmirror.core.mirror_requests import conditional_request
 from ghmirror.data_structures.monostate import UsersCache
+from ghmirror.utils.extensions import session
 
 AUTHORIZED_USERS = os.environ.get("GITHUB_USERS")
 DOC_URL = "https://github.com/app-sre/github-mirror#user-validation"
@@ -63,11 +63,9 @@ def check_user(function):
 
         # Using the Authorization header to get the user information
         user_url = f"{GH_API}/user"
-        # Create a new session is fine here, cause it's not called often
-        with requests.Session() as session:
-            resp = conditional_request(
-                session=session, method="GET", url=user_url, auth=authorization
-            )
+        resp = conditional_request(
+            session=session, method="GET", url=user_url, auth=authorization
+        )
 
         # Fail early when Github API tells something is wrong
         if resp.status_code != 200:

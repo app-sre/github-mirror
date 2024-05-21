@@ -23,13 +23,13 @@ import sys
 import flask
 from prometheus_client import generate_latest
 
-from ghmirror.app.extensions import session
 from ghmirror.core.constants import GH_API
 from ghmirror.core.mirror_requests import conditional_request
 from ghmirror.core.mirror_response import MirrorResponse
 from ghmirror.data_structures.monostate import StatsCache
 from ghmirror.data_structures.requests_cache import RequestsCache
 from ghmirror.decorators.checks import check_user
+from ghmirror.utils.extensions import session
 
 logging.basicConfig(level=logging.INFO, format="%(asctime)-15s %(message)s")
 
