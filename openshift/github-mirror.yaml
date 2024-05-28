@@ -17,8 +17,7 @@ objects:
   kind: ServiceAccount
   metadata:
     name: ${SERVICE_ACCOUNT}
-  imagePullSecrets:
-  - name: ${IMAGE_PULL_SECRET}
+  imagePullSecrets: "${{IMAGE_PULL_SECRETS}}"
 - apiVersion: apps/v1
   kind: Deployment
   metadata:
@@ -180,3 +179,5 @@ parameters:
   value: '1'
 - name: GITHUB_STATUS_TIMEOUT
   value: '10'
+- name: IMAGE_PULL_SECRETS
+  value: '[]'
