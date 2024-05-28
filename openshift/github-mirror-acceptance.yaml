@@ -8,8 +8,7 @@ objects:
   kind: ServiceAccount
   metadata:
     name: ${SERVICE_ACCOUNT}
-  imagePullSecrets:
-  - name: ${IMAGE_PULL_SECRET}
+  imagePullSecrets: "${{IMAGE_PULL_SECRETS}}"
 - apiVersion: batch/v1
   kind: Job
   metadata:
@@ -66,3 +65,5 @@ parameters:
   value: 128Mi
 - name: CPU_REQUESTS
   value: 100m
+- name: IMAGE_PULL_SECRETS
+  value: '[]'
