@@ -7,9 +7,9 @@ from unittest import (
 import pytest
 
 from ghmirror.core.mirror_requests import (
-    _get_elements_per_page,
-    _is_rate_limit_error,
-    _should_error_response_be_served_from_cache,
+    _get_elements_per_page,  # noqa: PLC2701
+    _is_rate_limit_error,  # noqa: PLC2701
+    _should_error_response_be_served_from_cache,  # noqa: PLC2701
 )
 from ghmirror.data_structures.monostate import StatsCache
 from ghmirror.data_structures.requests_cache import RequestsCache
@@ -101,7 +101,7 @@ class TestRequestsCache(TestCase):
         self.assertTrue(list(requests_cache_01))
         self.assertIn("foo", requests_cache_01)
 
-        self.assertEqual(requests_cache_01["foo"].content, "bar".encode())
+        self.assertEqual(requests_cache_01["foo"].content, b"bar")
         self.assertEqual(requests_cache_01["foo"].status_code, 200)
 
         self.assertEqual(requests_cache_01.__sizeof__(), RAND_CACHE_SIZE)
@@ -125,7 +125,7 @@ class TestRequestsCache(TestCase):
         )
         requests_cache_02 = RequestsCache()
 
-        self.assertEqual(requests_cache_02["foo"].content, "bar".encode())
+        self.assertEqual(requests_cache_02["foo"].content, b"bar")
         self.assertEqual(requests_cache_02["foo"].status_code, 200)
 
 

@@ -1,3 +1,4 @@
+# ruff: noqa: PLR2004
 from unittest import mock
 from unittest.mock import ANY
 

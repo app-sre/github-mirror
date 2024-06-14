@@ -68,7 +68,7 @@ def check_user(function):
         )
 
         # Fail early when Github API tells something is wrong
-        if resp.status_code != 200:
+        if resp.status_code != 200:  # noqa: PLR2004
             return flask.Response(resp.content, resp.status_code)
 
         user_login = resp.json()["login"]

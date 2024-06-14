@@ -4,15 +4,13 @@ develop:
 
 
 check:
-	black --check ghmirror tests
-	isort --check-only ghmirror tests
-	flake8 --ignore=E203,E501,W503 ghmirror tests
-	pylint ghmirror
+	ruff check --no-fix
+	ruff format --check
 	python3 -m pytest -v --forked --cov=ghmirror --cov-report=term-missing tests/
 
 accept:
 	python3 acceptance/test_basic.py
 
 format:
-	isort ghmirror tests
-	black ghmirror tests
+	ruff check
+	ruff format

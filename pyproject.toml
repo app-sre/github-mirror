@@ -1,10 +1,45 @@
-[tool.black]
+# Ruff configuration
+[tool.ruff]
 line-length = 88
-target-version = ['py311']
-include = '^.*\.py$'
+target-version = 'py311'
+required-version = "0.4.8" # keep in sync with dev dependencies!
+src = ["ghmirror"]
+extend-exclude = [
+    ".local", # used by poetry in local venv
+    ".cache", # used by poetry in local venv
+]
+fix = true
 
-[tool.isort]
-profile = "black"
-multi_line_output = 3
-force_grid_wrap = 2
-float_to_top = true
+[tool.ruff.lint]
+preview = true
+# defaults are ["E4", "E7", "E9", "F"]
+extend-select = [
+    # flake8 default rules
+    "E1", # preview rule
+    "E2", # preview rule
+    "W",
+    # isort
+    "I",
+    # pylint
+    "PL",
+    # pyupgrade
+    "UP",
+]
+ignore = [
+    "PLR0904", # Too many public methods
+    "PLR0913", # Too many arguments
+    "PLR0917", # Too many positional arguments
+]
+[tool.ruff.format]
+preview = true
+
+[tool.ruff.lint.isort]
+known-first-party = ["ghmirror"]
+
+# Coverage configuration
+[tool.coverage.run]
+branch = true
+omit = ["*/tests/*"]
+
+[tool.coverage.report]
+fail_under = 98

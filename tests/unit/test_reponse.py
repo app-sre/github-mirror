@@ -69,7 +69,7 @@ class TestResponse(TestCase):
         )
         # content should have been modified, replacing the
         # gh_api_url string by the gh_mirror_url string.
-        self.assertEqual(response.content, "barbar".encode())
+        self.assertEqual(response.content, b"barbar")
 
     def test_status_code(self):
         mock_response = MockResponse(content="foobar", headers={}, status_code=200)
