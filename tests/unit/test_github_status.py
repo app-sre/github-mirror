@@ -5,7 +5,7 @@ import requests
 
 from ghmirror.data_structures.monostate import (
     GithubStatus,
-    _GithubStatus,
+    _GithubStatus,  # noqa: PLC2701
 )
 
 EXPECTED_TIMEOUT = 10

@@ -16,6 +16,7 @@
 Implements conditional requests
 """
 
+# ruff: noqa: PLR2004
 import hashlib
 import logging
 
@@ -54,9 +55,10 @@ def _cache_response(resp, cache, cache_key):
     """
     # Caching only makes sense when at least one
     # of those headers is present
-    if resp.status_code == 200 and any(
-        ["ETag" in resp.headers, "Last-Modified" in resp.headers]
-    ):
+    if resp.status_code == 200 and any([
+        "ETag" in resp.headers,
+        "Last-Modified" in resp.headers,
+    ]):
         cache[cache_key] = resp
 
 

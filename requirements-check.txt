@@ -1,7 +1,4 @@
-flake8==3.8.2
-pylint==2.17.7
 pytest~=7.2
 pytest-cov==2.9.0
 pytest-xdist==1.32.0
-black~=24.4
-isort~=5.10
+ruff==0.4.8
