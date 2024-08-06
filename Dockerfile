@@ -1,4 +1,4 @@
-FROM        registry.access.redhat.com/ubi9/python-311:1-62.1715774368 as builder
+FROM        registry.access.redhat.com/ubi9/python-311:1-72.1722518949 as builder
 WORKDIR     /ghmirror
 RUN         python3 -m venv venv
 ENV         VIRTUAL_ENV=/ghmirror/venv
