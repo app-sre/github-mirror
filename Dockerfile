@@ -13,7 +13,7 @@ COPY        --chown=1001:0 . ./
 ENTRYPOINT  ["make"]
 CMD         ["check"]
 
-FROM        registry.access.redhat.com/ubi9/ubi-minimal:9.4-1194
+FROM        registry.access.redhat.com/ubi9/ubi-minimal:9.4-1227
 RUN         microdnf upgrade -y && \
             microdnf install -y python3.11 && \
             microdnf clean all
