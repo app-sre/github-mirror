@@ -167,7 +167,7 @@ data:
                 "uid": "${datasource}"
               },
               "editorMode": "code",
-              "expr": "sum(rate(haproxy_backend_http_responses_total{route=\"github-mirror\",exported_namespace=\"github-mirror-production\",code!=\"5xx\"}[28d]))\n        /\n        sum(rate(haproxy_backend_http_responses_total{route=\"github-mirror\",exported_namespace=\"github-mirror-production\"}[28d]))",
+              "expr": "sum(rate(haproxy_backend_http_responses_total{route=\"github-mirror\",exported_namespace=\"github-mirror-${env:text}\",code!=\"5xx\"}[28d])) / sum(rate(haproxy_backend_http_responses_total{route=\"github-mirror\",exported_namespace=\"github-mirror-${env:text}\"}[28d]))",
               "instant": false,
               "legendFormat": "__auto",
               "range": true,
@@ -819,8 +819,7 @@ data:
                 "mode": "absolute",
                 "steps": [
                   {
-                    "color": "green",
-                    "value": null
+                    "color": "green"
                   },
                   {
                     "color": "red",
@@ -977,8 +976,7 @@ data:
                 "mode": "absolute",
                 "steps": [
                   {
-                    "color": "green",
-                    "value": null
+                    "color": "green"
                   },
                   {
                     "color": "red",
@@ -1086,8 +1084,7 @@ data:
                 "mode": "absolute",
                 "steps": [
                   {
-                    "color": "green",
-                    "value": null
+                    "color": "green"
                   },
                   {
                     "color": "red",
@@ -1210,8 +1207,7 @@ data:
                 "mode": "absolute",
                 "steps": [
                   {
-                    "color": "green",
-                    "value": null
+                    "color": "green"
                   },
                   {
                     "color": "red",
@@ -2187,7 +2183,7 @@ data:
           {
             "current": {
               "selected": true,
-              "text": "prod",
+              "text": "production",
               "value": "appsrep07ue1-prometheus"
             },
             "hide": 0,
@@ -2198,7 +2194,7 @@ data:
             "options": [
               {
                 "selected": true,
-                "text": "prod",
+                "text": "production",
                 "value": "appsrep07ue1-prometheus"
               },
               {
@@ -2207,7 +2203,7 @@ data:
                 "value": "appsres07ue1-prometheus"
               }
             ],
-            "query": "prod : appsrep07ue1-prometheus, stage : appsres07ue1-prometheus",
+            "query": "production : appsrep07ue1-prometheus, stage : appsres07ue1-prometheus",
             "queryValue": "",
             "skipUrlSync": false,
             "type": "custom"
