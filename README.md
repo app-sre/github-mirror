@@ -7,6 +7,7 @@ With conditional requests, all the calls are forwarded to the Github API, but
 when the GitHub API replies with a 304 HTTP code, meaning that the resource
 has not changed, we serve the client with the previously cached response.
 
+
 That reduces the number of API calls that consume quota, helping you not to
 hit the API GitHub API rate limit.
 
