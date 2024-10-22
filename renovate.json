@@ -8,7 +8,7 @@
     "tekton",
     "dockerfile",
     "rpm",
-    "regex",
+    "custom.regex",
     "argocd",
     "crossplane",
     "fleet",
