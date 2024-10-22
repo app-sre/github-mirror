@@ -30,7 +30,7 @@ setup(
         "Flask~=3.0.3",
         "requests~=2.32.3",
         "prometheus_client~=0.20",
-        "gunicorn==22.0.0",
+        "gunicorn==23.0.0",
         "redis~=5.0.4",
     ],
 )
