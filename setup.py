@@ -31,6 +31,6 @@ setup(
         "requests~=2.32.3",
         "prometheus_client~=0.20",
         "gunicorn==22.0.0",
-        "redis~=5.0.4",
+        "redis~=5.2.0",
     ],
 )
