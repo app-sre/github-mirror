@@ -19,6 +19,7 @@ Implements conditional requests
 # ruff: noqa: PLR2004
 import hashlib
 import logging
+import re
 
 import flask
 import requests
@@ -213,6 +214,31 @@ def online_request(session, method, url, auth, data=None, url_params=None):
         last_mod = cached_response.headers.get("Last-Modified")
         if last_mod is not None:
             headers["If-Modified-Since"] = last_mod
+
+    # https://issues.redhat.com/browse/APPSRE-11127
+    # as per https://github.com/orgs/community/discussions/143752
+    # github is now updating the commit API return payload with a
+    # `verified_at` timestamp, which updates the etag continuously.
+    # So commits get CACHE_MISS very frequently for individual commits,
+    # branch commits and pull-request commits.
+    # This lowers the API calls on individual commits, considering
+    # the commit shas are immutable
+    # It should be considered a temporary workaround until github fixes
+    # on their side
+    if cached_response and re.match(
+        r"^https://api.github.com/repos/[^/]+/[^/]+/commits/[^/]+$", url
+    ):
+        return _handle_not_changed(
+            session,
+            cached_response,
+            per_page_elements,
+            headers,
+            method,
+            url,
+            parameters,
+            cache,
+            cache_key,
+        )
 
     resp = _online_request(
         session=session,
