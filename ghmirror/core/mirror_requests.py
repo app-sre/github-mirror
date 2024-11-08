@@ -226,7 +226,7 @@ def online_request(session, method, url, auth, data=None, url_params=None):
     # It should be considered a temporary workaround until github fixes
     # on their side
     if cached_response and re.match(
-        r"^https://api.github.com/repos/[^/]+/[^/]+/commits/[^/]+$", url
+        r"^https://api.github.com/repos/[^/]+/[^/]+/commits/[0-9a-f]{40}$", url
     ):
         return _handle_not_changed(
             session,
