@@ -2,7 +2,6 @@
 [tool.ruff]
 line-length = 88
 target-version = 'py311'
-required-version = "0.4.8" # keep in sync with dev dependencies!
 src = ["ghmirror"]
 extend-exclude = [
     ".local", # used by poetry in local venv
