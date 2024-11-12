@@ -43,3 +43,6 @@ omit = ["*/tests/*"]
 
 [tool.coverage.report]
 fail_under = 97
+
+[tool.ruff.lint.pylint]
+max-returns = 7

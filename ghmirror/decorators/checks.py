@@ -38,13 +38,15 @@ def check_user(function):
 
     @wraps(function)
     def wrapper(*args, **kwargs):
-        # When the GITHUB_USERS is not set, we resume the normal
-        # operation, where we do not check users
-        if AUTHORIZED_USERS is None:
+        # Need to check if the Authorization header is present
+        # in the request to support anonymous user access
+        authorization = flask.request.headers.get("Authorization")
+
+        # When the GITHUB_USERS is not set and there's no Authorization header
+        # we just return the decorated function to allow anonymous access
+        if AUTHORIZED_USERS is None and authorization is None:
             return function(*args, **kwargs)
 
-        authorized_users = AUTHORIZED_USERS.split(":")
-        authorization = flask.request.headers.get("Authorization")
         # At this stage, Authorization header is mandatory
         if authorization is None:
             return (
@@ -72,6 +74,15 @@ def check_user(function):
             return flask.Response(resp.content, resp.status_code)
 
         user_login = resp.json()["login"]
+
+        # If the GITHUB_USERS is not set, we just cache the user
+        # for the next time and return the decorated function
+        if AUTHORIZED_USERS is None:
+            users_cache.add(authorization, user_login)
+            return function(*args, **kwargs)
+
+        authorized_users = AUTHORIZED_USERS.split(":")
+
         # At this point we have the authorized_users list and the
         # user login from Github. If there's a match, we just
         # return the decorated function, but not before caching
