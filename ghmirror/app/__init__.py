@@ -42,7 +42,7 @@ def error_handler(exception):
     """
     return (
         flask.jsonify(
-            message=f"Error reaching {GH_API}: " f"{str(exception.__class__.__name__)}"
+            message=f"Error reaching {GH_API}: {str(exception.__class__.__name__)}"
         ),
         502,
     )

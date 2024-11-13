@@ -283,7 +283,7 @@ def test_mirror_authorized_user(
     mocked_request.assert_called_with(
         method="GET",
         headers={"Authorization": "foo"},
-        url="https://api.github.com/repos/" "app-sre/github-mirror",
+        url="https://api.github.com/repos/app-sre/github-mirror",
         timeout=REQUESTS_TIMEOUT,
         params={"per_page": PER_PAGE_ELEMENTS},
     )
@@ -311,7 +311,7 @@ def test_mirror_authorized_user_cached(
     mocked_request.assert_called_with(
         method="GET",
         headers={"Authorization": auth},
-        url="https://api.github.com/repos/" "app-sre/github-mirror",
+        url="https://api.github.com/repos/app-sre/github-mirror",
         timeout=REQUESTS_TIMEOUT,
         params={"per_page": PER_PAGE_ELEMENTS},
     )
@@ -645,11 +645,10 @@ def test_mirror_request_timeout(mock_monitor_session, _mock_get, client):
     response = client.get("/metrics")
     assert response.status_code == 200
     assert (
-        'request_latency_seconds_count{cache="ONLINE_HIT",' 'method="GET",status="200"}'
+        'request_latency_seconds_count{cache="ONLINE_HIT",method="GET",status="200"}'
     ) not in str(response.data)
     assert (
-        'request_latency_seconds_count{cache="ONLINE_MISS",'
-        'method="GET",status="200"}'
+        'request_latency_seconds_count{cache="ONLINE_MISS",method="GET",status="200"}'
     ) not in str(response.data)
 
     response = client.get("/repos/app-sre/github-mirror", follow_redirects=True)
