@@ -21,7 +21,6 @@ import hashlib
 import logging
 import re
 
-import flask
 import requests
 
 from ghmirror.core.constants import (
@@ -153,12 +152,6 @@ def conditional_request(session, method, url, auth, data=None, url_params=None):
     the upstream API is online of offline to decide which
     request routine to call.
     """
-    # abort calls for members/*[bot] as a workaround
-    # since this endpoint always returns a 404
-    # while usage of GHPRB in jenkins exists
-    if "/members/" in url and url.endswith("[bot]"):
-        flask.abort(404)
-
     if GithubStatus().online:
         return online_request(session, method, url, auth, data, url_params)
     return offline_request(method, url, auth)
