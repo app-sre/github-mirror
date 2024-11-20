@@ -32,8 +32,8 @@ DOC_URL = "https://github.com/app-sre/github-mirror#user-validation"
 
 def check_user(function):
     """
-    Checks whether the user is a member of one of the
-    authorized organizations
+    Checks whether the user is a member of one of the authorized users,
+    if no authorized users set, only cache user info.
     """
 
     @wraps(function)
@@ -74,20 +74,12 @@ def check_user(function):
             return flask.Response(resp.content, resp.status_code)
 
         user_login = resp.json()["login"]
+        authorized_users = AUTHORIZED_USERS.split(":") if AUTHORIZED_USERS else []
 
-        # If the GITHUB_USERS is not set, we just cache the user
-        # for the next time and return the decorated function
-        if AUTHORIZED_USERS is None:
-            users_cache.add(authorization, user_login)
-            return function(*args, **kwargs)
-
-        authorized_users = AUTHORIZED_USERS.split(":")
-
-        # At this point we have the authorized_users list and the
-        # user login from Github. If there's a match, we just
-        # return the decorated function, but not before caching
-        # the user for the next time
-        if user_login in authorized_users:
+        # If GITHUB_USERS is not set or the user login from GitHub
+        # is in the authorized_users list, we cache the user for
+        # future use and return the decorated function
+        if not authorized_users or user_login in authorized_users:
             users_cache.add(authorization, user_login)
             return function(*args, **kwargs)
 
