@@ -282,7 +282,7 @@ def test_mirror_no_authorized_user(
     mocked_request.assert_called_with(
         method="GET",
         headers={"Authorization": "foo"},
-        url="https://api.github.com/repos/" "app-sre/github-mirror",
+        url="https://api.github.com/repos/app-sre/github-mirror",
         timeout=REQUESTS_TIMEOUT,
         params={"per_page": PER_PAGE_ELEMENTS},
     )
@@ -309,7 +309,7 @@ def test_mirror_no_authorized_user_cached(
     mocked_request.assert_called_with(
         method="GET",
         headers={"Authorization": auth},
-        url="https://api.github.com/repos/" "app-sre/github-mirror",
+        url="https://api.github.com/repos/app-sre/github-mirror",
         timeout=REQUESTS_TIMEOUT,
         params={"per_page": PER_PAGE_ELEMENTS},
     )
