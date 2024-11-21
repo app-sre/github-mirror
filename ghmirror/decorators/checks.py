@@ -32,19 +32,21 @@ DOC_URL = "https://github.com/app-sre/github-mirror#user-validation"
 
 def check_user(function):
     """
-    Checks whether the user is a member of one of the
-    authorized organizations
+    Checks whether the user is a member of one of the authorized users,
+    if no authorized users set, only cache user info.
     """
 
     @wraps(function)
     def wrapper(*args, **kwargs):
-        # When the GITHUB_USERS is not set, we resume the normal
-        # operation, where we do not check users
-        if AUTHORIZED_USERS is None:
+        # Need to check if the Authorization header is present
+        # in the request to support anonymous user access
+        authorization = flask.request.headers.get("Authorization")
+
+        # When the GITHUB_USERS is not set and there's no Authorization header
+        # we just return the decorated function to allow anonymous access
+        if AUTHORIZED_USERS is None and authorization is None:
             return function(*args, **kwargs)
 
-        authorized_users = AUTHORIZED_USERS.split(":")
-        authorization = flask.request.headers.get("Authorization")
         # At this stage, Authorization header is mandatory
         if authorization is None:
             return (
@@ -72,11 +74,12 @@ def check_user(function):
             return flask.Response(resp.content, resp.status_code)
 
         user_login = resp.json()["login"]
-        # At this point we have the authorized_users list and the
-        # user login from Github. If there's a match, we just
-        # return the decorated function, but not before caching
-        # the user for the next time
-        if user_login in authorized_users:
+        authorized_users = AUTHORIZED_USERS.split(":") if AUTHORIZED_USERS else []
+
+        # If GITHUB_USERS is not set or the user login from GitHub
+        # is in the authorized_users list, we cache the user for
+        # future use and return the decorated function
+        if not authorized_users or user_login in authorized_users:
             users_cache.add(authorization, user_login)
             return function(*args, **kwargs)
 
