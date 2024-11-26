@@ -27,7 +27,7 @@ setup(
         "Topic :: Internet :: WWW/HTTP :: WSGI :: Middleware",
     ],
     install_requires=[
-        "Flask~=3.0.3",
+        "Flask~=3.1.0",
         "requests~=2.32.3",
         "prometheus_client~=0.20",
         "gunicorn==22.0.0",
