@@ -263,6 +263,58 @@ def test_mirror_non_get(mock_monitor_session, mocked_request, client):
     )
 
 
+@mock.patch(
+    "ghmirror.decorators.checks.conditional_request",
+    side_effect=mocked_requests_get_user_orgs_auth,
+)
+@mock.patch("ghmirror.utils.extensions.session.request")
+@mock.patch("ghmirror.data_structures.monostate.requests.Session")
+def test_mirror_no_authorized_user(
+    mock_monitor_session, mocked_request, mocked_cond_request, client
+):
+    setup_mocked_requests_session_get(
+        mock_monitor_session, mocked_requests_monitor_good
+    )
+    client.get("/repos/app-sre/github-mirror", headers={"Authorization": "foo"})
+    mocked_cond_request.assert_called_with(
+        session=ANY, auth="foo", method="GET", url="https://api.github.com/user"
+    )
+    mocked_request.assert_called_with(
+        method="GET",
+        headers={"Authorization": "foo"},
+        url="https://api.github.com/repos/app-sre/github-mirror",
+        timeout=REQUESTS_TIMEOUT,
+        params={"per_page": PER_PAGE_ELEMENTS},
+    )
+
+
+@mock.patch(
+    "ghmirror.decorators.checks.conditional_request",
+    side_effect=mocked_requests_get_user_orgs_auth,
+)
+@mock.patch("ghmirror.utils.extensions.session.request")
+@mock.patch("ghmirror.data_structures.monostate.requests.Session")
+def test_mirror_no_authorized_user_cached(
+    mock_monitor_session, mocked_request, mocked_cond_request, client
+):
+    setup_mocked_requests_session_get(
+        mock_monitor_session, mocked_requests_monitor_good
+    )
+    users_cache = UsersCache()
+    auth = "foo"
+    users_cache.add(auth)
+
+    client.get("/repos/app-sre/github-mirror", headers={"Authorization": auth})
+    assert not mocked_cond_request.called
+    mocked_request.assert_called_with(
+        method="GET",
+        headers={"Authorization": auth},
+        url="https://api.github.com/repos/app-sre/github-mirror",
+        timeout=REQUESTS_TIMEOUT,
+        params={"per_page": PER_PAGE_ELEMENTS},
+    )
+
+
 @mock.patch("ghmirror.decorators.checks.AUTHORIZED_USERS", "app-sre-bot")
 @mock.patch(
     "ghmirror.decorators.checks.conditional_request",
