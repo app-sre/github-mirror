@@ -12,9 +12,7 @@
 # Copyright: Red Hat Inc. 2020
 # Author: Amador Pahim <apahim@redhat.com>
 
-"""
-The GitHub Mirror endpoints
-"""
+"""The GitHub Mirror endpoints"""
 
 import logging
 import os
@@ -37,12 +35,10 @@ APP = flask.Flask(__name__)
 
 
 def error_handler(exception):
-    """
-    Used when an exception happens in the flask app.
-    """
+    """Used when an exception happens in the flask app."""
     return (
         flask.jsonify(
-            message=f"Error reaching {GH_API}: {str(exception.__class__.__name__)}"
+            message=f"Error reaching {GH_API}: {exception.__class__.__name__!s}"
         ),
         502,
     )
@@ -54,17 +50,13 @@ APP.register_error_handler(Exception, error_handler)
 
 @APP.route("/healthz", methods=["GET"])
 def healthz():
-    """
-    Health check endpoint for Kubernetes.
-    """
+    """Health check endpoint for Kubernetes."""
     return flask.Response("OK")
 
 
 @APP.route("/metrics", methods=["GET"])
 def metrics():
-    """
-    Prometheus metrics endpoint.
-    """
+    """Prometheus metrics endpoint."""
     headers = {"Content-type": "text/plain"}
 
     stats_cache = StatsCache()
@@ -80,9 +72,7 @@ def metrics():
 @APP.route("/<path:path>", methods=["GET", "POST", "PUT", "PATCH", "DELETE"])
 @check_user
 def ghmirror(path):
-    """
-    Default endpoint, matching any url without a specific endpoint.
-    """
+    """Default endpoint, matching any url without a specific endpoint."""
     url = f"{GH_API}/{path}"
 
     if flask.request.args:
@@ -111,4 +101,8 @@ def ghmirror(path):
 
 
 if __name__ == "__main__":  # pragma: no cover
-    APP.run(host="127.0.0.1", debug=True, port="8080")
+    APP.run(
+        host="127.0.0.1",
+        debug=bool(os.environ.get("GITHUB_MIRROR_DEBUG", "1")),
+        port=8080,
+    )

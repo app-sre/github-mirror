@@ -12,9 +12,7 @@
 # Copyright: Red Hat Inc. 2020
 # Author: Amador Pahim <apahim@redhat.com>
 
-"""
-System constants.
-"""
+"""System constants."""
 
 GH_API = "https://api.github.com"
 GH_STATUS_API = "https://www.githubstatus.com/api/v2/components.json"

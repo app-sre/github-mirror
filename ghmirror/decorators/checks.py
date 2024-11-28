@@ -12,9 +12,7 @@
 # Copyright: Red Hat Inc. 2020
 # Author: Amador Pahim <apahim@redhat.com>
 
-"""
-Contains all the required verification
-"""
+"""Contains all the required verification"""
 
 import os
 from functools import wraps
@@ -31,9 +29,10 @@ DOC_URL = "https://github.com/app-sre/github-mirror#user-validation"
 
 
 def check_user(function):
-    """
-    Checks whether the user is a member of one of the authorized users,
-    if no authorized users set, only cache user info.
+    """Check if the user is authorized to use the github-mirror.
+
+    Checks whether the user is a member of one of the authorized users, if no
+    authorized users set, only cache user info.
     """
 
     @wraps(function)

@@ -12,7 +12,7 @@ def test_get_repo(path, code, cache):
     url = f"{GITHUB_MIRROR_URL}{path}"
     headers = {"Authorization": f"token {CLIENT_TOKEN}"}
 
-    response = requests.get(url, headers=headers)
+    response = requests.get(url, headers=headers, timeout=60)
 
     assert response.status_code == code
     if cache is not None:

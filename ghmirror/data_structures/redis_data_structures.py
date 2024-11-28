@@ -12,9 +12,7 @@
 # Copyright: Red Hat Inc. 2020
 # Author: Maha Ashour <mashour@redhat.com>
 
-"""
-Caching data in Redis.
-"""
+"""Caching data in Redis."""
 
 import os
 import pickle
@@ -24,15 +22,13 @@ import redis
 
 PRIMARY_ENDPOINT = os.environ.get("PRIMARY_ENDPOINT", "localhost")
 READER_ENDPOINT = os.environ.get("READER_ENDPOINT", PRIMARY_ENDPOINT)
-REDIS_PORT = os.environ.get("REDIS_PORT", 6379)
+REDIS_PORT = int(os.environ.get("REDIS_PORT", "6379"))
 REDIS_TOKEN = os.environ.get("REDIS_TOKEN")
 REDIS_SSL = os.environ.get("REDIS_SSL")
 
 
 class RedisCache:
-    """
-    Dictionary-like implementation for caching requests in Redis.
-    """
+    """Dictionary-like implementation for caching requests in Redis."""
 
     def __init__(self):
         self.wr_cache = self._get_connection(PRIMARY_ENDPOINT)
@@ -66,10 +62,7 @@ class RedisCache:
         return self.ro_cache.info()["used_memory"]
 
     def _scan_iter(self):
-        """
-        Make an iterator so that the client doesn't need to remember
-        the cursor position.
-        """
+        """Make an iterator so that the client doesn't need to remember the cursor position."""
         cursor = "0"
         while cursor != 0:
             cursor, data = self.wr_cache.scan(cursor)
@@ -93,4 +86,4 @@ class RedisCache:
     @staticmethod
     def _deserialize(item):
         """Deserialize items stored in Redis"""
-        return pickle.loads(item)
+        return pickle.loads(item)  # noqa: S301

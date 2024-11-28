@@ -12,9 +12,7 @@
 # Copyright: Red Hat Inc. 2020
 # Author: Maha Ashour <mashour@redhat.com>
 
-"""
-Implements caching backend
-"""
+"""Implements caching backend"""
 
 import os
 
@@ -25,9 +23,7 @@ CACHE_TYPE = os.environ.get("CACHE_TYPE", "in-memory")
 
 
 class RequestsCache:
-    """
-    Instantiates either a InMemoryCache or a Redis Cache object
-    """
+    """Instantiates either a InMemoryCache or a Redis Cache object"""
 
     def __new__(cls, *args, **kwargs):
         if CACHE_TYPE == "redis":

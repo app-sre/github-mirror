@@ -1,3 +1,4 @@
+# ruff: noqa: SLF001
 from random import randint
 from unittest import (
     TestCase,
@@ -18,11 +19,10 @@ RAND_CACHE_SIZE = randint(100, 1000)
 
 
 class TestStatsCache(TestCase):
-    # pylint: disable=W0212
     def test_shared_state(self):
         stats_cache_01 = StatsCache()
         with pytest.raises(AttributeError) as e_info:
-            stats_cache_01.foo
+            stats_cache_01.foo  # noqa: B018
             self.assertIn("object has no attribute", e_info.message)
         self.assertEqual(stats_cache_01.counter._value._value, 0)
 
