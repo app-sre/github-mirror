@@ -1,6 +1,8 @@
+.venv/*
 venv/*
 .idea/*
 __pycache__
 *.egg-info/*
 .coverage
 .pytest_cache/
+build/
