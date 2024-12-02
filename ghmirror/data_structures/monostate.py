@@ -12,9 +12,7 @@
 # Copyright: Red Hat Inc. 2020
 # Author: Amador Pahim <apahim@redhat.com>
 
-"""
-Caching data structures.
-"""
+"""Caching data structures."""
 
 import hashlib
 import logging
@@ -59,8 +57,8 @@ class _GithubStatus:
         self._start_check()
 
     def _start_check(self):
-        """
-        Starting a daemon thread to check the GitHub API status.
+        """Starting a daemon thread to check the GitHub API status.
+
         daemon is required so the thread is killed when the main
         thread completes. This is also useful for the tests.
         """
@@ -69,8 +67,8 @@ class _GithubStatus:
 
     @staticmethod
     def _is_github_online(response):
-        """
-        Check if the Github API is online based on the response.
+        """Check if the Github API is online based on the response.
+
         If API Requests component status is major_outage, then it's offline.
         If API Requests component status is one of operational,
         degraded_performance, or partial_outage, then it's online.
@@ -83,9 +81,7 @@ class _GithubStatus:
 
     @classmethod
     def create(cls):
-        """
-        Class method to create a new instance of _GithubStatus.
-        """
+        """Class method to create a new instance of _GithubStatus."""
         sleep_time = int(os.environ.get("GITHUB_STATUS_SLEEP_TIME", STATUS_SLEEP_TIME))
         timeout = int(os.environ.get("GITHUB_STATUS_TIMEOUT", STATUS_TIMEOUT))
         session = requests.Session()
@@ -93,9 +89,9 @@ class _GithubStatus:
         return cls(sleep_time=sleep_time, timeout=timeout, session=session)
 
     def check(self):
-        """
-        Method to be called in a thread. It will check the
-        Github API status every self.sleep_time seconds and set
+        """Method to be called in a thread.
+
+        It will check the Github API status every self.sleep_time seconds and set
         the self.online accordingly.
         """
         while True:
@@ -116,15 +112,13 @@ class _GithubStatus:
 
 
 class GithubStatus:
-    """
-    Monostate class for sharing the Github API Status.
-    """
+    """Monostate class for sharing the Github API Status."""
 
     _instance = None
     _lock = threading.Lock()
 
     @classmethod
-    def __new__(cls, *args, **kwargs):  # pylint: disable=unused-argument
+    def __new__(cls, *args, **kwargs):  # noqa: ARG003
         with cls._lock:
             if cls._instance is None:
                 cls._instance = _GithubStatus.create()
@@ -132,9 +126,7 @@ class GithubStatus:
 
 
 class InMemoryCacheBorg:
-    """
-    Monostate class for sharing the in-memory requests cache.
-    """
+    """Monostate class for sharing the in-memory requests cache."""
 
     _state = {}
 
@@ -143,14 +135,12 @@ class InMemoryCacheBorg:
 
 
 class InMemoryCache(InMemoryCacheBorg):
-    """
-    Dictionary-like implementation for caching requests.
-    """
+    """Dictionary-like implementation for caching requests."""
 
     def __getattr__(self, item):
-        """
-        Safe class argument initialization. We do it here
-        (instead of in the __init__()) so we don't overwrite
+        """Safe class argument initialization.
+
+        We do it here (instead of in the __init__()) so we don't overwrite
         them on when a new instance is created.
         """
         setattr(self, item, {})
@@ -183,9 +173,7 @@ class InMemoryCache(InMemoryCacheBorg):
 
 
 class UsersCacheBorg:
-    """
-    Monostate class for sharing the users cache.
-    """
+    """Monostate class for sharing the users cache."""
 
     _state = {}
 
@@ -194,14 +182,12 @@ class UsersCacheBorg:
 
 
 class UsersCache(UsersCacheBorg):
-    """
-    Dict-like implementation for caching users information.
-    """
+    """Dict-like implementation for caching users information."""
 
     def __getattr__(self, item):
-        """
-        Safe class argument initialization. We do it here
-        (instead of in the __init__()) so we don't overwrite
+        """Safe class argument initialization.
+
+        We do it here (instead of in the __init__()) so we don't overwrite
         them when a new instance is created.
         """
         setattr(self, item, {})
@@ -215,22 +201,16 @@ class UsersCache(UsersCacheBorg):
         return self._sha(item) in self._data
 
     def add(self, key, value=None):
-        """
-        Adding the value to the backing dict
-        """
+        """Adding the value to the backing dict"""
         self._data[self._sha(key)] = value
 
     def get(self, key):
-        """
-        Getting the value from the backing dict
-        """
+        """Getting the value from the backing dict"""
         return self._data.get(self._sha(key))
 
 
 class StatsCacheBorg:
-    """
-    Monostate class for sharing the Statistics.
-    """
+    """Monostate class for sharing the Statistics."""
 
     _state = {}
 
@@ -239,15 +219,13 @@ class StatsCacheBorg:
 
 
 class StatsCache(StatsCacheBorg):
-    """
-    Statistics cacher.
-    """
+    """Statistics cacher."""
 
     def __getattr__(self, item):
-        """
-        Safe class argument initialization. We do it here
-        (instead of in the __init__()) so we don't overwrite
-        them on when a new instance is created.
+        """Safe class argument initialization.
+
+        We do it here (instead of in the __init__()) so we don't overwrite
+        them when a new instance is created.
         """
         if item == "registry":
             # This will create the self.registry attribute, which
@@ -329,27 +307,19 @@ class StatsCache(StatsCacheBorg):
         return getattr(self, item)
 
     def count(self):
-        """
-        Convenience method to increment the counter.
-        """
+        """Convenience method to increment the counter."""
         self.counter.inc(1)
 
     def observe(self, cache, status, value, method, user):
-        """
-        Convenience method to populate the histogram.
-        """
+        """Convenience method to populate the histogram."""
         self.histogram.labels(
             cache=cache, status=status, method=method, user=user
         ).observe(value)
 
     def set_cache_size(self, value):
-        """
-        Convenience method to set the Gauge.
-        """
+        """Convenience method to set the Gauge."""
         self.gauge_cache_size.set(value)
 
     def set_cached_objects(self, value):
-        """
-        Convenience method to set the Gauge.
-        """
+        """Convenience method to set the Gauge."""
         self.gauge_cached_objects.set(value)

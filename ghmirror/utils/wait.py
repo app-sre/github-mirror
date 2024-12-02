@@ -1,13 +1,10 @@
-"""
-Functions to help waiting for a given state
-"""
+"""Functions to help waiting for a given state"""
 
 import time
 
 
 def wait_for(func, timeout, first=0.0, step=1.0, args=None, kwargs=None):
-    """
-    Wait until func() evaluates to True.
+    """Wait until func() evaluates to True.
 
     If func() evaluates to True before timeout expires, return the
     value of func(). Otherwise return None.

@@ -12,9 +12,7 @@
 # Copyright: Red Hat Inc. 2020
 # Author: Amador Pahim <apahim@redhat.com>
 
-"""
-Implements conditional requests
-"""
+"""Implements conditional requests"""
 
 # ruff: noqa: PLR2004
 import hashlib
@@ -35,10 +33,7 @@ LOG = logging.getLogger(__name__)
 
 
 def _get_elements_per_page(url_params):
-    """
-    Get 'per_page' parameter if present in URL or
-    return None if not present
-    """
+    """Get 'per_page' parameter if present in URL or return None if not present"""
     if url_params is not None:
         per_page = url_params.get("per_page")
         if per_page is not None:
@@ -48,10 +43,10 @@ def _get_elements_per_page(url_params):
 
 
 def _cache_response(resp, cache, cache_key):
-    """
-    Implements the logic to decide whether or not
-    whe should cache a request acording to the headers
-    and content
+    """Cache response if it makes sense
+
+    Implements the logic to decide whether or not whe should cache a request acording
+    to the headers and content
     """
     # Caching only makes sense when at least one
     # of those headers is present
@@ -65,10 +60,7 @@ def _cache_response(resp, cache, cache_key):
 def _online_request(
     session, method, url, cached_response, headers=None, parameters=None
 ):
-    """
-    Handle API errors on conditional requests and try
-    to serve contents from cache
-    """
+    """Handle API errors on conditional requests and try to serve contents from cache"""
     try:
         resp = session.request(
             method=method,
@@ -146,9 +138,9 @@ def _handle_not_changed(
 
 @requests_metrics
 def conditional_request(session, method, url, auth, data=None, url_params=None):
-    """
-    Implements conditional requests, checking first whether
-    the upstream API is online of offline to decide which
+    """Implements conditional requests.
+
+    Checking first whether the upstream API is online of offline to decide which
     request routine to call.
     """
     if GithubStatus().online:
@@ -156,11 +148,8 @@ def conditional_request(session, method, url, auth, data=None, url_params=None):
     return offline_request(method, url, auth)
 
 
-# pylint: disable-msg=too-many-locals
 def online_request(session, method, url, auth, data=None, url_params=None):
-    """
-    Implements conditional requests.
-    """
+    """Implements conditional requests."""
     cache = RequestsCache()
     headers = {}
     parameters = url_params.to_dict() if url_params is not None else {}
@@ -241,8 +230,7 @@ def online_request(session, method, url, auth, data=None, url_params=None):
 
 
 def _should_error_response_be_served_from_cache(response):
-    """Parse a response to check if we should serve contents
-    from cache
+    """Parse a response to check if we should serve contents from cache
 
     :param response: requests module response
     :type response: requests.Response
@@ -251,7 +239,6 @@ def _should_error_response_be_served_from_cache(response):
         from cache
     :rtype: str, optional
     """
-
     if _is_rate_limit_error(response):
         return "RATE_LIMITED"
 
@@ -280,9 +267,7 @@ def _is_rate_limit_error(response):
 def offline_request(
     method, url, auth, error_code=504, error_message=b'{"message": "gateway timeout"}\n'
 ):
-    """
-    Implements offline requests (serves content from cache, when possible).
-    """
+    """Implements offline requests (serves content from cache, when possible)."""
     headers = {}
     if auth is None:
         auth_sha = None
@@ -299,8 +284,7 @@ def offline_request(
         response = requests.models.Response()
         response.status_code = error_code
         response.headers["X-Cache"] = "OFFLINE_MISS"
-        # pylint: disable=protected-access
-        response._content = error_message
+        response._content = error_message  # noqa: SLF001
         return response
 
     cache = RequestsCache()
@@ -320,6 +304,5 @@ def offline_request(
     response = requests.models.Response()
     response.status_code = error_code
     response.headers["X-Cache"] = "OFFLINE_MISS"
-    # pylint: disable=protected-access
-    response._content = error_message
+    response._content = error_message  # noqa: SLF001
     return response

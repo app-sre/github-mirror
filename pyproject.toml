@@ -1,33 +1,113 @@
+[project]
+name = "github-mirror"
+version = "0.1.0"
+description = "GitHub API mirror that caches the responses and implements conditional requests, serving the client with the cached responses when the GitHub API replies with a 304 HTTP code, reducing the number of API calls, making a more efficient use of the GitHub API rate limit."
+authors = [
+    # Feel free to add or change authors
+    { name = "Red Hat Application SRE Team", email = "sd-app-sre@redhat.com" },
+]
+license = { text = "GPLv2+" }
+readme = "README.md"
+requires-python = "~= 3.11.0"
+classifiers = [
+    "Development Status :: 2 - Pre-Alpha",
+    "Environment :: Web Environment",
+    "Framework :: Flask",
+    "Intended Audience :: Developers",
+    "License :: OSI Approved :: GNU General Public License v2 or later (GPLv2+)",
+    "Natural Language :: English",
+    "Operating System :: POSIX :: Linux",
+    "Programming Language :: Python :: 3.6",
+    "Programming Language :: Python :: 3.7",
+    "Programming Language :: Python :: 3.8",
+    "Topic :: Internet :: WWW/HTTP :: WSGI :: Middleware",
+]
+dependencies = [
+    # 'uv add/remove XXX' to add and remove dependencies
+    "Flask ~=3.1.0",
+    "requests ~=2.32.3",
+    "prometheus_client ~=0.20",
+    "gunicorn ~=22.0.0",
+    "redis ~=5.0.4",
+]
+
+[project.urls]
+homepage = "https://github.com/app-sre/github-mirror"
+repository = "https://github.com/app-sre/github-mirror"
+documentation = "https://github.com/app-sre/github-mirror"
+
+[dependency-groups]
+dev = [
+    # Development dependencies
+    "ruff ~=0.8",
+    "mypy ~=1.13",
+    "pytest ~=8.2.0",
+    "pytest-cov ~=5.0.0",
+    "pytest-forked ~=1.6.0",
+    "types-requests>=2.32.0.20241016",
+]
+
 # Ruff configuration
 [tool.ruff]
 line-length = 88
-target-version = 'py311'
 src = ["ghmirror"]
 extend-exclude = [
-    ".local", # used by poetry in local venv
-    ".cache", # used by poetry in local venv
+    # exclude some common cache and tmp directories
+    ".local",
+    ".cache",
+    "tmp",
 ]
 fix = true
 
 [tool.ruff.lint]
 preview = true
-# defaults are ["E4", "E7", "E9", "F"]
-extend-select = [
-    # flake8 default rules
-    "E1", # preview rule
-    "E2", # preview rule
-    "W",
-    # isort
-    "I",
-    # pylint
-    "PL",
-    # pyupgrade
-    "UP",
-]
+select = ["ALL"]
 ignore = [
+    "CPY",     # Missing copyright header
+    "D100",    # Missing docstring in public module
+    "D101",    # Missing docstring in public class
+    "D102",    # Missing docstring in public method
+    "D103",    # Missing docstring in public function
+    "D104",    # Missing docstring in public package
+    "D105",    # Missing docstring in magic method
+    "D107",    # Missing docstring in __init__
+    "D203",    # 1 blank line required before class docstring
+    "D211",    # No blank lines allowed before class docstring
+    "D212",    # multi-line-summary-first-line
+    "D213",    # multi-line-summary-second-line
+    "D4",      # Doc string style
+    "E501",    # Line too long
+    "G004",    # Logging statement uses f-string
     "PLR0904", # Too many public methods
     "PLR0913", # Too many arguments
     "PLR0917", # Too many positional arguments
+    "S101",    # Use of assert detected. Pytest uses assert
+    "S404",    # subprocess import
+    "EM101",   # Exception must not use a string literal, assign to variable first
+    "EM102",   # Exception must not use an f-string literal, assign to variable first
+    "S311",    # Standard pseudo-random generators are not suitable for security/cryptographic purposes
+    "S324",    # sha1 hash
+    "S403",    # pickle usage
+    "TRY003",  # Avoid specifying long messages outside the exception class
+    "TRY300",  # try-consider-else
+    # pydoclint
+    "DOC",
+    # May conflict with the formatter, https://docs.astral.sh/ruff/formatter/#conflicting-lint-rules
+    "W191",
+    "E111",
+    "E114",
+    "E117",
+    "D206",
+    "D300",
+    "Q",
+    "COM812",
+    "COM819",
+    "ISC001",
+    # Room for future improvements and refactoring
+    "ANN",    # Missing annotation
+    "PT",     # Use PyTest stuff instead unittest
+    "RUF012", # need type annotations
+
 ]
 [tool.ruff.format]
 preview = true

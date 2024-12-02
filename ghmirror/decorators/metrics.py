@@ -12,9 +12,7 @@
 # Copyright: Red Hat Inc. 2020
 # Author: Amador Pahim <apahim@redhat.com>
 
-"""
-Metrics decorators.
-"""
+"""Metrics decorators."""
 
 import time
 from functools import wraps
@@ -30,10 +28,7 @@ STATS_CACHE = StatsCache()
 
 
 def requests_metrics(function):
-    """
-    Decorator to collect metrics from the request and populate the
-    StatsCache object.
-    """
+    """Collect metrics from the request and populate the StatsCache object."""
 
     @wraps(function)
     def wrapper(*args, **kwargs):

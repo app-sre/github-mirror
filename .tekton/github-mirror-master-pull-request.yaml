@@ -30,6 +30,8 @@ spec:
     value: Dockerfile
   - name: path-context
     value: .
+  - name: target-stage
+    value: test
   pipelineRef:
     resolver: git
     params:

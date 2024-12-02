@@ -12,16 +12,14 @@
 # Copyright: Red Hat Inc. 2020
 # Author: Amador Pahim <apahim@redhat.com>
 
-"""
-Module containing all the abstractions around an HTTP response.
-"""
+"""Module containing all the abstractions around an HTTP response."""
 
 
 class MirrorResponse:
-    """
-    Wrapper around the requests.Response, implementing properties
-    that replace the strings containing the GutHub API url by the
-    mirror url where needed.
+    """Wrapper around the requests.Response.
+
+    Implementing properties that replace the strings containing the
+    GutHub API url by the mirror url where needed.
 
     :param original_response: the return from the original request
                               to the GitHub API
@@ -40,10 +38,10 @@ class MirrorResponse:
 
     @property
     def headers(self):
-        """
-        Retrieves the headers we are interested in from the original
-        response and sanitizes them so we can impersonate the GitHub
-        API.
+        """Sanitize headers.
+
+        Retrieves the headers we are interested in from the original response and
+        sanitizes them so we can impersonate the GitHub API.
 
         :return: the sanitized headers
         :rtype: dict
@@ -76,7 +74,8 @@ class MirrorResponse:
 
     @property
     def content(self):
-        """
+        """Sanitize content.
+
         Retrieves the content from the original response and sanitizes
         them so we can impersonate the GitHub API.
 
@@ -86,17 +85,13 @@ class MirrorResponse:
         if self._original_response.content is None:
             return None
 
-        sanitized_content = self._original_response.content.replace(
+        return self._original_response.content.replace(
             self._gh_api_url.encode(), self._gh_mirror_url.encode()
         )
 
-        return sanitized_content
-
     @property
     def status_code(self):
-        """
-        Convenience method to expose the original response HTTP
-        status code.
+        """Convenience method to expose the original response HTTP status code.
 
         :return: the response status code
         """
