@@ -17,6 +17,7 @@ USER        1001
 ENV         VIRTUAL_ENV=/ghmirror/.venv
 ENV         PATH="$VIRTUAL_ENV/bin:$PATH"
 COPY        --from=builder /ghmirror /ghmirror
+COPY        acceptance ./acceptance
 ENTRYPOINT  ["gunicorn", "ghmirror.app:APP"]
 CMD         ["--workers", "1", "--threads",  "8", "--bind", "0.0.0.0:8080"]
 
