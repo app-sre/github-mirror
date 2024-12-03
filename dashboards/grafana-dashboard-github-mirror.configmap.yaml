@@ -2502,7 +2502,7 @@ data:
             "current": {
               "selected": true,
               "text": "production",
-              "value": "appsrep07ue1-prometheus"
+              "value": "appsrep11ue1-prometheus"
             },
             "hide": 0,
             "includeAll": false,
@@ -2513,15 +2513,15 @@ data:
               {
                 "selected": true,
                 "text": "production",
-                "value": "appsrep07ue1-prometheus"
+                "value": "appsrep11ue1-prometheus"
               },
               {
                 "selected": false,
                 "text": "stage",
-                "value": "appsres07ue1-prometheus"
+                "value": "appsres11ue1-prometheus"
               }
             ],
-            "query": "production : appsrep07ue1-prometheus, stage : appsres07ue1-prometheus",
+            "query": "production : appsrep11ue1-prometheus, stage : appsres11ue1-prometheus",
             "queryValue": "",
             "skipUrlSync": false,
             "type": "custom"
@@ -2529,7 +2529,7 @@ data:
           {
             "current": {
               "selected": true,
-              "text": "appsrep07ue1-prometheus",
+              "text": "appsrep11ue1-prometheus",
               "value": "P7E8E1698DF0AC988"
             },
             "hide": 2,
@@ -2577,7 +2577,7 @@ data:
           {
             "current": {
               "selected": true,
-              "text": "appsrep07ue1-prometheus",
+              "text": "appsrep11ue1-prometheus",
               "value": "P7E8E1698DF0AC988"
             },
             "hide": 2,
