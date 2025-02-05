@@ -1,12 +1,12 @@
-FROM        registry.access.redhat.com/ubi9/python-311:1-1733172699@sha256:3d9ce0a19b0edc6f7a60a933ea9e53a809282972fde30003ce686437affde070 AS builder
-COPY        --from=ghcr.io/astral-sh/uv:0.5.25@sha256:a73176b27709bff700a1e3af498981f31a83f27552116f21ae8371445f0be710 /uv /bin/uv
+FROM        registry.access.redhat.com/ubi9/python-311:1-1737537151@sha256:fc669a67a0ef9016c3376b2851050580b3519affd5ec645d629fd52d2a8b8e4a AS builder
+COPY        --from=ghcr.io/astral-sh/uv:0.5.28@sha256:8bd47d593fb4a8ac5820c08265b651570e99e3c47d3247980a704174784c6a7f /uv /bin/uv
 WORKDIR     /ghmirror
 COPY        --chown=1001:0 pyproject.toml uv.lock ./
 RUN         uv lock --locked
 COPY        --chown=1001:0 ghmirror ./ghmirror
 RUN         uv sync --frozen --no-cache --compile-bytecode --no-group dev --python /usr/bin/python3.11
 
-FROM        registry.access.redhat.com/ubi9/ubi-minimal:9.5-1736404155@sha256:b87097994ed62fbf1de70bc75debe8dacf3ea6e00dd577d74503ef66452c59d6 AS prod
+FROM        registry.access.redhat.com/ubi9/ubi-minimal:9.5-1738643652@sha256:3902bab19972cd054fd08b2a4e08612ae7e68861ee5d9a5cf22d828f27e2f479 AS prod
 RUN         microdnf upgrade -y && \
             microdnf install -y python3.11 && \
             microdnf clean all
@@ -22,7 +22,7 @@ ENTRYPOINT  ["gunicorn", "ghmirror.app:APP"]
 CMD         ["--workers", "1", "--threads",  "8", "--bind", "0.0.0.0:8080"]
 
 FROM        prod AS test
-COPY        --from=ghcr.io/astral-sh/uv:0.5.25@sha256:a73176b27709bff700a1e3af498981f31a83f27552116f21ae8371445f0be710 /uv /bin/uv
+COPY        --from=ghcr.io/astral-sh/uv:0.5.28@sha256:8bd47d593fb4a8ac5820c08265b651570e99e3c47d3247980a704174784c6a7f /uv /bin/uv
 USER        root
 RUN         microdnf install -y make
 USER        1001
