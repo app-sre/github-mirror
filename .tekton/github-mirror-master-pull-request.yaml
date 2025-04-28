@@ -33,7 +33,6 @@ spec:
   - name: target-stage
     value: test
   pipelineRef:
-    resolver: git
     params:
     - name: url
       value: https://github.com/app-sre/shared-pipelines
@@ -41,7 +40,9 @@ spec:
       value: main
     - name: pathInRepo
       value: pipelines/multi-arch-build-pipeline.yaml
-  taskRunTemplate: {}
+    resolver: git
+  taskRunTemplate:
+    serviceAccountName: build-pipeline-github-mirror-master
   workspaces:
   - name: workspace
     volumeClaimTemplate:
