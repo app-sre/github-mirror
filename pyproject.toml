@@ -8,7 +8,7 @@ authors = [
 ]
 license = { text = "GPLv2+" }
 readme = "README.md"
-requires-python = "~= 3.11.0"
+requires-python = "~=3.13.3"
 classifiers = [
     "Development Status :: 2 - Pre-Alpha",
     "Environment :: Web Environment",
@@ -28,7 +28,7 @@ dependencies = [
     "requests ~=2.32.3",
     "prometheus_client ~=0.20",
     "gunicorn ~=23.0.0",
-    "redis ~=5.2.1",
+    "redis ~=5.3.0",
 ]
 
 [project.urls]
