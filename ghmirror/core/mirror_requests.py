@@ -117,7 +117,8 @@ def _handle_not_changed(
     cache_key,
 ):
     if len(cached_response.json()) == per_page_elements and not cached_response.links:
-        headers.pop("If-None-Match")
+        headers.pop("If-None-Match", None)
+        headers.pop("If-Modified-Since", None)
         resp = session.request(
             method=method,
             url=url,
