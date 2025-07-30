@@ -40,20 +40,14 @@ class MockResponse:
 
 
 def mocked_requests_get_etag(*_args, **kwargs):
-    if "If-Modified-Since" in kwargs["headers"]:
-        return MockResponse("", {}, 304)
-
-    if "If-None-Match" in kwargs["headers"]:
+    if "If-Modified-Since" in kwargs["headers"] or "If-None-Match" in kwargs["headers"]:
         return MockResponse("", {}, 304)
 
     return MockResponse("", {"ETag": "foo"}, 200)
 
 
 def mocked_requests_get_last_modified(*_args, **kwargs):
-    if "If-Modified-Since" in kwargs["headers"]:
-        return MockResponse("", {}, 304)
-
-    if "If-None-Match" in kwargs["headers"]:
+    if "If-Modified-Since" in kwargs["headers"] or "If-None-Match" in kwargs["headers"]:
         return MockResponse("", {}, 304)
 
     return MockResponse("", {"Last-Modified": "bar"}, 200)
@@ -95,10 +89,15 @@ def mocked_requests_rate_limited(*_args, **_kwargs):
 
 
 def mocked_requests_api_corner_case(*_args, **kwargs):
-    if "If-None-Match" in kwargs["headers"]:
+    if "If-None-Match" in kwargs["headers"] or "If-Modified-Since" in kwargs["headers"]:
         return MockResponse("", {}, 304, json_content=[{"a": "b"}, {"c", "d"}])
 
-    return MockResponse("", {"ETag": "foo"}, 200, json_content=[{"a": "b"}, {"c", "d"}])
+    return MockResponse(
+        "",
+        {"ETag": "foo", "Last-Modified": "bar"},
+        200,
+        json_content=[{"a": "b"}, {"c", "d"}],
+    )
 
 
 @pytest.fixture(name="client")
