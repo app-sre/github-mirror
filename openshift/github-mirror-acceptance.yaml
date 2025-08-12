@@ -45,7 +45,7 @@ objects:
                 memory: ${MEMORY_LIMIT}
 parameters:
 - name: IMAGE
-  value: quay.io/app-sre/github-mirror
+  value: quay.io/redhat-services-prod/app-sre-tenant/github-mirror-master/github-mirror-master
 - name: IMAGE_TAG
   value: ''
   required: true

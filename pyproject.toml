@@ -23,12 +23,11 @@ classifiers = [
     "Topic :: Internet :: WWW/HTTP :: WSGI :: Middleware",
 ]
 dependencies = [
-    # 'uv add/remove XXX' to add and remove dependencies
-    "Flask ~=3.1.0",
-    "requests ~=2.32.3",
-    "prometheus_client ~=0.20",
-    "gunicorn ~=23.0.0",
-    "redis ~=5.2.1",
+    "Flask==3.1.1",
+    "requests==2.32.4",
+    "prometheus_client==0.22.1",
+    "gunicorn==23.0.0",
+    "redis==6.4.0",
 ]
 
 [project.urls]
@@ -39,12 +38,12 @@ documentation = "https://github.com/app-sre/github-mirror"
 [dependency-groups]
 dev = [
     # Development dependencies
-    "ruff ~=0.8",
-    "mypy ~=1.13",
-    "pytest ~=8.3.4",
-    "pytest-cov ~=6.0.0",
-    "pytest-forked ~=1.6.0",
-    "types-requests>=2.32.0.20241016",
+    "ruff==0.12.8",
+    "mypy==1.17.1",
+    "pytest==8.4.1",
+    "pytest-cov==6.2.1",
+    "pytest-forked==1.6.0",
+    "types-requests==2.32.0.20241016",
 ]
 
 # Ruff configuration
