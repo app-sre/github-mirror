@@ -118,7 +118,7 @@ class GithubStatus:
     _lock = threading.Lock()
 
     @classmethod
-    def __new__(cls, *args, **kwargs):  # noqa: ARG003
+    def __new__(cls, *args, **kwargs):
         with cls._lock:
             if cls._instance is None:
                 cls._instance = _GithubStatus.create()

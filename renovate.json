@@ -1,12 +1,4 @@
 {
   "$schema": "https://docs.renovatebot.com/renovate-schema.json",
-  "extends": [
-    "github>app-sre/shared-pipelines//renovate/default.json"
-  ],
-  "packageRules": [
-    {
-      "matchPackageNames": ["pytest**"],
-      "groupName": "pytest"
-    }
-  ]
+  "extends": ["github>app-sre/shared-pipelines//renovate/default.json"]
 }

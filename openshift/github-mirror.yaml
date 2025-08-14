@@ -137,9 +137,9 @@ objects:
 
 parameters:
 - name: IMAGE
-  value: quay.io/app-sre/github-mirror
+  value: quay.io/redhat-services-prod/app-sre-tenant/github-mirror-master/github-mirror-master
   displayName: github mirror image
-  description: github mirror docker image. Defaults to quay.io/app-sre/github-mirror
+  description: github mirror docker image. Defaults to quay.io/redhat-services-prod/app-sre-tenant/github-mirror-master/github-mirror-master
 - name: IMAGE_TAG
   value: latest
   displayName: github mirror version

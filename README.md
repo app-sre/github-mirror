@@ -23,7 +23,7 @@ is restarted.
 Run the Docker container:
 
 ```
-~$ docker run --rm -it -p 8080:8080 quay.io/app-sre/github-mirror
+~$ docker run --rm -it -p 8080:8080 quay.io/redhat-services-prod/app-sre-tenant/github-mirror-master/github-mirror-master
 [2021-02-20 12:40:16 +0000] [1] [INFO] Starting gunicorn 20.0.4
 [2021-02-20 12:40:16 +0000] [1] [INFO] Listening at: http://0.0.0.0:8080 (1)
 [2021-02-20 12:40:16 +0000] [1] [INFO] Using worker: threads
