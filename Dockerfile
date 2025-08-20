@@ -6,7 +6,7 @@ RUN         uv lock --locked
 COPY        --chown=1001:0 ghmirror ./ghmirror
 RUN         uv sync --frozen --no-cache --compile-bytecode --no-group dev --python /usr/bin/python3.11
 
-FROM        registry.access.redhat.com/ubi9/ubi-minimal:9.6-1754584681@sha256:8d905a93f1392d4a8f7fb906bd49bf540290674b28d82de3536bb4d0898bf9d7 AS prod
+FROM        registry.access.redhat.com/ubi9/ubi-minimal:9.6-1755695350@sha256:2f06ae0e6d3d9c4f610d32c480338eef474867f435d8d28625f2985e8acde6e8 AS prod
 RUN         microdnf upgrade -y && \
             microdnf install -y python3.11 && \
             microdnf clean all
