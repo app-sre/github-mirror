@@ -6,3 +6,4 @@ __pycache__
 .coverage
 .pytest_cache/
 build/
+.github_client_token
