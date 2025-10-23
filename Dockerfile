@@ -1,5 +1,5 @@
 FROM        registry.access.redhat.com/ubi9/python-311:1-1760420762@sha256:ee1128adb98b79e58cd31c32da4cfd6641c4665d15112639f19428e7c3c0ef4c AS builder
-COPY        --from=ghcr.io/astral-sh/uv:0.9.4@sha256:c4089b0085cf4d38e38d5cdaa5e57752c1878a6f41f2e3a3a234dc5f23942cb4 /uv /bin/uv
+COPY        --from=ghcr.io/astral-sh/uv:0.9.5@sha256:f459f6f73a8c4ef5d69f4e6fbbdb8af751d6fa40ec34b39a1ab469acd6e289b7 /uv /bin/uv
 WORKDIR     /ghmirror
 COPY        --chown=1001:0 pyproject.toml uv.lock ./
 RUN         uv lock --locked
@@ -22,7 +22,7 @@ ENTRYPOINT  ["gunicorn", "ghmirror.app:APP"]
 CMD         ["--workers", "1", "--threads",  "8", "--bind", "0.0.0.0:8080"]
 
 FROM        prod AS test
-COPY        --from=ghcr.io/astral-sh/uv:0.9.4@sha256:c4089b0085cf4d38e38d5cdaa5e57752c1878a6f41f2e3a3a234dc5f23942cb4 /uv /bin/uv
+COPY        --from=ghcr.io/astral-sh/uv:0.9.5@sha256:f459f6f73a8c4ef5d69f4e6fbbdb8af751d6fa40ec34b39a1ab469acd6e289b7 /uv /bin/uv
 USER        root
 RUN         microdnf install -y make
 USER        1001
