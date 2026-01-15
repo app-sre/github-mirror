@@ -105,6 +105,25 @@ def _online_request(
         return cached_response
 
 
+def _is_last_full_page(cached_response, per_page_elements) -> bool:
+    """
+    Check if the cached response is the last full page of a paginated response.
+
+    The last full page is determined by checking if the number of elements in the cached response
+    is same as the 'per_page' parameter and if there is no 'next' link in the response headers.
+    If the endpoint does not support pagination, or if all results fit on a single page, the link header will be omitted.
+
+    docs:
+    * https://docs.github.com/en/rest/using-the-rest-api/getting-started-with-the-rest-api?apiVersion=2022-11-28
+    * https://docs.github.com/en/rest/using-the-rest-api/using-pagination-in-the-rest-api?apiVersion=2022-11-28#using-link-headers
+    """
+    if len(cached_response.json()) != per_page_elements:
+        return False
+    if (links := cached_response.links) and links.get("next"):  # noqa: SIM103
+        return False
+    return True
+
+
 def _handle_not_changed(
     session,
     cached_response,
@@ -116,7 +135,16 @@ def _handle_not_changed(
     cache,
     cache_key,
 ):
-    if len(cached_response.json()) == per_page_elements and not cached_response.links:
+    """
+    Handle 304 Not Modified responses from the API.
+
+    If the cached response is the last full page of a paginated response,
+    we need to revalidate the cache by making a new request without
+    conditional headers. Otherwise, we can return the cached response.
+    This is to ensure that we are not serving stale data due to weak etag,
+    response links header can change even if the content did not change.
+    """
+    if _is_last_full_page(cached_response, per_page_elements):
         headers.pop("If-None-Match", None)
         headers.pop("If-Modified-Since", None)
         resp = session.request(
