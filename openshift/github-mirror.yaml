@@ -9,7 +9,7 @@ objects:
   metadata:
     name: github-mirror
   spec:
-    minAvailable: 1
+    minAvailable: ${{PDB_MIN_AVAILABLE}}
     selector:
       matchLabels:
         app: github-mirror
@@ -181,3 +181,5 @@ parameters:
   value: '10'
 - name: IMAGE_PULL_SECRETS
   value: '[]'
+- name: PDB_MIN_AVAILABLE
+  value: '1'
