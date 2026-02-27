@@ -27,7 +27,7 @@ dependencies = [
     "requests==2.32.5",
     "prometheus_client==0.22.1",
     "gunicorn==23.0.0",
-    "redis==6.4.0",
+    "redis==7.2.1",
 ]
 
 [project.urls]
