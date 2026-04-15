@@ -1,0 +1,103 @@
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: github-mirror
+  annotations:
+    ignore-check.kube-linter.io/unset-cpu-requirements: "no cpu limits"
+  labels:
+    app: github-mirror
+spec:
+  replicas: 3
+  strategy:
+    type: RollingUpdate
+    rollingUpdate:
+      maxUnavailable: 0
+      maxSurge: 1
+  selector:
+    matchLabels:
+      app: github-mirror
+  template:
+    metadata:
+      labels:
+        app: github-mirror
+    spec:
+      affinity:
+        podAntiAffinity:
+          preferredDuringSchedulingIgnoredDuringExecution:
+          - podAffinityTerm:
+              labelSelector:
+                matchExpressions:
+                - key: app
+                  operator: In
+                  values:
+                  - github-mirror
+              topologyKey: kubernetes.io/hostname
+            weight: 90
+          - podAffinityTerm:
+              labelSelector:
+                matchExpressions:
+                - key: app
+                  operator: In
+                  values:
+                  - github-mirror
+              topologyKey: topology.kubernetes.io/zone
+            weight: 100
+      serviceAccountName: github-mirror
+      containers:
+      - name: github-mirror
+        image: quay.io/redhat-services-prod/app-sre-tenant/github-mirror-master/github-mirror-master:latest
+        imagePullPolicy: Always
+        env:
+        - name: GITHUB_USERS
+          value: app-sre-bot:cs-sre-bot
+        - name: GITHUB_MIRROR_URL
+          value: https://github-mirror.stage.devshift.net
+        - name: CACHE_TYPE
+          value: redis
+        - name: PRIMARY_ENDPOINT
+          valueFrom:
+            secretKeyRef:
+              name: ghmirror-elasticache
+              key: db.endpoint
+        - name: READER_ENDPOINT
+          value: ""
+        - name: REDIS_PORT
+          valueFrom:
+            secretKeyRef:
+              name: ghmirror-elasticache
+              key: db.port
+        - name: REDIS_TOKEN
+          valueFrom:
+            secretKeyRef:
+              name: ghmirror-elasticache
+              key: db.auth_token
+        - name: REDIS_SSL
+          value: "True"
+        - name: GITHUB_STATUS_SLEEP_TIME
+          value: "1"
+        - name: GITHUB_STATUS_TIMEOUT
+          value: "10"
+        ports:
+        - name: http
+          containerPort: 8080
+        livenessProbe:
+          httpGet:
+            path: /healthz
+            port: 8080
+          initialDelaySeconds: 30
+          periodSeconds: 10
+          timeoutSeconds: 3
+        readinessProbe:
+          httpGet:
+            path: /healthz
+            port: 8080
+          initialDelaySeconds: 3
+          periodSeconds: 10
+          timeoutSeconds: 3
+        resources:
+          requests:
+            memory: 800Mi
+            cpu: 200m
+          limits:
+            memory: 1Gi
