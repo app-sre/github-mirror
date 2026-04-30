@@ -1,4 +1,4 @@
-FROM        registry.access.redhat.com/ubi9/python-311:1-1777392369@sha256:ba0eda75d7915f6df1ba8c5786ac6564e6cc815c533efab68b0442284a6edc2f AS builder
+FROM        registry.access.redhat.com/ubi9/python-311:1-1777495206@sha256:a81d59327f23c1ec416c0dd95ec27b978825379eafe22666601f96a0da3279ae AS builder
 COPY        --from=ghcr.io/astral-sh/uv:0.11.8@sha256:3b7b60a81d3c57ef471703e5c83fd4aaa33abcd403596fb22ab07db85ae91347 /uv /bin/uv
 WORKDIR     /ghmirror
 COPY        --chown=1001:0 pyproject.toml uv.lock ./
