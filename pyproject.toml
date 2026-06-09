@@ -8,7 +8,7 @@ authors = [
 ]
 license = { text = "GPLv2+" }
 readme = "README.md"
-requires-python = "~= 3.11.0"
+requires-python = "~= 3.14.0"
 classifiers = [
     "Development Status :: 2 - Pre-Alpha",
     "Environment :: Web Environment",
@@ -17,15 +17,13 @@ classifiers = [
     "License :: OSI Approved :: GNU General Public License v2 or later (GPLv2+)",
     "Natural Language :: English",
     "Operating System :: POSIX :: Linux",
-    "Programming Language :: Python :: 3.6",
-    "Programming Language :: Python :: 3.7",
-    "Programming Language :: Python :: 3.8",
+    "Programming Language :: Python :: 3.14",
     "Topic :: Internet :: WWW/HTTP :: WSGI :: Middleware",
 ]
 dependencies = [
     "Flask==3.1.2",
     "requests==2.32.5",
-    "prometheus_client==0.22.1",
+    "prometheus_client==0.25.0",
     "gunicorn==23.0.0",
     "redis==6.4.0",
 ]
@@ -42,12 +40,12 @@ dev = [
     "mypy==2.1.0",
     "pytest==9.0.1",
     "pytest-cov==6.3.0",
-    "pytest-forked==1.6.0",
     "types-requests==2.32.4.20250809",
 ]
 
 # Ruff configuration
 [tool.ruff]
+target-version = "py314"
 line-length = 88
 src = ["ghmirror"]
 extend-exclude = [

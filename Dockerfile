@@ -1,14 +1,14 @@
-FROM        registry.access.redhat.com/ubi9/python-311:1-1779945715@sha256:a0bdb55576fc5b8d6704279307817828ef027e1065533ceba133fe9516003a6c AS builder
+FROM        registry.access.redhat.com/ubi10/python-314-minimal:10.2-1780588478@sha256:47d7d3bb831545f93f5f71903fd4c4940f611228687534eeeeb3c1b588ecc4f1 AS builder
 COPY        --from=ghcr.io/astral-sh/uv:0.11.18@sha256:78bc42400d77b0678ba95765305c826652ed5431f399257271dda681d0318f03 /uv /bin/uv
 WORKDIR     /ghmirror
 COPY        --chown=1001:0 pyproject.toml uv.lock ./
 RUN         uv lock --locked
 COPY        --chown=1001:0 ghmirror ./ghmirror
-RUN         uv sync --frozen --no-cache --compile-bytecode --no-group dev --python /usr/bin/python3.11
+RUN         uv sync --frozen --no-cache --compile-bytecode --no-group dev --python /usr/bin/python3.14
 
-FROM        registry.access.redhat.com/ubi9/ubi-minimal:9.8-1780378819@sha256:ae09ecc3d754bc1726cbda3e2599cc7839e09fe1cc547ce173cf669b645be3cc AS prod
+FROM        registry.access.redhat.com/ubi10/ubi-minimal:10.2-1780550715@sha256:2c20ac20ca1ecbbbd583603feabd9cc51e7e8ea5a82e5088e20a9494794b2574 AS prod
 RUN         microdnf upgrade -y && \
-            microdnf install -y python3.11 && \
+            microdnf install -y python3.14 && \
             microdnf clean all
 COPY        LICENSE /licenses/LICENSE
 WORKDIR     /ghmirror
