@@ -48,7 +48,7 @@ The acceptance test can be considered successful, if every command in the make t
 - Uses `pyproject.toml` for Python packaging and tool configuration
 - Ruff for linting/formatting with comprehensive rule set
 - Coverage threshold set to 98%
-- Python 3.11 required
+- Python 3.14 required
 
 ### Cache Architecture
 The application uses a monostate pattern for cache management with separate implementations for in-memory and Redis backends. Cache keys are based on request URLs and ETags from GitHub responses.
