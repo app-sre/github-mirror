@@ -7,6 +7,7 @@ COPY        --chown=1001:0 ghmirror ./ghmirror
 RUN         uv sync --frozen --no-cache --compile-bytecode --no-group dev --python /usr/bin/python3.14
 
 FROM        registry.access.redhat.com/ubi10/python-314-minimal:10.2-1780588478@sha256:47d7d3bb831545f93f5f71903fd4c4940f611228687534eeeeb3c1b588ecc4f1 AS prod
+USER        0
 RUN         microdnf upgrade -y && \
             microdnf clean all
 COPY        LICENSE /licenses/LICENSE
