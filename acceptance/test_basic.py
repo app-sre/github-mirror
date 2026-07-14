@@ -14,9 +14,14 @@ def test_get_repo(path, code, cache):
 
     response = requests.get(url, headers=headers, timeout=60)
 
-    assert response.status_code == code
+    assert response.status_code == code, (
+        f"Expected {code}, got {response.status_code}: {response.text[:200]}"
+    )
     if cache is not None:
-        assert response.headers["X-Cache"] == cache
+        actual_cache = response.headers.get("X-Cache")
+        assert actual_cache == cache, (
+            f"Expected X-Cache={cache}, got {actual_cache}"
+        )
 
 
 if __name__ == "__main__":
