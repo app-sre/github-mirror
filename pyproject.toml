@@ -39,7 +39,7 @@ dev = [
     "ruff==0.12.12",
     "mypy==2.1.0",
     "pytest==9.0.1",
-    "pytest-cov==6.3.0",
+    "pytest-cov==7.1.0",
     "types-requests==2.32.4.20250809",
 ]
 
