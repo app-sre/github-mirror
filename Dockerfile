@@ -1,5 +1,5 @@
 FROM        registry.access.redhat.com/ubi10/python-314-minimal:10.2-1784704196@sha256:e064aeae0fbaa1ffab67e990af8a76acbbc5d2bf456182adb2e1bbbb9120430d AS builder
-COPY        --from=ghcr.io/astral-sh/uv:0.11.33@sha256:77280f2f771df71f90786c314fe1bbc1e023feac652969bbf139c280babf2eb7 /uv /bin/uv
+COPY        --from=ghcr.io/astral-sh/uv:0.12.0@sha256:606e70c71c852d03f611b1e56a195d08648507018a7057fab82c4974c4eae105 /uv /bin/uv
 ENV         UV_PROJECT_ENVIRONMENT=$APP_ROOT \
             UV_COMPILE_BYTECODE=true \
             UV_NO_CACHE=true
