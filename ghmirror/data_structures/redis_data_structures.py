@@ -14,11 +14,15 @@
 
 """Caching data in Redis."""
 
+import base64
+import json
 import os
-import pickle
 from random import randint
 
 import redis
+from requests.models import Response
+from requests.structures import CaseInsensitiveDict
+from requests.utils import get_encoding_from_headers
 
 PRIMARY_ENDPOINT = os.environ.get("PRIMARY_ENDPOINT", "localhost")
 READER_ENDPOINT = os.environ.get("READER_ENDPOINT", PRIMARY_ENDPOINT)
@@ -35,19 +39,19 @@ class RedisCache:
         self.ro_cache = self._get_connection(READER_ENDPOINT)
 
     def __contains__(self, item):
-        sr_key = self._serialize(item)
+        sr_key = self._serialize_key(item)
         return self.ro_cache.exists(sr_key)
 
     def __getitem__(self, item):
-        sr_key = self._serialize(item)
+        sr_key = self._serialize_key(item)
         sr_value = self.ro_cache.get(sr_key)
         if sr_value is None:
             raise KeyError(item)
-        return self._deserialize(sr_value)
+        return self._deserialize_response(sr_value)
 
     def __setitem__(self, key, value):
-        sr_key = self._serialize(key)
-        sr_value = self._serialize(value)
+        sr_key = self._serialize_key(key)
+        sr_value = self._serialize_response(value)
         # randomize cache expiration time (1 hr increments) from 1 hr to 6 mon
         rand_val = randint(1, 4320)
         self.wr_cache.set(sr_key, sr_value, ex=3600 * rand_val)
@@ -67,7 +71,12 @@ class RedisCache:
         while cursor != 0:
             cursor, data = self.wr_cache.scan(cursor)
             for item in data:
-                yield self._deserialize(item)
+                try:
+                    yield self._deserialize_key(item)
+                except json.JSONDecodeError:
+                    # Entry written by a previous, pickle-based version of the
+                    # cache. It will expire on its own; skip it.
+                    continue
 
     @staticmethod
     def _get_connection(host):
@@ -79,11 +88,37 @@ class RedisCache:
         return redis.Redis(**parameters)
 
     @staticmethod
-    def _serialize(item):
-        """Serialize items for storage in Redis"""
-        return pickle.dumps(item)
+    def _serialize_key(key):
+        """Serialize a cache key for storage in Redis"""
+        return json.dumps(key).encode()
 
     @staticmethod
-    def _deserialize(item):
-        """Deserialize items stored in Redis"""
-        return pickle.loads(item)  # noqa: S301
+    def _deserialize_key(key):
+        """Deserialize a cache key stored in Redis"""
+        return json.loads(key)
+
+    @staticmethod
+    def _serialize_response(response):
+        """Serialize a requests.Response-like object for storage in Redis.
+
+        Only the fields needed to rebuild the response are stored (as JSON),
+        rather than pickling the object, so reading the cache can never
+        trigger arbitrary code execution.
+        """
+        payload = {
+            "status_code": response.status_code,
+            "headers": dict(response.headers),
+            "content": base64.b64encode(response.content or b"").decode("ascii"),
+        }
+        return json.dumps(payload).encode()
+
+    @staticmethod
+    def _deserialize_response(item):
+        """Rebuild a requests.Response from its JSON representation"""
+        payload = json.loads(item)
+        response = Response()
+        response.status_code = payload["status_code"]
+        response.headers = CaseInsensitiveDict(payload["headers"])
+        response.encoding = get_encoding_from_headers(response.headers)
+        response._content = base64.b64decode(payload["content"])  # noqa: SLF001
+        return response
