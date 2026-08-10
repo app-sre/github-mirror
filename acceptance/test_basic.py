@@ -19,9 +19,7 @@ def test_get_repo(path, code, cache):
     )
     if cache is not None:
         actual_cache = response.headers.get("X-Cache")
-        assert actual_cache == cache, (
-            f"Expected X-Cache={cache}, got {actual_cache}"
-        )
+        assert actual_cache == cache, f"Expected X-Cache={cache}, got {actual_cache}"
 
 
 if __name__ == "__main__":

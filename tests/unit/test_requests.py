@@ -1,4 +1,5 @@
 # ruff: noqa: SLF001
+import pickle
 from random import randint
 from unittest import (
     TestCase,
@@ -107,6 +108,27 @@ class TestRequestsCache(TestCase):
         self.assertEqual(requests_cache_01.__sizeof__(), RAND_CACHE_SIZE)
 
         self.assertRaises(KeyError, lambda: requests_cache_01["bar"])
+
+    @mock.patch("ghmirror.data_structures.requests_cache.CACHE_TYPE", "redis")
+    @mock.patch(
+        "ghmirror.data_structures.redis_data_structures.REDIS_TOKEN", "mysecret"
+    )
+    @mock.patch("ghmirror.data_structures.redis_data_structures.REDIS_SSL", "True")
+    @mock.patch(
+        "ghmirror.data_structures.redis_data_structures.redis.Redis",
+        side_effect=mocked_redis_cache,
+    )
+    def test_skips_legacy_pickle_entries_on_scan(self, _mock_cache):
+        """Entries written by the old pickle-based cache must not crash iteration."""
+        requests_cache_01 = RequestsCache()
+        requests_cache_01.wr_cache.cache["legacy"] = pickle.dumps("legacy-value")
+        requests_cache_01["foo"] = MockResponse(
+            content="bar", headers={}, status_code=200, text=""
+        )
+
+        keys = list(requests_cache_01)
+        self.assertIn("foo", keys)
+        self.assertNotIn("legacy-value", keys)
 
     @mock.patch("ghmirror.data_structures.requests_cache.CACHE_TYPE", "in-memory")
     def test_interface_in_memory(self):
