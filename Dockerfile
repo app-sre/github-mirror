@@ -1,4 +1,4 @@
-FROM        registry.access.redhat.com/ubi10/python-314-minimal:10.2-1786337987@sha256:e4364007e6aacb1ea280e340b6533bb134c46b6708eb45c86cace36718e8d29a AS builder
+FROM        registry.access.redhat.com/ubi10/python-314-minimal:10.2-1786427708@sha256:35ade79ab473652e587063682ef69cb92387327dc01315c53f83e597932477aa AS builder
 COPY        --from=ghcr.io/astral-sh/uv:0.12.3@sha256:2d890623d310b57771ce840f0da5eed5fc6d657da05ffaa45d82797b53fa3abc /uv /bin/uv
 ENV         UV_PROJECT_ENVIRONMENT=$APP_ROOT \
             UV_COMPILE_BYTECODE=true \
@@ -8,7 +8,7 @@ RUN         uv lock --locked
 COPY        ghmirror ./ghmirror
 RUN         uv sync --frozen --no-group dev
 
-FROM        registry.access.redhat.com/ubi10/python-314-minimal:10.2-1786337987@sha256:e4364007e6aacb1ea280e340b6533bb134c46b6708eb45c86cace36718e8d29a AS prod
+FROM        registry.access.redhat.com/ubi10/python-314-minimal:10.2-1786427708@sha256:35ade79ab473652e587063682ef69cb92387327dc01315c53f83e597932477aa AS prod
 USER        0
 RUN         microdnf upgrade -y && \
             microdnf clean all
