@@ -152,6 +152,12 @@ class InMemoryCache(InMemoryCacheBorg):
     def __getitem__(self, item):
         return self._data[item]["data"]
 
+    def get(self, item, default=None):
+        entry = self._data.get(item)
+        if entry is None:
+            return default
+        return entry["data"]
+
     def __setitem__(self, key, value):
         """Set the key-value pair as well as their total size"""
         key_size = sys.getsizeof(pickle.dumps(key))
@@ -301,6 +307,33 @@ class StatsCache(StatsCacheBorg):
                 ),
             )
 
+        elif item == "github_rtt_histogram":
+            setattr(
+                self,
+                item,
+                Histogram(
+                    name="github_request_latency_seconds",
+                    labelnames=("conditional",),
+                    documentation="GitHub API request latency, labelled by whether the request was conditional (If-None-Match)",
+                    registry=self.registry,
+                    buckets=(
+                        0.05,
+                        0.075,
+                        0.1,
+                        0.2,
+                        0.3,
+                        0.4,
+                        0.5,
+                        0.75,
+                        1.0,
+                        2.5,
+                        5.0,
+                        10.0,
+                        INF,
+                    ),
+                ),
+            )
+
         else:
             raise AttributeError(f"object has no attribute {item}'")
 
@@ -315,6 +348,10 @@ class StatsCache(StatsCacheBorg):
         self.histogram.labels(
             cache=cache, status=status, method=method, user=user
         ).observe(value)
+
+    def observe_github_rtt(self, conditional, value):
+        """Record how long a single GitHub API call took."""
+        self.github_rtt_histogram.labels(conditional=conditional).observe(value)
 
     def set_cache_size(self, value):
         """Convenience method to set the Gauge."""

@@ -41,6 +41,12 @@ class TestStatsCache(TestCase):
         self.assertEqual(stats_cache_01.counter._value._value, 4)
         self.assertEqual(stats_cache_02.counter._value._value, 4)
 
+    @staticmethod
+    def test_observe_github_rtt():
+        stats_cache = StatsCache()
+        stats_cache.observe_github_rtt(conditional=True, value=0.123)
+        stats_cache.observe_github_rtt(conditional=False, value=0.456)
+
 
 class MockResponse:
     def __init__(self, content, headers, status_code, text):
@@ -149,6 +155,36 @@ class TestRequestsCache(TestCase):
 
         self.assertEqual(requests_cache_02["foo"].content, b"bar")
         self.assertEqual(requests_cache_02["foo"].status_code, 200)
+
+    @mock.patch("ghmirror.data_structures.requests_cache.CACHE_TYPE", "redis")
+    @mock.patch(
+        "ghmirror.data_structures.redis_data_structures.REDIS_TOKEN", "mysecret"
+    )
+    @mock.patch("ghmirror.data_structures.redis_data_structures.REDIS_SSL", "True")
+    @mock.patch(
+        "ghmirror.data_structures.redis_data_structures.redis.Redis",
+        side_effect=mocked_redis_cache,
+    )
+    def test_get_redis(self, _mock_cache):
+        requests_cache = RequestsCache()
+        self.assertIsNone(requests_cache.get("missing"))
+        requests_cache["foo"] = MockResponse(
+            content="bar", headers={}, status_code=200, text=""
+        )
+        result = requests_cache.get("foo")
+        self.assertEqual(result.status_code, 200)
+        self.assertEqual(result.content, b"bar")
+
+    @mock.patch("ghmirror.data_structures.requests_cache.CACHE_TYPE", "in-memory")
+    def test_get_in_memory(self):
+        requests_cache = RequestsCache()
+        self.assertIsNone(requests_cache.get("missing"))
+        requests_cache["foo"] = MockResponse(
+            content="bar", headers={}, status_code=200, text=""
+        )
+        result = requests_cache.get("foo")
+        self.assertEqual(result.status_code, 200)
+        self.assertEqual(result.content, b"bar")
 
 
 class TestParseUrlParameters(TestCase):
