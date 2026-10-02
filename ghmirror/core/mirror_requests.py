@@ -17,6 +17,7 @@
 # ruff: noqa: PLR2004
 import hashlib
 import logging
+import time
 
 import requests
 
@@ -24,7 +25,7 @@ from ghmirror.core.constants import (
     PER_PAGE_ELEMENTS,
     REQUESTS_TIMEOUT,
 )
-from ghmirror.data_structures.monostate import GithubStatus
+from ghmirror.data_structures.monostate import GithubStatus, StatsCache
 from ghmirror.data_structures.requests_cache import RequestsCache
 from ghmirror.decorators.metrics import requests_metrics
 
@@ -62,12 +63,17 @@ def _online_request(
 ):
     """Handle API errors on conditional requests and try to serve contents from cache"""
     try:
+        gh_start = time.time()
         resp = session.request(
             method=method,
             url=url,
             headers=headers,
             timeout=REQUESTS_TIMEOUT,
             params=parameters,
+        )
+        StatsCache().observe_github_rtt(
+            conditional=cached_response is not None,
+            value=time.time() - gh_start,
         )
 
         # When we hit the API limit, or there is a problem with the API
@@ -215,9 +221,8 @@ def online_request(session, method, url, auth, data=None, url_params=None):
 
     cache_key = (url, auth_sha)
 
-    cached_response = None
-    if cache_key in cache:
-        cached_response = cache[cache_key]
+    cached_response = cache.get(cache_key)
+    if cached_response is not None:
         etag = cached_response.headers.get("ETag")
         if etag is not None:
             headers["If-None-Match"] = etag
