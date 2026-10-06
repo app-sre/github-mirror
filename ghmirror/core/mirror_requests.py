@@ -62,18 +62,14 @@ def _online_request(
     session, method, url, cached_response, headers=None, parameters=None
 ):
     """Handle API errors on conditional requests and try to serve contents from cache"""
+    gh_start = time.time()
     try:
-        gh_start = time.time()
         resp = session.request(
             method=method,
             url=url,
             headers=headers,
             timeout=REQUESTS_TIMEOUT,
             params=parameters,
-        )
-        StatsCache().observe_github_rtt(
-            conditional=cached_response is not None,
-            value=time.time() - gh_start,
         )
 
         # When we hit the API limit, or there is a problem with the API
@@ -109,6 +105,12 @@ def _online_request(
         LOG.info("API_CONNECTION_ERROR GET CACHE_HIT %s", url)
         cached_response.headers["X-Cache"] = "API_CONNECTION_ERROR_HIT"
         return cached_response
+
+    finally:
+        StatsCache().observe_github_rtt(
+            conditional=cached_response is not None,
+            value=time.time() - gh_start,
+        )
 
 
 def _is_last_full_page(cached_response, per_page_elements) -> bool:
@@ -153,13 +155,19 @@ def _handle_not_changed(
     if _is_last_full_page(cached_response, per_page_elements):
         headers.pop("If-None-Match", None)
         headers.pop("If-Modified-Since", None)
-        resp = session.request(
-            method=method,
-            url=url,
-            headers=headers,
-            timeout=REQUESTS_TIMEOUT,
-            params=parameters,
-        )
+        gh_start = time.time()
+        try:
+            resp = session.request(
+                method=method,
+                url=url,
+                headers=headers,
+                timeout=REQUESTS_TIMEOUT,
+                params=parameters,
+            )
+        finally:
+            StatsCache().observe_github_rtt(
+                conditional=False, value=time.time() - gh_start
+            )
 
         LOG.info("ONLINE GET CACHE_MISS %s", url)
         resp.headers["X-Cache"] = "ONLINE_MISS"
@@ -323,12 +331,12 @@ def offline_request(
 
     cache = RequestsCache()
     cache_key = (url, auth_sha)
-    if cache_key in cache:
+    cached_response = cache.get(cache_key)
+    if cached_response is not None:
         LOG.info("OFFLINE GET CACHE_HIT %s", url)
         # This is the best case: upstream is offline
         # but we have the resource in cache for a given
         # user. We then serve from cache.
-        cached_response = cache[cache_key]
         cached_response.headers["X-Cache"] = "OFFLINE_HIT"
         return cached_response
 

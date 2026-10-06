@@ -351,7 +351,9 @@ class StatsCache(StatsCacheBorg):
 
     def observe_github_rtt(self, conditional, value):
         """Record how long a single GitHub API call took."""
-        self.github_rtt_histogram.labels(conditional=conditional).observe(value)
+        self.github_rtt_histogram.labels(
+            conditional="true" if conditional else "false"
+        ).observe(value)
 
     def set_cache_size(self, value):
         """Convenience method to set the Gauge."""
