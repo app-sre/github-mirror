@@ -7,7 +7,7 @@ from urllib3.util.retry import Retry
 _retry = Retry(
     total=1,
     connect=1,
-    read=1,
+    read=0,
     other=0,
     redirect=0,
     status=0,
