@@ -50,3 +50,6 @@ class RequestsCache:
 
     def __sizeof__(self):  # pragma: no cover
         pass
+
+    def get(self, item, default=None):  # pragma: no cover
+        pass

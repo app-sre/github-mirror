@@ -49,6 +49,13 @@ class RedisCache:
             raise KeyError(item)
         return self._deserialize_response(sr_value)
 
+    def get(self, item, default=None):
+        sr_key = self._serialize_key(item)
+        sr_value = self.ro_cache.get(sr_key)
+        if sr_value is None:
+            return default
+        return self._deserialize_response(sr_value)
+
     def __setitem__(self, key, value):
         sr_key = self._serialize_key(key)
         sr_value = self._serialize_response(value)
