@@ -42,6 +42,20 @@ from ghmirror.core.constants import (
 
 __all__ = ["GithubStatus", "InMemoryCache", "StatsCache", "UsersCache"]
 
+_request_github_rtt = threading.local()
+
+
+def accumulate_github_rtt(value):
+    """Accumulate GitHub RTT for the current request thread."""
+    _request_github_rtt.value = getattr(_request_github_rtt, "value", 0) + value
+
+
+def pop_github_rtt():
+    """Return and reset accumulated GitHub RTT for the current request thread."""
+    value = getattr(_request_github_rtt, "value", 0)
+    _request_github_rtt.value = 0
+    return value
+
 
 logging.basicConfig(level=logging.INFO, format="%(asctime)-15s %(message)s")
 
@@ -334,6 +348,31 @@ class StatsCache(StatsCacheBorg):
                 ),
             )
 
+        elif item == "app_latency_histogram":
+            setattr(
+                self,
+                item,
+                Histogram(
+                    name="app_request_latency_seconds",
+                    labelnames=("cache",),
+                    documentation="App-side request latency excluding upstream GitHub roundtrip",
+                    registry=self.registry,
+                    buckets=(
+                        0.005,
+                        0.010,
+                        0.025,
+                        0.050,
+                        0.075,
+                        0.100,
+                        0.200,
+                        0.300,
+                        0.500,
+                        1.0,
+                        INF,
+                    ),
+                ),
+            )
+
         else:
             raise AttributeError(f"object has no attribute {item}'")
 
@@ -354,6 +393,10 @@ class StatsCache(StatsCacheBorg):
         self.github_rtt_histogram.labels(
             conditional="true" if conditional else "false"
         ).observe(value)
+
+    def observe_app_latency(self, cache, value):
+        """Record app-side latency excluding upstream GitHub roundtrip."""
+        self.app_latency_histogram.labels(cache=cache).observe(value)
 
     def set_cache_size(self, value):
         """Convenience method to set the Gauge."""

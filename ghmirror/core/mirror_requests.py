@@ -25,7 +25,11 @@ from ghmirror.core.constants import (
     PER_PAGE_ELEMENTS,
     REQUESTS_TIMEOUT,
 )
-from ghmirror.data_structures.monostate import GithubStatus, StatsCache
+from ghmirror.data_structures.monostate import (
+    GithubStatus,
+    StatsCache,
+    accumulate_github_rtt,
+)
 from ghmirror.data_structures.requests_cache import RequestsCache
 from ghmirror.decorators.metrics import requests_metrics
 
@@ -107,10 +111,12 @@ def _online_request(
         return cached_response
 
     finally:
+        gh_elapsed = time.time() - gh_start
         StatsCache().observe_github_rtt(
             conditional=cached_response is not None,
-            value=time.time() - gh_start,
+            value=gh_elapsed,
         )
+        accumulate_github_rtt(gh_elapsed)
 
 
 def _is_last_full_page(cached_response, per_page_elements) -> bool:
@@ -165,9 +171,9 @@ def _handle_not_changed(
                 params=parameters,
             )
         finally:
-            StatsCache().observe_github_rtt(
-                conditional=False, value=time.time() - gh_start
-            )
+            gh_elapsed = time.time() - gh_start
+            StatsCache().observe_github_rtt(conditional=False, value=gh_elapsed)
+            accumulate_github_rtt(gh_elapsed)
 
         LOG.info("ONLINE GET CACHE_MISS %s", url)
         resp.headers["X-Cache"] = "ONLINE_MISS"

@@ -22,6 +22,7 @@ import flask
 from ghmirror.data_structures.monostate import (
     StatsCache,
     UsersCache,
+    pop_github_rtt,
 )
 
 STATS_CACHE = StatsCache()
@@ -65,6 +66,13 @@ def requests_metrics(function):
             value=elapsed_time,
             method=flask.request.method,
             user=user,
+        )
+
+        # App-side latency: total minus time spent waiting for GitHub
+        github_rtt = pop_github_rtt()
+        STATS_CACHE.observe_app_latency(
+            cache=cache,
+            value=max(0.0, elapsed_time - github_rtt),
         )
 
         return response
