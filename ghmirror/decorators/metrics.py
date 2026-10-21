@@ -33,11 +33,11 @@ def requests_metrics(function):
 
     @wraps(function)
     def wrapper(*args, **kwargs):
-        start = time.time()
+        start = time.perf_counter()
         response = function(*args, **kwargs)
 
         # This is the total time spent to process the request
-        elapsed_time = time.time() - start
+        elapsed_time = time.perf_counter() - start
 
         # Incrementing the total requests couter
         STATS_CACHE.count()
@@ -68,8 +68,9 @@ def requests_metrics(function):
             user=user,
         )
 
-        # App-side latency: total minus time spent waiting for GitHub
+        # New unified phase histogram (additive — keeps request_latency_seconds above alive)
         github_rtt = pop_github_rtt()
+        STATS_CACHE.observe_total_latency(cache=cache, value=elapsed_time)
         STATS_CACHE.observe_app_latency(
             cache=cache,
             value=max(0.0, elapsed_time - github_rtt),

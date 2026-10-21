@@ -21,6 +21,7 @@ import pickle
 import sys
 import threading
 import time
+from contextvars import ContextVar
 
 import requests
 from prometheus_client import (
@@ -42,18 +43,18 @@ from ghmirror.core.constants import (
 
 __all__ = ["GithubStatus", "InMemoryCache", "StatsCache", "UsersCache"]
 
-_request_github_rtt = threading.local()
+_request_github_rtt: ContextVar[float] = ContextVar("github_rtt", default=0.0)
 
 
 def accumulate_github_rtt(value):
-    """Accumulate GitHub RTT for the current request thread."""
-    _request_github_rtt.value = getattr(_request_github_rtt, "value", 0) + value
+    """Accumulate GitHub RTT for the current request context."""
+    _request_github_rtt.set(_request_github_rtt.get() + value)
 
 
 def pop_github_rtt():
-    """Return and reset accumulated GitHub RTT for the current request thread."""
-    value = getattr(_request_github_rtt, "value", 0)
-    _request_github_rtt.value = 0
+    """Return and reset accumulated GitHub RTT for the current request context."""
+    value = _request_github_rtt.get()
+    _request_github_rtt.set(0.0)
     return value
 
 
@@ -321,41 +322,18 @@ class StatsCache(StatsCacheBorg):
                 ),
             )
 
-        elif item == "github_rtt_histogram":
+        elif item == "request_duration_histogram":
             setattr(
                 self,
                 item,
                 Histogram(
-                    name="github_request_latency_seconds",
-                    labelnames=("conditional",),
-                    documentation="GitHub API request latency, labelled by whether the request was conditional (If-None-Match)",
-                    registry=self.registry,
-                    buckets=(
-                        0.05,
-                        0.075,
-                        0.1,
-                        0.2,
-                        0.3,
-                        0.4,
-                        0.5,
-                        0.75,
-                        1.0,
-                        2.5,
-                        5.0,
-                        10.0,
-                        INF,
+                    name="github_mirror_request_duration_seconds",
+                    labelnames=("phase", "cache"),
+                    documentation=(
+                        "Request duration broken down by phase: "
+                        "total (end-to-end), github (upstream roundtrip), "
+                        "app (processing excluding GitHub)"
                     ),
-                ),
-            )
-
-        elif item == "app_latency_histogram":
-            setattr(
-                self,
-                item,
-                Histogram(
-                    name="app_request_latency_seconds",
-                    labelnames=("cache",),
-                    documentation="App-side request latency excluding upstream GitHub roundtrip",
                     registry=self.registry,
                     buckets=(
                         0.005,
@@ -367,7 +345,11 @@ class StatsCache(StatsCacheBorg):
                         0.200,
                         0.300,
                         0.500,
+                        0.750,
                         1.0,
+                        2.5,
+                        5.0,
+                        10.0,
                         INF,
                     ),
                 ),
@@ -390,13 +372,20 @@ class StatsCache(StatsCacheBorg):
 
     def observe_github_rtt(self, conditional, value):
         """Record how long a single GitHub API call took."""
-        self.github_rtt_histogram.labels(
-            conditional="true" if conditional else "false"
-        ).observe(value)
+        cache = "ONLINE_HIT" if conditional else "ONLINE_MISS"
+        self.request_duration_histogram.labels(phase="github", cache=cache).observe(
+            value
+        )
 
     def observe_app_latency(self, cache, value):
         """Record app-side latency excluding upstream GitHub roundtrip."""
-        self.app_latency_histogram.labels(cache=cache).observe(value)
+        self.request_duration_histogram.labels(phase="app", cache=cache).observe(value)
+
+    def observe_total_latency(self, cache, value):
+        """Record total end-to-end request latency."""
+        self.request_duration_histogram.labels(phase="total", cache=cache).observe(
+            value
+        )
 
     def set_cache_size(self, value):
         """Convenience method to set the Gauge."""

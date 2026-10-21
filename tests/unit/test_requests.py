@@ -47,6 +47,16 @@ class TestStatsCache(TestCase):
         stats_cache.observe_github_rtt(conditional=True, value=0.123)
         stats_cache.observe_github_rtt(conditional=False, value=0.456)
 
+    @staticmethod
+    def test_observe_app_latency():
+        stats_cache = StatsCache()
+        stats_cache.observe_app_latency(cache="ONLINE_MISS", value=0.013)
+
+    @staticmethod
+    def test_observe_total_latency():
+        stats_cache = StatsCache()
+        stats_cache.observe_total_latency(cache="ONLINE_MISS", value=0.684)
+
 
 class MockResponse:
     def __init__(self, content, headers, status_code, text):
