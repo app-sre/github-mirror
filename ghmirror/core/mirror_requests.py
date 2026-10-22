@@ -25,7 +25,10 @@ from ghmirror.core.constants import (
     PER_PAGE_ELEMENTS,
     REQUESTS_TIMEOUT,
 )
-from ghmirror.data_structures.monostate import GithubStatus, StatsCache
+from ghmirror.data_structures.monostate import (
+    GithubStatus,
+    accumulate_github_rtt,
+)
 from ghmirror.data_structures.requests_cache import RequestsCache
 from ghmirror.decorators.metrics import requests_metrics
 
@@ -62,7 +65,7 @@ def _online_request(
     session, method, url, cached_response, headers=None, parameters=None
 ):
     """Handle API errors on conditional requests and try to serve contents from cache"""
-    gh_start = time.time()
+    gh_start = time.perf_counter()
     try:
         resp = session.request(
             method=method,
@@ -107,10 +110,8 @@ def _online_request(
         return cached_response
 
     finally:
-        StatsCache().observe_github_rtt(
-            conditional=cached_response is not None,
-            value=time.time() - gh_start,
-        )
+        gh_elapsed = time.perf_counter() - gh_start
+        accumulate_github_rtt(gh_elapsed)
 
 
 def _is_last_full_page(cached_response, per_page_elements) -> bool:
@@ -155,7 +156,7 @@ def _handle_not_changed(
     if _is_last_full_page(cached_response, per_page_elements):
         headers.pop("If-None-Match", None)
         headers.pop("If-Modified-Since", None)
-        gh_start = time.time()
+        gh_start = time.perf_counter()
         try:
             resp = session.request(
                 method=method,
@@ -165,9 +166,8 @@ def _handle_not_changed(
                 params=parameters,
             )
         finally:
-            StatsCache().observe_github_rtt(
-                conditional=False, value=time.time() - gh_start
-            )
+            gh_elapsed = time.perf_counter() - gh_start
+            accumulate_github_rtt(gh_elapsed)
 
         LOG.info("ONLINE GET CACHE_MISS %s", url)
         resp.headers["X-Cache"] = "ONLINE_MISS"
@@ -211,19 +211,21 @@ def online_request(session, method, url, auth, data=None, url_params=None):
 
     # Special case for non-GET requests
     if method != "GET":
-        # Just forward the request with the auth header
-        resp = session.request(
-            method=method,
-            url=url,
-            headers=headers,
-            data=data,
-            timeout=REQUESTS_TIMEOUT,
-            params=parameters,
-        )
+        gh_start = time.perf_counter()
+        try:
+            resp = session.request(
+                method=method,
+                url=url,
+                headers=headers,
+                data=data,
+                timeout=REQUESTS_TIMEOUT,
+                params=parameters,
+            )
+        finally:
+            gh_elapsed = time.perf_counter() - gh_start
+            accumulate_github_rtt(gh_elapsed)
 
         LOG.info("ONLINE %s CACHE_MISS %s", method, url)
-        # And just forward the response (with the
-        # cache-miss header, for metrics)
         resp.headers["X-Cache"] = "ONLINE_MISS"
         return resp
 

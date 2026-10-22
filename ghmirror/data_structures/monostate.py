@@ -21,6 +21,7 @@ import pickle
 import sys
 import threading
 import time
+from contextvars import ContextVar
 
 import requests
 from prometheus_client import (
@@ -41,6 +42,13 @@ from ghmirror.core.constants import (
 )
 
 __all__ = ["GithubStatus", "InMemoryCache", "StatsCache", "UsersCache"]
+
+request_github_rtt: ContextVar[float] = ContextVar("github_rtt", default=0.0)
+
+
+def accumulate_github_rtt(value):
+    """Accumulate GitHub RTT for the current request context."""
+    request_github_rtt.set(request_github_rtt.get() + value)
 
 
 logging.basicConfig(level=logging.INFO, format="%(asctime)-15s %(message)s")
@@ -307,24 +315,30 @@ class StatsCache(StatsCacheBorg):
                 ),
             )
 
-        elif item == "github_rtt_histogram":
+        elif item == "request_duration_histogram":
             setattr(
                 self,
                 item,
                 Histogram(
-                    name="github_request_latency_seconds",
-                    labelnames=("conditional",),
-                    documentation="GitHub API request latency, labelled by whether the request was conditional (If-None-Match)",
+                    name="github_mirror_request_duration_seconds",
+                    labelnames=("phase", "cache"),
+                    documentation=(
+                        "Request duration broken down by phase: "
+                        "total (end-to-end), github (upstream roundtrip), "
+                        "app (processing excluding GitHub)"
+                    ),
                     registry=self.registry,
                     buckets=(
-                        0.05,
+                        0.005,
+                        0.010,
+                        0.025,
+                        0.050,
                         0.075,
-                        0.1,
-                        0.2,
-                        0.3,
-                        0.4,
-                        0.5,
-                        0.75,
+                        0.100,
+                        0.200,
+                        0.300,
+                        0.500,
+                        0.750,
                         1.0,
                         2.5,
                         5.0,
@@ -349,11 +363,21 @@ class StatsCache(StatsCacheBorg):
             cache=cache, status=status, method=method, user=user
         ).observe(value)
 
-    def observe_github_rtt(self, conditional, value):
-        """Record how long a single GitHub API call took."""
-        self.github_rtt_histogram.labels(
-            conditional="true" if conditional else "false"
-        ).observe(value)
+    def observe_github_latency(self, cache, value):
+        """Record total accumulated GitHub upstream time for the request."""
+        self.request_duration_histogram.labels(phase="github", cache=cache).observe(
+            value
+        )
+
+    def observe_app_latency(self, cache, value):
+        """Record app-side latency excluding upstream GitHub roundtrip."""
+        self.request_duration_histogram.labels(phase="app", cache=cache).observe(value)
+
+    def observe_total_latency(self, cache, value):
+        """Record total end-to-end request latency."""
+        self.request_duration_histogram.labels(phase="total", cache=cache).observe(
+            value
+        )
 
     def set_cache_size(self, value):
         """Convenience method to set the Gauge."""

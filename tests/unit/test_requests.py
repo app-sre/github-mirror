@@ -42,10 +42,20 @@ class TestStatsCache(TestCase):
         self.assertEqual(stats_cache_02.counter._value._value, 4)
 
     @staticmethod
-    def test_observe_github_rtt():
+    def test_observe_github_latency():
         stats_cache = StatsCache()
-        stats_cache.observe_github_rtt(conditional=True, value=0.123)
-        stats_cache.observe_github_rtt(conditional=False, value=0.456)
+        stats_cache.observe_github_latency(cache="ONLINE_HIT", value=0.123)
+        stats_cache.observe_github_latency(cache="ONLINE_MISS", value=0.456)
+
+    @staticmethod
+    def test_observe_app_latency():
+        stats_cache = StatsCache()
+        stats_cache.observe_app_latency(cache="ONLINE_MISS", value=0.013)
+
+    @staticmethod
+    def test_observe_total_latency():
+        stats_cache = StatsCache()
+        stats_cache.observe_total_latency(cache="ONLINE_MISS", value=0.684)
 
 
 class MockResponse:
