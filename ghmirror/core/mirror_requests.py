@@ -27,7 +27,6 @@ from ghmirror.core.constants import (
 )
 from ghmirror.data_structures.monostate import (
     GithubStatus,
-    StatsCache,
     accumulate_github_rtt,
 )
 from ghmirror.data_structures.requests_cache import RequestsCache
@@ -112,10 +111,6 @@ def _online_request(
 
     finally:
         gh_elapsed = time.perf_counter() - gh_start
-        StatsCache().observe_github_rtt(
-            conditional=cached_response is not None,
-            value=gh_elapsed,
-        )
         accumulate_github_rtt(gh_elapsed)
 
 
@@ -172,7 +167,6 @@ def _handle_not_changed(
             )
         finally:
             gh_elapsed = time.perf_counter() - gh_start
-            StatsCache().observe_github_rtt(conditional=False, value=gh_elapsed)
             accumulate_github_rtt(gh_elapsed)
 
         LOG.info("ONLINE GET CACHE_MISS %s", url)
@@ -229,7 +223,6 @@ def online_request(session, method, url, auth, data=None, url_params=None):
             )
         finally:
             gh_elapsed = time.perf_counter() - gh_start
-            StatsCache().observe_github_rtt(conditional=False, value=gh_elapsed)
             accumulate_github_rtt(gh_elapsed)
 
         LOG.info("ONLINE %s CACHE_MISS %s", method, url)

@@ -13,6 +13,7 @@ from ghmirror.core.constants import (
 from ghmirror.data_structures.monostate import (
     GithubStatus,
     UsersCache,
+    request_github_rtt,
 )
 from ghmirror.utils.wait import wait_for
 
@@ -325,6 +326,38 @@ def test_request_duration_histogram(mock_monitor_session, _mock_get, client):
     metrics_text = str(response.data)
     assert (
         'github_mirror_request_duration_seconds_count{cache="ONLINE_MISS",phase="github"}'
+    ) in metrics_text
+
+
+@mock.patch("ghmirror.data_structures.monostate.requests.Session")
+def test_contextvar_reset_on_failed_request(mock_monitor_session, client):
+    """Regression: stale GitHub RTT from a failed request must not inflate the next request's app latency."""
+    setup_mocked_requests_session_get(
+        mock_monitor_session, mocked_requests_monitor_good
+    )
+
+    # First request: Timeout with empty cache → exception propagates to Flask (500)
+    with mock.patch(
+        "ghmirror.utils.extensions.session.request",
+        side_effect=requests.exceptions.Timeout,
+    ):
+        client.get("/repos/app-sre/github-mirror")
+
+    # Decorator's finally must have reset the ContextVar regardless of the exception
+    assert request_github_rtt.get() == 0.0
+
+    # Second request succeeds; its app phase must not inherit stale RTT
+    with mock.patch(
+        "ghmirror.utils.extensions.session.request",
+        side_effect=mocked_requests_get_etag,
+    ):
+        response = client.get("/repos/app-sre/github-mirror")
+
+    assert response.status_code == 200
+    response = client.get("/metrics")
+    metrics_text = str(response.data)
+    assert (
+        'github_mirror_request_duration_seconds_count{cache="ONLINE_MISS",phase="app"} 1.0'
     ) in metrics_text
 
 

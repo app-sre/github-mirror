@@ -43,19 +43,12 @@ from ghmirror.core.constants import (
 
 __all__ = ["GithubStatus", "InMemoryCache", "StatsCache", "UsersCache"]
 
-_request_github_rtt: ContextVar[float] = ContextVar("github_rtt", default=0.0)
+request_github_rtt: ContextVar[float] = ContextVar("github_rtt", default=0.0)
 
 
 def accumulate_github_rtt(value):
     """Accumulate GitHub RTT for the current request context."""
-    _request_github_rtt.set(_request_github_rtt.get() + value)
-
-
-def pop_github_rtt():
-    """Return and reset accumulated GitHub RTT for the current request context."""
-    value = _request_github_rtt.get()
-    _request_github_rtt.set(0.0)
-    return value
+    request_github_rtt.set(request_github_rtt.get() + value)
 
 
 logging.basicConfig(level=logging.INFO, format="%(asctime)-15s %(message)s")
@@ -370,9 +363,8 @@ class StatsCache(StatsCacheBorg):
             cache=cache, status=status, method=method, user=user
         ).observe(value)
 
-    def observe_github_rtt(self, conditional, value):
-        """Record how long a single GitHub API call took."""
-        cache = "ONLINE_HIT" if conditional else "ONLINE_MISS"
+    def observe_github_latency(self, cache, value):
+        """Record total accumulated GitHub upstream time for the request."""
         self.request_duration_histogram.labels(phase="github", cache=cache).observe(
             value
         )

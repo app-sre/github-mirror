@@ -22,7 +22,7 @@ import flask
 from ghmirror.data_structures.monostate import (
     StatsCache,
     UsersCache,
-    pop_github_rtt,
+    request_github_rtt,
 )
 
 STATS_CACHE = StatsCache()
@@ -33,13 +33,18 @@ def requests_metrics(function):
 
     @wraps(function)
     def wrapper(*args, **kwargs):
+        token = request_github_rtt.set(0.0)
         start = time.perf_counter()
-        response = function(*args, **kwargs)
+        try:
+            response = function(*args, **kwargs)
+        finally:
+            github_rtt = request_github_rtt.get()
+            request_github_rtt.reset(token)
 
         # This is the total time spent to process the request
         elapsed_time = time.perf_counter() - start
 
-        # Incrementing the total requests couter
+        # Incrementing the total requests counter
         STATS_CACHE.count()
 
         # The X-Cache header is added by the flask APP
@@ -69,7 +74,8 @@ def requests_metrics(function):
         )
 
         # New unified phase histogram (additive — keeps request_latency_seconds above alive)
-        github_rtt = pop_github_rtt()
+        # All three phases share the same cache label and fire exactly once per request.
+        STATS_CACHE.observe_github_latency(cache=cache, value=github_rtt)
         STATS_CACHE.observe_total_latency(cache=cache, value=elapsed_time)
         STATS_CACHE.observe_app_latency(
             cache=cache,
