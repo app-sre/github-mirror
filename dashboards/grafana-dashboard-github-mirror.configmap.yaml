@@ -98,7 +98,7 @@ data:
                 "uid": "P7E8E1698DF0AC988"
               },
               "editorMode": "code",
-              "expr": "sum(rate(request_latency_seconds_bucket{endpoint=\"github-mirror\", cache=\"ONLINE_HIT\", le=\"0.5\"}[28d])) / sum(rate(request_latency_seconds_bucket{endpoint=\"github-mirror\", cache=\"ONLINE_HIT\" , le=\"+Inf\"}[28d])) ",
+              "expr": "sum(rate(github_mirror_request_duration_seconds_bucket{endpoint=\"github-mirror\", phase=\"app\", cache=\"ONLINE_HIT\", le=\"0.1\"}[28d])) / sum(rate(github_mirror_request_duration_seconds_bucket{endpoint=\"github-mirror\", phase=\"app\", cache=\"ONLINE_HIT\", le=\"+Inf\"}[28d]))",
               "instant": false,
               "legendFormat": "__auto",
               "range": true,
@@ -1210,28 +1210,28 @@ data:
               "datasource": {
                 "uid": "$datasource"
               },
-              "expr": "histogram_quantile(0.5, sum(rate(request_latency_seconds_bucket{endpoint=\"github-mirror\"}[5m])) by (le))",
+              "expr": "histogram_quantile(0.99, sum(rate(github_mirror_request_duration_seconds_bucket{endpoint=\"github-mirror\", cache=\"ONLINE_HIT\", phase=\"total\"}[5m])) by (le))",
               "hide": false,
-              "legendFormat": "p50",
-              "refId": "C"
-            },
-            {
-              "datasource": {
-                "uid": "$datasource"
-              },
-              "expr": "histogram_quantile(0.95, sum(rate(request_latency_seconds_bucket{endpoint=\"github-mirror\"}[5m])) by (le))",
-              "hide": false,
-              "legendFormat": "p95",
+              "legendFormat": "p99 total",
               "refId": "A"
             },
             {
               "datasource": {
                 "uid": "$datasource"
               },
-              "expr": "histogram_quantile(0.99, sum(rate(request_latency_seconds_bucket{endpoint=\"github-mirror\"}[5m])) by (le))",
+              "expr": "histogram_quantile(0.99, sum(rate(github_mirror_request_duration_seconds_bucket{endpoint=\"github-mirror\", cache=\"ONLINE_HIT\", phase=\"github\"}[5m])) by (le))",
               "hide": false,
-              "legendFormat": "p99",
+              "legendFormat": "p99 github",
               "refId": "B"
+            },
+            {
+              "datasource": {
+                "uid": "$datasource"
+              },
+              "expr": "histogram_quantile(0.99, sum(rate(github_mirror_request_duration_seconds_bucket{endpoint=\"github-mirror\", cache=\"ONLINE_HIT\", phase=\"app\"}[5m])) by (le))",
+              "hide": false,
+              "legendFormat": "p99 app",
+              "refId": "C"
             }
           ],
           "title": "Latencies",
